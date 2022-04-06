@@ -8,7 +8,7 @@ filedir = fileDirCreator(answer);
 
 %% Make variables and read in images
 
-cfgExp = varIntro(answer);  % introduce experiment variables
+cfgExp = initialise_variables(answer);  % introduce experiment variables
 cfgTrigger = triggerIntro;  % introduce triggers
 cfgStim = visStimReader(filedir,cfgExp);  % randomly read visual stimuli and cues for all trials
 cfgScreen = screenVars(cfgExp);  % introduce visual variables
@@ -22,8 +22,8 @@ cfgScreen = screenBscSetup(cfgScreen, window);
 
 presentingStr = imgMakeTxture(window, cfgStim);  % make texture for visual stim and cue
 cfgScreen = fixDotChar(windowRect, cfgScreen);  % characteristics of fixation dot
-cfgScreen = rectVisStimDest(cfgScreen, windowRect);  % destination rectangle to present the stimulus
 cfgExp = time2frame(cfgExp, cfgScreen);  % time and frame conversions
+cfgScreen = visual_stim_properties(cfgScreen, cfgExp, windowRect);  % destination rectangle to present the stimulus
 cfgTrigger = triggerInit(cfgExp, cfgTrigger);  % initiate triggers
 %% Main Experiment
 
@@ -51,7 +51,7 @@ for blk = 1:2
         dispFixDot(window, cfgScreen, cfgExp, nstim, 0);  % 0 indicated it is not ITI (it is ISI)
         
         % present visual stimulus with/without red flash dot
-        cfgOutput = dispVisStim(window, presentingStr, nstim, cfgScreen, cfgExp, cfgOutput, cfgStim, cfgTrigger);
+        cfgOutput = display_visual_stim(window, presentingStr, nstim, cfgScreen, cfgExp, cfgOutput, cfgStim, cfgTrigger);
 
         % listen for a response cfgExp
         cfgOutput = responseCollector(cfgExp, cfgOutput, cfgTrigger, nstim, window, cfgTxt, cfgScreen);
