@@ -28,7 +28,7 @@ cfgScreen.cueToB = [0, 2, 0, 2];  % how many visual degrees from centre is cue p
 cfgScreen.backProjection = 0;  % is a backprojection screen used? (1 = yes, 0 = no),
 
 if cfgExp.task || cfgExp.train
-        cfgScreen.fullScrn = [];  % full screen for task/ train
+        cfgScreen.fullScrn = [0, 0, cfgScreen.resolution.width, cfgScreen.resolution.height];  % full screen for task/ train
 else
         cfgScreen.fullScrn = [300, 300, 900, 900];  % use a smaller screen during testing
 end

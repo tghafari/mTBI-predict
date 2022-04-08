@@ -1,10 +1,10 @@
-function cfgStim = visStimReader(filedir, cfgExp)
+function cfgStim = visStimReader(cfgFile, cfgExp)
 % [visStim, faceRand]=visStimReader(fileDirStim,numStim)
 % randomly reads the visual stimuli
 % inputs are the directory of stimuli images and number of trials/stim
 
-fileDirStim = dir(filedir.stim); 
-fileDirCue = dir(filedir.cue); 
+fileDirStim = dir(cfgFile.stim); 
+fileDirCue = dir(cfgFile.cue); 
 
 rng('shuffle')
 cfgStim.visRndIdxR = randperm(length(fileDirStim)-2, cfgExp.numStim + 2);  % make random index to read the images for right (+2 is for making up for the 2 unwanted files)

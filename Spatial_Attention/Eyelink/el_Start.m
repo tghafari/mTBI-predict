@@ -1,4 +1,4 @@
-function cfg = el_Start(cfg)
+function cfgEyelink = el_Start(cfgScreen)
 % Used in FG experiment
 % Open screen for calibration, calibrate and start recording
 
@@ -8,7 +8,7 @@ try
     % Open a graphics window on the main screen
     % using the PsychToolbox's Screen function.    
     % use the shrunk version of the window
-    window=Screen('OpenWindow', cfg.screenNumber, [] ,cfg.el_rect);
+    window = Screen('OpenWindow', cfgScreen.scrNum, [] ,cfgScreen.fullScrn);
     
     
     % STEP 2
@@ -17,7 +17,7 @@ try
     % in a structure that also contains useful defaults
     % and control codes (e.g. tracker state bit and Eyelink key values).
     % Psychtoolbox defaults function
-    cfg.el.defaults = EyelinkInitDefaults(window);
+    cfgEyelink.defaults = EyelinkInitDefaults(window);
     
     % Disable key output to Matlab window:
     % ListenChar(2);

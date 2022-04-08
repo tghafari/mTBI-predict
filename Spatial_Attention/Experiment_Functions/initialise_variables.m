@@ -1,5 +1,5 @@
-function cfgExp = initialise_variables(answer)
-% cfgExp = initialise_variables(answer)
+function cfgExp = initialise_variables(cfgExp)
+% cfgExp = initialise_variables(cfgExp)
 % Introduces variables of interest for SpAtt task
 % to change any repetition you should edit this function
 
@@ -16,9 +16,9 @@ cfgExp.corrResp = ones(cfgExp.numStim,1);  % 1=>target present 0=>catch trials
 cfgExp.corrResp(2:10:end,:) = 0; 
 cfgExp.respTimOut = 500;  % time during which subject can respond in ms
 
-if strcmp(answer.pc,'MEG'), cfgExp.MEGLab = 1; else, cfgExp.MEGLab = 0; end  % MEG lab computer-> 1 PC-> 0
-if strcmp(answer.task,'task'), cfgExp.task = 1; else, cfgExp.task = 0; end  % are we collecting data and running the task?
-if strcmp(answer.task,'train'), cfgExp.train = 1; else, cfgExp.train = 0; end  % are we training the participant?
+if strcmp(cfgExp.answer.pc,'MEG'), cfgExp.MEGLab = 1; else, cfgExp.MEGLab = 0; end  % MEG lab computer-> 1 PC-> 0
+if strcmp(cfgExp.answer.task,'task'), cfgExp.task = 1; else, cfgExp.task = 0; end  % are we collecting data and running the task?
+if strcmp(cfgExp.answer.task,'train'), cfgExp.train = 1; else, cfgExp.train = 0; end  % are we training the participant?
 
 end
 

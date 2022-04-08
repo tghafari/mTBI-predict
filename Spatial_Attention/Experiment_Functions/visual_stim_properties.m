@@ -25,9 +25,9 @@ cfgScreen.destCue = CenterRect(rectCue, windowRect) + angle2pix(cfgScreen, cfgSc
 
 % rotation angle of visual stimulus
 for stm = 1:length(cfgExp.stimFrm)
-    cfgScreen.stimAngleR{stm} = repmat(0:cfgExp.stimFrm(stm):360,1,floor(cfgExp.stimSpeedFrm*cfgExp.stimFrm(stm)));  % rotation angle for right stim
-    cfgScreen.stimAngleL{stm} = repmat(360:-cfgExp.stimFrm(stm):0,1,floor(cfgExp.stimSpeedFrm*cfgExp.stimFrm(stm)));  % ritation anfle for left stim
-end
+    cfgScreen.stimAngleR{stm} = repmat(0:cfgExp.stimSpeedFrm-5:360,1,ceil(cfgExp.stimFrm(stm)/cfgExp.stimSpeedFrm));  % every cfgExp.stimSpeedFrm = one complete rotation
+    cfgScreen.stimAngleL{stm} = repmat(360:-(cfgExp.stimSpeedFrm-5):0,1,ceil(cfgExp.stimFrm(stm)/cfgExp.stimSpeedFrm));  
+ end
 
 end
 

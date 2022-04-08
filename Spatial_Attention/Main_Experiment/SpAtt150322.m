@@ -1,27 +1,27 @@
 %% Basic Setup
 
-expBasicSetup  % basic PTB setup and clearing up
+basic_setup_experiment  % basic PTB setup and clearing up
 %% Input and OS folder preparations
 
-answer = inputPrompt;
-filedir = fileDirCreator(answer);
-
+cfgExp.answer = inputPrompt;
+cfgFile = create_file_directory(cfgExp);
 %% Make variables and read in images
 
-cfgExp = initialise_variables(answer);  % introduce experiment variables
-cfgTrigger = triggerIntro;  % introduce triggers
-cfgStim = visStimReader(filedir,cfgExp);  % randomly read visual stimuli and cues for all trials
+cfgExp = initialise_variables(cfgExp);  % introduce experiment variables
+cfgTrigger = introduce_triggers;  % introduce triggers
+cfgStim = visStimReader(cfgFile,cfgExp);  % randomly read visual stimuli and cues for all trials
 cfgScreen = screenVars(cfgExp);  % introduce visual variables
 datapixxSetup(cfgExp, cfgScreen)  % sets up propixx
 cfgTxt = txt_collection;  % collection of all texts
 %% Screen Setup
 
 [window, windowRect] = PsychImaging('OpenWindow', cfgScreen.scrNum, cfgScreen.black, cfgScreen.fullScrn);  % open an on screen window and color it gray
-cfgScreen = screenBscSetup(cfgScreen, window);
+cfgScreen = basic_setup_screen(cfgScreen, window);
+initialise_eyelink(cfgEyelink);  % initialise eyelink
 %% Visual stimulus and fixation cross characteristics and hardware timing
 
-presentingStr = imgMakeTxture(window, cfgStim);  % make texture for visual stim and cue
-cfgScreen = fixDotChar(windowRect, cfgScreen);  % characteristics of fixation dot
+presentingStr = make_texture_images(window, cfgStim);  % make texture for visual stim and cue
+cfgScreen = fix_dot_properties(windowRect, cfgScreen);  % characteristics of fixation dot
 cfgExp = time2frame(cfgExp, cfgScreen);  % time and frame conversions
 cfgScreen = visual_stim_properties(cfgScreen, cfgExp, windowRect);  % destination rectangle to present the stimulus
 cfgTrigger = triggerInit(cfgExp, cfgTrigger);  % initiate triggers
