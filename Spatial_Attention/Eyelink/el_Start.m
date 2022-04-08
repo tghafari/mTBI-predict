@@ -1,88 +1,46 @@
-function cfgEyelink = el_Start(cfgScreen)
-% Used in FG experiment
+function cfgEyelink = el_start(cfgEyelink, cfgScreen, cfgFile)
+% cfgEyelink = el_start(cfgEyelink, cfgScreen, cfgFile)
 % Open screen for calibration, calibrate and start recording
 
-
 try
-    % STEP 1
-    % Open a graphics window on the main screen
-    % using the PsychToolbox's Screen function.    
-    % use the shrunk version of the window
-    window = Screen('OpenWindow', cfgScreen.scrNum, [] ,cfgScreen.fullScrn);
+    window_EL = Screen('OpenWindow', cfgScreen.scrNum, [], cfgScreen.fullScrn);
+    cfgEyelink.defaults = EyelinkInitDefaults(window_EL);  % details about the graphics environment and initializations
+    ListenChar(2);  % disable key output to Matlab window:--> decide later
     
-    
-    % STEP 2
-    % Provide Eyelink with details about the graphics environment
-    % and perform some initializations. The information is returned
-    % in a structure that also contains useful defaults
-    % and control codes (e.g. tracker state bit and Eyelink key values).
-    % Psychtoolbox defaults function
-    cfgEyelink.defaults = EyelinkInitDefaults(window);
-    
-    % Disable key output to Matlab window:
-    % ListenChar(2);
-    
-    % STEP 3
-    % Initialization of the connection with the Eyelink Gazetracker.
-    % exit program if this fails.
-    if ~EyelinkInit
+    if ~EyelinkInit  % initialise the connection with the Eyelink 
         fprintf('Eyelink Init aborted.\n');
-        cleanup;  % cleanup function
+        cleanup
         return;
     else
         disp('Eyelink initizalized')
     end
     
-    % open file to record data to
-    disp('Opening EDF file');
-    status=Eyelink('Openfile', cfg.el.edffile);
-    
+    status = Eyelink('Openfile', cfgFile.edfFile(:,2:end-7));  % open edf file to record data to--> check if needs .edf
     if ~status
         disp('EDF file opened on Eyelink computer')
     else
         error(['Could not open EDF file on Eyelink computer, error: ' int2str(status)])
     end
     
-    % set custom parameters
-    disp('Setting parameters')
-    cfg=el_Set_Params(cfg);
-        
-    % Calibrate the eye tracker
-    disp('Starting calibration')
-    EyelinkDoTrackerSetup(cfg.el.defaults);
-    
-    % do a final check of calibration using driftcorrection
-    %     EyelinkDoDriftCorrection(el);
-    
-    % STEP 5
-    % start recording eye position
-    disp('Start recording')
-    sca
+    cfgEyelink = el_set_parameters(cfgEyelink, cfgScreen);  % set custom parameters
+    EyelinkDoTrackerSetup(cfgEyelink.defaults);   % calibrate the eye tracker
+    Screen('Close', window_EL);  % close eyelink screen
     Eyelink('StartRecording');
-    % record a few samples before we actually start displaying
-    WaitSecs(0.1);
-    % mark zero-plot time in data file
-    disp('Sending message')
-    Eyelink('Message', 'SYNCTIME');
-    
-    sca
+    WaitSecs(0.1);  % record a few samples before we actually start displaying
+    Eyelink('Message', 'SYNCTIME');  % mark zero-plot time in data file
     ListenChar(0);    
+    
 catch
-    %this "catch" section executes in case of an error in the "try" section
-    %above.  Importantly, it closes the onscreen window if its open.
-    cleanup;
+    warning('error is in el_start')
+    cleanup
     psychrethrow(psychlasterror);
-end %try..catch.
+end 
 
 
-% Cleanup routine:
 function cleanup
-% Shutdown Eyelink:
-Eyelink('Shutdown');
-
-% Close window:
+%cleanup routin for Eyelink
+Eyelink('Shutdown');  % shutdown Eyelink
 sca;
-
-% Restore keyboard output to Matlab:
-ListenChar(0);
-
+ListenChar(0);  % restore keyboard output to Matlab
+end
+end

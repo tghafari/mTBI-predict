@@ -30,8 +30,8 @@ mkdir([cfgFile.res, 'sub-', cfgExp.answer.sub, filesep, 'ses-', cfgExp.answer.se
 cfgFile.subDir = [cfgFile.res, 'sub-', cfgExp.answer.sub, filesep, 'ses-' cfgExp.answer.ses, filesep, 'meg', filesep];  % store subject directory address
 cfgFile.BIDSname = ['sub-', cfgExp.answer.sub, '_', 'ses-', cfgExp.answer.ses, '_'...
     , 'task-', cfgExp.answer.task, '_', 'run-', cfgExp.answer.run];  % BIDS specific file name
-cfgFile.edfFile = [cfgFile.subDir, cfgFile.BIDSname, '_eyetracking.edf'];  % eyetracking file name
-cfgFile.logFile = [cfgFile.subDir, cfgFile.BIDSname, '_logfile.mat'];  % logfile file name
+cfgFile.edfFile = ['_eyetracking', '.edf'];  % eyetracking file name
+cfgFile.logFile = ['_logfile', '.mat'];  % logfile file name
 
 end
 

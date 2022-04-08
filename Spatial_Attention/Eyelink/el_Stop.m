@@ -1,45 +1,23 @@
-function el_Stop(cfg)
-el=cfg.el;
+function el_stop(cfgFile)
+% el_stop(cfgFile)
+% stop recording eye-movements, save, close graphics window, close data file and shut down tracker
 
-%try
-    % STEP 7
-    % finish up: stop recording eye-movements,
-    % close graphics window, close data file and shut down tracker
-    Eyelink('StopRecording');
-    Eyelink('CloseFile');
-    % download data file
-    %try
-        fprintf('Receiving data file ''%s''\n', cfg.el.edffile);
-        %status=Eyelink('ReceiveFile');
-        status=Eyelink('ReceiveFile',cfg.el.edffile,cfg.el.eyedir,1); %transfer file to experiment directory
-        if status > 0
-            fprintf('ReceiveFile status %d\n', status);
-        end
-        if 2==exist(cfg.el.edffile, 'file')
-            fprintf('Data file ''%s'' can be found in ''%s''\n', cfg.el.edffile, cfg.el.eyedir );
-        end
-%     catch rdf
-%         fprintf('Problem receiving data file ''%s''\n', cfg.edffile );
-%         rdf;
-%     end
-    
-    cleanup;
-    
-% catch
-%     %this "catch" section executes in case of an error in the "try" section
-%     %above.  Importantly, it closes the onscreen window if its open.
-%     cleanup;
-%     psychrethrow(psychlasterror);
-% end %try..catch.
+Eyelink('StopRecording');
+Eyelink('CloseFile');
 
+fprintf('Receiving data file ''%s''\n', cfgFile.edfFile);  % download data file
+status = Eyelink('ReceiveFile', [cfgFile.BIDSname, cfgFile.edfFile], cfgFile.subDir, 1); %transfer file to experiment directory
+if status > 0
+    fprintf('ReceiveFile status %d\n', status);
+end
+cleanup;
 
-% Cleanup routine:
 function cleanup
-% Shutdown Eyelink:
-Eyelink('Shutdown');
+    % Cleanup routine
+    
+    Eyelink('Shutdown');  % shutdown Eyelink
+    sca;
+    ListenChar(0);  % restore keyboard output to Matlab:
+end
 
-% Close window:
-sca;
-
-% Restore keyboard output to Matlab:
-ListenChar(0);
+end

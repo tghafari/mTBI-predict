@@ -1,6 +1,6 @@
 %% Basic Setup
 
-basic_setup_experiment  % basic PTB setup and clearing up
+cfgEyelink = basic_setup_experiment;  % basic PTB setup and clearing up
 %% Input and OS folder preparations
 
 cfgExp.answer = inputPrompt;
@@ -9,15 +9,15 @@ cfgFile = create_file_directory(cfgExp);
 
 cfgExp = initialise_variables(cfgExp);  % introduce experiment variables
 cfgTrigger = introduce_triggers;  % introduce triggers
-cfgStim = visStimReader(cfgFile,cfgExp);  % randomly read visual stimuli and cues for all trials
-cfgScreen = screenVars(cfgExp);  % introduce visual variables
+cfgStim = read_visual_stim(cfgFile,cfgExp);  % randomly read visual stimuli and cues for all trials
+cfgScreen = screen_variables(cfgExp);  % introduce visual variables
 datapixxSetup(cfgExp, cfgScreen)  % sets up propixx
 cfgTxt = txt_collection;  % collection of all texts
 %% Screen Setup
 
 [window, windowRect] = PsychImaging('OpenWindow', cfgScreen.scrNum, cfgScreen.black, cfgScreen.fullScrn);  % open an on screen window and color it gray
 cfgScreen = basic_setup_screen(cfgScreen, window);
-initialise_eyelink(cfgEyelink);  % initialise eyelink
+cfgEyelink = initialise_eyelink(cfgFile, cfgEyelink, cfgScreen);  % initialise eyelink
 %% Visual stimulus and fixation cross characteristics and hardware timing
 
 presentingStr = make_texture_images(window, cfgStim);  % make texture for visual stim and cue

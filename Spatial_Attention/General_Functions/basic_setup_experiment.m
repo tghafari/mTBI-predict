@@ -6,7 +6,7 @@ AssertOpenGL;PsychDefaultSetup(2);
 inp1 = input('Do you want to skip sync test? y/n   ','s');
 if inp1 == 'y'
     skypSinc = 1;
-    warning( 'WARNING: Sync test is skipped! Do not continue if it is an actual recording!');
+    warning('Sync test is skipped! Do not continue if it is an actual recording!');
     m = input('Do you want to continue? y/n   ','s');
     while true
         if m == 'y'
@@ -31,7 +31,7 @@ inp3 = input('Do you want to use Eyelink? y/n   ','s');
 if inp3 == 'y'
     cfgEyelink.on = 1;
 else
-    warning( 'WARNING: Eyelink is off! Do not continue if it is an actual recording!');
+    warning('Eyelink is off! Do not continue if it is an actual recording!');
     m = input('Do you want to continue? y/n   ','s');
     while true
         if m == 'y'
