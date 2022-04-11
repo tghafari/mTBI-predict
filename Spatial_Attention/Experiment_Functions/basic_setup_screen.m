@@ -15,3 +15,9 @@ HideCursor();
 
 end
 
+% %consider adding these
+% %Size of the window
+% [cfg.screen.Xpix, cfg.screen.Ypix]=Screen('WindowSize',window);
+% 
+% %Centre of the window
+% [cfg.screen.xCentre,cfg.screen.yCentre]=RectCenter(windowRect);

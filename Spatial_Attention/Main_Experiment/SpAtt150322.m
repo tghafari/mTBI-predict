@@ -27,7 +27,7 @@ cfgScreen = visual_stim_properties(cfgScreen, cfgExp, windowRect);  % destinatio
 cfgTrigger = triggerInit(cfgExp, cfgTrigger);  % initiate triggers
 %% Main Experiment
 
-cfgExp = KbQueueStarterRoutine(cfgExp);  % start KbQueu routine
+cfgExp = KbQueue_start_routine(cfgExp);  % start KbQueu routine
 cfgScreen.vbl = Screen('Flip',window);  % get the first VBL
 % getReadyTextPresenter(window,black,expDev,condMat); % waits for experimenter's command and gets baseline VBL
 %
@@ -42,10 +42,10 @@ for blk = 1:2
         
         % beginig of blocks fixation dot
         cfgOutput.strtTmPnt(nstim) = triggerSend(cfgTrigger, cfgExp, cfgTrigger.start);
-        dispFixDot(window, cfgScreen, cfgExp, nstim, 1)  % 1 indicated it is ITI
+        display_fixation_dot(window, cfgScreen, cfgExp, nstim, 1)  % 1 indicated it is ITI
         
         % cue presentation
-        cfgOutput = dispCue(window, presentingStr, nstim, cfgScreen, cfgExp, cfgTrigger, cfgOutput);
+        cfgOutput = display_cue(window, presentingStr, nstim, cfgScreen, cfgExp, cfgTrigger, cfgOutput);
         
         % ISI with fixation dot presentation
         dispFixDot(window, cfgScreen, cfgExp, nstim, 0);  % 0 indicated it is not ITI (it is ISI)
@@ -54,7 +54,7 @@ for blk = 1:2
         cfgOutput = display_visual_stim(window, presentingStr, nstim, cfgScreen, cfgExp, cfgOutput, cfgStim, cfgTrigger);
 
         % listen for a response cfgExp
-        cfgOutput = responseCollector(cfgExp, cfgOutput, cfgTrigger, nstim, window, cfgTxt, cfgScreen);
+        cfgOutput = response_collector(cfgExp, cfgOutput, cfgTrigger, nstim, window, cfgTxt, cfgScreen);
          
     end
 end
