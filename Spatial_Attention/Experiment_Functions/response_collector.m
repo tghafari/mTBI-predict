@@ -1,5 +1,5 @@
-function cfgOutput = response_collector(cfgExp, cfgOutput, cfgTrigger, nstim, window, cfgTxt, cfgScreen)
-% cfgOutput = response_collector(cfgExp, cfgOutput, cfgTrigger, nstim, window, cfgTxt, cfgScreen)
+function cfgOutput = response_collector(cfgExp, cfgOutput, cfgTrigger, nstim, cfgTxt, cfgScreen)
+% cfgOutput = response_collector(cfgExp, cfgOutput, cfgTrigger, nstim, cfgTxt, cfgScreen)
 % listens for participant's response
 
 noResp = 1;
@@ -17,9 +17,9 @@ while noResp
         KbQueueFlush;
         noResp = 0;
     elseif presd && keyCod == cfgExp.quitKey
-        Screen('Flip', window);
-        DrawFormattedText(window, cfgTxt.quitTxt, 'center', 'center', [cfgScreen.white, cfgScreen.white, cfgScreen.white]);
-        Screen('Flip', window);
+        Screen('Flip', cfgScreen.window);
+        DrawFormattedText(cfgScreen.window, cfgTxt.quitTxt, 'center', 'center', [cfgScreen.white, cfgScreen.white, cfgScreen.white]);
+        Screen('Flip', cfgScreen.window);
         [~, abrtPrsd] = KbStrokeWait;
         if abrtPrsd(cfgExp.yesKey)
             cfgOutput.abrtTmPoint(nstim) = send_trigger(cfgTrigger, cfgExp, cfgTrigger.off);  % send the quit trigger

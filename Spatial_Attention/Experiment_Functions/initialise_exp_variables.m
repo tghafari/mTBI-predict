@@ -1,5 +1,5 @@
-function cfgExp = initialise_variables(cfgExp)
-% cfgExp = initialise_variables(cfgExp)
+function cfgExp = initialise_exp_variables(cfgExp)
+% cfgExp = initialise_exp_variables(cfgExp)
 % Introduces variables of interest for SpAtt task
 % to change any repetition you should edit this function
 

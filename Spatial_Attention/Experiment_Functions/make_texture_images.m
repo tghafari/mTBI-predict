@@ -1,11 +1,15 @@
-function presentingStr = make_texture_images(window, cfgStim)  
-% presentingStr = make_texture_images(window, cfgStim)   
+function presentingStr = make_texture_images(cfgScreen, cfgStim, cfgExp)  
+% presentingStr = make_texture_images(cfgScreen, cfgStim, cfgExp)   
 % makes textures of visual stim and cue
 
-for readImg = 1:size(cfgStim.visStimR,1)  % create an openGL texture for stim and cue images
-    presentingStr.visStimR{readImg} = Screen('MakeTexture', window, cfgStim.visStimR{readImg});
-    presentingStr.visStimL{readImg} = Screen('MakeTexture', window, cfgStim.visStimL{readImg});
-    presentingStr.cueStim{readImg} = Screen('MakeTexture', window, cfgStim.cueStim{readImg});
+for readImg = 1:size(cfgStim.visStimR,2)  % create an openGL texture for stim images
+    for frm = 1:length(cfgStim.visStimR{readImg})
+    presentingStr.visStimR{readImg}{frm} = Screen('MakeTexture', cfgScreen.window, cfgStim.visStimR{readImg}{frm});
+    presentingStr.visStimL{readImg}{frm} = Screen('MakeTexture', cfgScreen.window, cfgStim.visStimL{readImg}{frm});
+    end
+end
+for stim = 1:cfgExp.numStim  % create an openGL texture for cue images
+    presentingStr.cueStim{stim} = Screen('MakeTexture', cfgScreen.window, cfgStim.cueStim{stim});
 end
 
 end
