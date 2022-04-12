@@ -9,7 +9,7 @@ cfgFile = create_file_directory(cfgExp);
 
 cfgExp = initialise_variables(cfgExp);  % introduce experiment variables
 cfgTrigger = introduce_triggers;  % introduce triggers
-cfgStim = read_visual_stim(cfgFile,cfgExp);  % randomly read visual stimuli and cues for all trials
+cfgStim = read_visual_stim(cfgFile, cfgExp, cfgScreen);  % randomly read visual stimuli and cues for all trials
 cfgScreen = screen_variables(cfgExp);  % introduce visual variables
 setup_datapixx(cfgExp, cfgScreen)  % sets up propixx
 cfgTxt = txt_collection;  % collection of all texts
@@ -23,7 +23,7 @@ cfgScreen = basic_setup_screen(cfgScreen, window);
 presentingStr = make_texture_images(window, cfgStim);  % make texture for visual stim and cue
 cfgScreen = fix_dot_properties(windowRect, cfgScreen);  % characteristics of fixation dot
 cfgExp = time2frame(cfgExp, cfgScreen);  % time and frame conversions
-cfgScreen = visual_stim_properties(cfgScreen, cfgExp, windowRect);  % destination rectangle to present the stimulus
+cfgScreen = visual_stim_properties(cfgScreen, windowRect);  % destination rectangle to present the stimulus
 cfgTrigger = initialise_triggers(cfgExp, cfgTrigger);  % initiate triggers
 %% Main Experiment
 
@@ -35,7 +35,6 @@ cfgScreen.vbl = Screen('Flip',window);  % get the first VBL
 % countDownToStart(window,cfgScreen)
 %
 nstim = 0;  % count number of stimuli in total
-
 for blk = 1:2
     for trl = 1:5
         nstim = nstim + 1;  % count stims presented in total

@@ -7,7 +7,7 @@ cfgExp.ITIFrm =  round(ms2sec(cfgExp.ITIDur) / cfgScreen.ifi);  % ITI duration i
 cfgExp.cueFrm =  round(ms2sec(cfgExp.cueDur) / cfgScreen.ifi);  % cue duration in frames
 cfgExp.ISIFrm =  round(ms2sec(cfgExp.ISIDur) / cfgScreen.ifi);  % ISI duration in frames
 cfgExp.stimFrm = round(ms2sec(cfgExp.stimDur) / cfgScreen.ifi);  % visual stimulus duration in frames
-cfgExp.stimRotSpeedFrm = round(1/cfgScreen.ifi)/cfgScreen.stimRotSpeed;  % number of frames in a 360-degree rotation
+% cfgExp.stimRotSpeedFrm = round(1/cfgScreen.ifi)/cfgScreen.stimRotSpeed;  % number of frames in a 360-degree rotation
 cfgExp.dotFrm =  round(ms2sec(cfgExp.dotDur) / cfgScreen.ifi);  % dot duration in frames
 cfgExp.respTimOutFrm =  round(ms2sec(cfgExp.respTimOut) / cfgScreen.ifi);  % response time out duration in frames
 

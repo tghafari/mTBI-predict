@@ -7,7 +7,7 @@ cfgScreen.ifi = Screen('GetFlipInterval',window);  % query the frame duration
 cfgScreen.refRate = 1 / cfgScreen.ifi; % query the frame refresh rate (Hz)
 cfgScreen.FRDatapixx = Screen('NominalFrameRate',window);  % Datapixx frame rate -- decide how to not mix up with PC screen FR
 cfgScreen.waitFrm = 1;  % wait for this many frames when presenting stim
-[cfgScreen.Xpix, cfgScreen.Ypix] = Screen('WindowSize', window);  % size of the window (compare with cfgScreen.dispSize)
+[cfgScreen.WinXpix, cfgScreen.WinYpix] = Screen('WindowSize', window);  % size of the on screen window 
 
 topPriorityLevel = MaxPriority(window);  % retreive the maximum priority for this program 
 Priority(topPriorityLevel);

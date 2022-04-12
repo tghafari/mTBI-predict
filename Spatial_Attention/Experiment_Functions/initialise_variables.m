@@ -3,6 +3,7 @@ function cfgExp = initialise_variables(cfgExp)
 % Introduces variables of interest for SpAtt task
 % to change any repetition you should edit this function
 
+rng('shuffle')
 cfgExp.numBlock = 4;  % total number of blocks 
 cfgExp.numTrial = 30;  % number of trials in each block
 cfgExp.numStim = cfgExp.numTrial * cfgExp.numBlock;  % number of stimuli in total

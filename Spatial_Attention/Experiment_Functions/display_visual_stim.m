@@ -7,16 +7,14 @@ if cfgExp.corrResp(nstim)
     cfgOutput.stmOnTmPnt(nstim) = send_trigger(cfgTrigger, cfgExp, cfgTrigger.stimOn);  % send the stim on trigger
     for frm = 1:cfgExp.stimFrm(nstim)
         Screen('DrawTextures', window, [presentingStr.visStimR{nstim}, presentingStr.visStimL{nstim}]...
-            , [], [cfgScreen.destVisStimR{nstim}(:,frm), cfgScreen.destVisStimL{nstim}(:,frm)]);%...
-%             ,[cfgScreen.stimAngleR{nstim}(frm), cfgScreen.stimAngleL{nstim}(frm)]);
+            , [], [cfgScreen.destVisStimR{nstim}(:,frm), cfgScreen.destVisStimL{nstim}(:,frm)]);
         Screen('FillOval', window, cfgScreen.fixDotColor, cfgScreen.fixDotRect);
         Screen('Flip', window, cfgScreen.vbl + (cfgScreen.waitFrm - 0.5) * cfgScreen.ifi);
     end
     cfgOutput.dotOnTmPnt(nstim) = send_trigger(cfgTrigger, cfgExp, cfgTrigger.dotOn);  % send trigger for dot on
     for frm = 1:cfgExp.dotFrm
         Screen('DrawTextures', window, [presentingStr.visStimR{nstim}, presentingStr.visStimL{nstim}]...
-            , [],[cfgScreen.destVisStimR{nstim}(:,frm), cfgScreen.destVisStimL{nstim}(:,frm)]);%...
-%             ,[cfgScreen.stimAngleR{nstim}(frm), cfgScreen.stimAngleL{nstim}(frm)]);
+            , [],[cfgScreen.destVisStimR{nstim}(:,frm), cfgScreen.destVisStimL{nstim}(:,frm)]);
         Screen('FillOval', window, [cfgScreen.fixDotColor', cfgScreen.fixDotFlashColor']...
             , [cfgScreen.fixDotRect', cfgScreen.rectLR(cfgStim.cueRndIdx(nstim)-2,:)']);  % put the red dot according to the cue direction(cueRandIdx-> 3:left, 4:right)
         Screen('Flip', window, cfgScreen.vbl + (cfgScreen.waitFrm - 0.5) * cfgScreen.ifi);
@@ -30,8 +28,7 @@ else
     cfgOutput.stmOnTmPnt(nstim) = send_trigger(cfgTrigger, cfgExp, cfgTrigger.stimOn);  % trigger stim on
     for frm = 1:cfgExp.stimFrm(nstim)
         Screen('DrawTextures', window, [presentingStr.visStimR{nstim}, presentingStr.visStimL{nstim}]...
-            , [], [cfgScreen.destVisStimR{nstim}(:,frm), cfgScreen.destVisStimL{nstim}(:,frm)]);%...
-%             ,[cfgScreen.stimAngleR{nstim}(frm), cfgScreen.stimAngleL{nstim}(frm)]);
+            , [], [cfgScreen.destVisStimR{nstim}(:,frm), cfgScreen.destVisStimL{nstim}(:,frm)]);
         Screen('FillOval', window, cfgScreen.fixDotColor, cfgScreen.fixDotRect);
         Screen('Flip', window, cfgScreen.vbl + (cfgScreen.waitFrm - 0.5) * cfgScreen.ifi);
     end
