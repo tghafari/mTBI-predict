@@ -10,7 +10,6 @@ cfgExp.ITIDur =  1000 + (2000 - 1000) .* rand(cfgExp.numStim,1);  % duration of 
 cfgExp.cueDur = 200;  % duration of cue presentation in ms
 cfgExp.ISIDur = 1000;  % interval between cue and grating (stimulus)
 cfgExp.stimDur = 1000 + (3000 - 1000) .* rand(cfgExp.numStim,1);  % duration of visual stimulus in ms
-cfgExp.stimSpeed = 3; % number of 360-degree rotations per second
 cfgExp.dotDur = 100;  % duration of red dot presentation
 cfgExp.corrResp = ones(cfgExp.numStim,1);  % 1=>target present 0=>catch trials
 cfgExp.corrResp(2:10:end,:) = 0; 

@@ -8,7 +8,7 @@ while noResp
     keyCod = find(firstPrsd,1);  % collects the pressed key code
     
     if presd && (keyCod == cfgExp.NATAKey || keyCod == cfgExp.respKey)  % store response variables
-        cfgOutput.respTmPnt(nstim) = triggerSend(cfgTrigger, cfgExp, cfgTrigger.resp);  % send the resp trigger
+        cfgOutput.respTmPnt(nstim) = send_trigger(cfgTrigger, cfgExp, cfgTrigger.resp);  % send the resp trigger
         cfgOutput.keyName{nstim} = KbName(keyCod);  % which key was pressed
         cfgOutput.RT_KbQueue(nstim) = firstPrsd(keyCod) - cfgOutput.respStartTime(nstim);  % calculates RT - using time point in KbQueue
         if cfgExp.corrResp(nstim)
@@ -22,7 +22,7 @@ while noResp
         Screen('Flip', window);
         [~, abrtPrsd] = KbStrokeWait;
         if abrtPrsd(cfgExp.yesKey)
-            cfgOutput.abrtTmPoint(nstim) = triggerSend(cfgTrigger, cfgExp, cfgTrigger.off);  % send the quit trigger
+            cfgOutput.abrtTmPoint(nstim) = send_trigger(cfgTrigger, cfgExp, cfgTrigger.off);  % send the quit trigger
             sca
             warning('Experiment aborted by user')
             return

@@ -6,6 +6,7 @@ function cfgScreen = visual_stim_properties(cfgScreen, cfgExp, windowRect)
 
 [xCentre, yCentre] = RectCenter(windowRect);  % get centre coordinates 
 cfgScreen.centre = [xCentre, yCentre];
+
 cfgScreen.destVisStimCentreBig = [0, 0, angle2pix(cfgScreen, cfgScreen.destRectBigW), angle2pix(cfgScreen, cfgScreen.destRectBigH)];
 cfgScreen.destVisStimCentreBig = CenterRect(cfgScreen.destVisStimCentreBig, windowRect);  % for big central stimulus
 cfgScreen.destVisStimCentreSmall = [0, 0, angle2pix(cfgScreen, cfgScreen.destRectSmallW), angle2pix(cfgScreen, cfgScreen.destRectSmallH)];
@@ -19,26 +20,28 @@ cfgScreen.destVisStimSmallR = cfgScreen.destVisStimCentreSmall + angle2pix(cfgSc
 cfgScreen.destVisStimSmallL = cfgScreen.destVisStimCentreSmall - angle2pix(cfgScreen, cfgScreen.visStimToL);  
 cfgScreen.destVisStimMedR = (cfgScreen.destVisStimBigR + cfgScreen.destVisStimSmallR)./2;
 cfgScreen.destVisStimMedL = (cfgScreen.destVisStimBigL + cfgScreen.destVisStimSmallL)./2;
+visStimRectMatR = [cfgScreen.destVisStimBigR; cfgScreen.destVisStimMedR; cfgScreen.destVisStimSmallR]';
+visStimRectMatL = [cfgScreen.destVisStimBigL; cfgScreen.destVisStimMedL; cfgScreen.destVisStimSmallL]';
 
-% make the destination rectangle 0.5 degree smaller according in two steps
-visStimRectMatR = [cfgScreen.destVisStimBigR; cfgScreen.destVisStimMedR; cfgScreen.destVisStimSmallR; cfgScreen.destVisStimMedR]';  % destination rect size matrix of right stim
-visStimRectMatL = [cfgScreen.destVisStimBigL; cfgScreen.destVisStimMedL; cfgScreen.destVisStimSmallL; cfgScreen.destVisStimMedL]';  % destination rect size matrix of left stim
+% Make the destination rectangle 0.5 degree smaller according to
+% stimSpeedFrm
 for stm = 1:length(cfgExp.stimFrm)
     cfgScreen.destVisStimR{stm} = repmat(visStimRectMatR, 1, ceil(cfgExp.stimFrm(stm)/size(visStimRectMatR, 2)));
     cfgScreen.destVisStimL{stm} = repmat(visStimRectMatL, 1, ceil(cfgExp.stimFrm(stm)/size(visStimRectMatL, 2)));  
 end
 
-% rotate stimulus 20 degress on each frame
-visStimAngMatR = 0:cfgExp.stimRotSpeedFrm:360;  % rotation angle of right stim
-visStimAngMatL = 360:-cfgExp.stimRotSpeedFrm:0;  % rotation angle of left stim
-for stm = 1:length(cfgExp.stimFrm)
+visStimAngMatR = 0:cfgExp.stimSpeedFrm:360;
+visStimAngMatL = 360:-cfgExp.stimSpeedFrm:0;
+
+% rotation angle of visual stimulus
+for stm = 1:length(cfgExp.stimFrm(stm))
     cfgScreen.stimAngleR{stm} = repmat(visStimAngMatR,1,ceil(cfgExp.stimFrm(stm)/length(visStimAngMatR)));  % every cfgExp.stimSpeedFrm = one complete rotation
-    cfgScreen.stimAngleL{stm} = repmat(visStimAngMatL,1,ceil(cfgExp.stimFrm(stm)/length(visStimAngMatL)));  
+    cfgScreen.stimAngleL{stm} = repmat(360:-(cfgExp.stimSpeedFrm-5):0,1,ceil(cfgExp.stimFrm(stm)/cfgExp.stimSpeedFrm));  
 end
  
 % calculate the centre of visual stimuli (for dot flash presentation)
-cfgScreen.rectLR = [CenterRect(cfgScreen.fixDotRect, cfgScreen.destVisStimBigL)...
-    ; CenterRect(cfgScreen.fixDotRect, cfgScreen.destVisStimBigR)];  % put both rects in one matrix for use in another function
+cfgScreen.rectLR = [CenterRect(cfgScreen.fixDotRect, cfgScreen.destVisStimL)...
+    ; CenterRect(cfgScreen.fixDotRect, cfgScreen.destVisStimR)];  % put both rects in one matrix for use in another function
 
 % destination of cue
 rectCue = [0, 0, angle2pix(cfgScreen, cfgScreen.destRectCueSize), angle2pix(cfgScreen, cfgScreen.destRectCueSize)];

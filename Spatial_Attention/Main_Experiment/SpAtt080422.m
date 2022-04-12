@@ -3,7 +3,7 @@
 cfgEyelink = basic_setup_experiment;  % basic PTB setup and clearing up
 %% Input and OS folder preparations
 
-cfgExp.answer = inputPrompt;
+cfgExp.answer = prompt_input;
 cfgFile = create_file_directory(cfgExp);
 %% Make variables and read in images
 
@@ -17,7 +17,7 @@ cfgTxt = txt_collection;  % collection of all texts
 
 [window, windowRect] = PsychImaging('OpenWindow', cfgScreen.scrNum, cfgScreen.black, cfgScreen.fullScrn);  % open an on screen window and color it gray
 cfgScreen = basic_setup_screen(cfgScreen, window);
-cfgEyelink = initialise_eyelink(cfgFile, cfgEyelink, cfgScreen);  % initialise eyelink
+% cfgEyelink = initialise_eyelink(cfgFile, cfgEyelink, cfgScreen);  % initialise eyelink
 %% Visual stimulus and fixation cross characteristics and hardware timing
 
 presentingStr = make_texture_images(window, cfgStim);  % make texture for visual stim and cue
@@ -35,7 +35,7 @@ cfgScreen.vbl = Screen('Flip',window);  % get the first VBL
 % countDownToStart(window,cfgScreen)
 %
 nstim = 0;  % count number of stimuli in total
-inTask = 1;  % are we in the task?
+
 for blk = 1:2
     for trl = 1:5
         nstim = nstim + 1;  % count stims presented in total
@@ -48,7 +48,7 @@ for blk = 1:2
         cfgOutput = display_cue(window, presentingStr, nstim, cfgScreen, cfgExp, cfgTrigger, cfgOutput);
         
         % ISI with fixation dot presentation
-        dispFixDot(window, cfgScreen, cfgExp, nstim, 0);  % 0 indicated it is not ITI (it is ISI)
+        display_fixation_dot(window, cfgScreen, cfgExp, nstim, 0);  % 0 indicated it is not ITI (it is ISI)
         
         % present visual stimulus with/without red flash dot
         cfgOutput = display_visual_stim(window, presentingStr, nstim, cfgScreen, cfgExp, cfgOutput, cfgStim, cfgTrigger);

@@ -35,6 +35,7 @@ else
     m = input('Do you want to continue? y/n   ','s');
     while true
         if m == 'y'
+            cfgEyelink.on = 0;
             break
         elseif m == 'n'
             error('The experiment aborted by operator.')
