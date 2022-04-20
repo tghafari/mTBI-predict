@@ -1,20 +1,17 @@
 function setup_datapixx(cfgExp, cfgScreen)
 % setup_datapixx(cfgExp, cfgScreen)
-% inputs: are we in the MEG lab?, mode of propixx. no output
-
-propixx_mode = 0;  % 2 for 480, 5 for 1440 Hz, 0 for normal
+% inputs: are we in the MEG lab?
 
 if cfgExp.MEGLab
     try
         Datapixx('Close');  % close all datapixx related stuff
         Datapixx('Open');
-        Datapixx('SetPropixxDlpSequenceProgram',propixx_mode);
+        Datapixx('SetPropixxDlpSequenceProgram', cfgScreen.propixxMode);
         if cfgScreen.backProjection
             Datapixx('EnablePropixxRearProjection');
         end
         Datapixx('RegWrRd')
     catch
-%         cleanup(cfgExp)  % run cleanup function (will be added later)
         error('Propixx setup failed. Experiment aborted.')
     end
     

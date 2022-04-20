@@ -1,5 +1,5 @@
 function cfgTrigger = initialise_trigger_port(cfgExp, cfgTrigger)
-%[cfgTrigger.handle, cfgTrigger.address] = initialise_trigger_port(cfgExp)
+% cfgTrigger = initialise_trigger_port(cfgExp, cfgTrigger)
 % initiates sending triggers to MEG pc and puts everything in cfgTrigger
 
 cfgTrigger.handle = [];

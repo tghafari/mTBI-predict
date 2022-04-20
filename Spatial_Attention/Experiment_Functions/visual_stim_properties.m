@@ -2,7 +2,6 @@ function cfgStim = visual_stim_properties(cfgScreen, cfgStim, cfgExp)
 % cfgScreen = visual_stim_properties(cfgScreen, cfgStim, cfgExp)
 % define the destination rectangle in which visStims will be presented
 % width and height should be in visual degrees
-% windowRect -> output of PsychImaging('OpenWindow',...), is the fullsize of the screen
 
 cfgStim.destVisStimCentre = [0, 0, angle2pix(cfgScreen, cfgStim.destRectW), angle2pix(cfgScreen, cfgStim.destRectH)];
 cfgStim.destVisStimCentre = CenterRect(cfgStim.destVisStimCentre, cfgScreen.windowRect);  % for big central stimulus
@@ -10,10 +9,11 @@ cfgStim.destVisStimCentre = CenterRect(cfgStim.destVisStimCentre, cfgScreen.wind
 cfgStim.destVisStimR = cfgStim.destVisStimCentre + angle2pix(cfgScreen, cfgStim.visStimToR);  
 cfgStim.destVisStimL = cfgStim.destVisStimCentre - angle2pix(cfgScreen, cfgStim.visStimToL);  
 
+cfgStim.visStimMat = [cfgStim.visStim; flip(cfgStim.visStim)];  % matrix of moving gratings
 % create enough visual stimuli for each trial
 for stm = 1:length(cfgExp.stimFrm)
-    cfgStim.visStimR{stm} = repmat(cfgStim.visStim, ceil(cfgExp.stimFrm(stm)/length(cfgStim.visStim)), 1);  % every cfgExp.stimSpeedFrm = one complete rotation
-    cfgStim.visStimL{stm} = repmat(cfgStim.visStim, ceil(cfgExp.stimFrm(stm)/length(cfgStim.visStim)), 1);  
+    cfgStim.visStimR{stm} = repmat(cfgStim.visStimMat, ceil(cfgExp.stimFrm(stm)/length(cfgStim.visStim)/2), 1);  % every cfgExp.stimSpeedFrm = one complete rotation
+    cfgStim.visStimL{stm} = repmat(cfgStim.visStimMat, ceil(cfgExp.stimFrm(stm)/length(cfgStim.visStim)/2), 1);  
 end
 
 % calculate the centre of visual stimuli (for dot flash presentation)

@@ -14,7 +14,6 @@ cleanup;
 
 function cleanup
     % Cleanup routine
-    
     Eyelink('Shutdown');  % shutdown Eyelink
     sca;
     ListenChar(0);  % restore keyboard output to Matlab:

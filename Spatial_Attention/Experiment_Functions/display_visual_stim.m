@@ -16,7 +16,7 @@ if cfgExp.corrResp(nstim)
         Screen('DrawTextures', cfgScreen.window, [presentingStr.visStimR{nstim}{frm}, presentingStr.visStimL{nstim}{frm}]...
             , [],[cfgStim.destVisStimR; cfgStim.destVisStimL]');
         Screen('FillOval', cfgScreen.window, [cfgScreen.fixDotColor', cfgScreen.fixDotFlashColor']...
-            , [cfgScreen.fixDotRect', cfgStim.rectLR(cfgStim.cueRndIdx(nstim)-2,:)']);  % put the red dot according to the cue direction(cueRandIdx-> 3:left, 4:right)
+            , [cfgScreen.fixDotRect', cfgStim.rectLR(cfgStim.cueRndIdx(nstim),:)']);  % put the red dot according to the cue direction(cueRandIdx-> 1:left, 2:right)
         Screen('Flip', cfgScreen.window, cfgScreen.vbl + (cfgScreen.waitFrm - 0.5) * cfgScreen.ifi);
     end
     Screen('FillOval', cfgScreen.window, cfgScreen.fixDotColor, cfgScreen.fixDotRect);
