@@ -8,7 +8,7 @@ TNR = sum(FB == 0) ./ length(FB);  % TNR = 0 - 0
 FPR = sum(FB == 2) ./ length(FB);  % FPR = 2 - 0
 FNR = sum(FB == -1) ./ length(FB);  % FNR = 0 - 1
 
-text = ['Correct = ', num2str(TPR + TNR), 'False = ', num2str(FPR + FNR)];
+text = ['Correct = ', num2str(TPR + TNR), '   False = ', num2str(FPR + FNR)];
 
 Screen('Flip', cfgScreen.window);
 DrawFormattedText(cfgScreen.window, text, 'center', 'center', [cfgScreen.white, cfgScreen.white, cfgScreen.white]);

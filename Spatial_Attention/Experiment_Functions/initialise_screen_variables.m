@@ -10,26 +10,26 @@ cfgScreen.scrNum = max(Screen('Screens'));  % get screen number - draw to the ex
 
 if cfgExp.MEGLab && cfgExp.site == 1  % if collecting in Aston
     cfgScreen.distance = 100;  % set the distance from participant to the projector
-    cfgScreen.dispSize.width = 81.5;  % physical width of screen in cm
-    cfgScreen.dispSize.height = 46;  % physical height of screen in cm
+    cfgScreen.dispSize.width = 715;  % physical width of screen in cm
+    cfgScreen.dispSize.height = 405;  % physical height of screen in cm
     cfgScreen.resolution = Screen('Resolution', cfgScreen.scrNum);  % get/set the on screen resolution
 
 elseif cfgExp.MEGLab && cfgExp.site == 2  % if collectin in Birmingham
-    cfgScreen.distance = 100;  % set the distance from participant to the projector
-    cfgScreen.dispSize.width = 81.5;  % physical width of screen in cm
-    cfgScreen.dispSize.height = 46;  % physical height of screen in cm
+    cfgScreen.distance = 100;  % set the distance from participant to the projector in cm
+    cfgScreen.dispSize.width = 715;  % physical width of screen in mm
+    cfgScreen.dispSize.height = 405;  % physical height of screen in mm
     cfgScreen.resolution = Screen('Resolution', cfgScreen.scrNum);  % get/set the on screen resolution
 
 elseif cfgExp.MEGLab && cfgExp.site == 3  % if collectin in Nottingham
-    cfgScreen.distance = 100;  % set the distance from participant to the projector
-    cfgScreen.dispSize.width = 81.5;  % physical width of screen in cm
-    cfgScreen.dispSize.height = 46;  % physical height of screen in cm
+    cfgScreen.distance = 70;  % set the distance from participant to the projector in cm
+    cfgScreen.dispSize.width = 815;  % physical width of screen in mm
+    cfgScreen.dispSize.height = 460;  % physical height of screen in mm
     cfgScreen.resolution = Screen('Resolution', cfgScreen.scrNum);  % get/set the on screen resolution
 
 else
     [cfgScreen.dispSize.width, cfgScreen.dispSize.height]...
         = Screen('DisplaySize', cfgScreen.scrNum);  % get the physical size of the screen in millimeters
-    cfgScreen.distance = 60;  % set the distance from participant to the projector
+    cfgScreen.distance = 100;  % set the distance from participant to the projector
     cfgScreen.resolution = Screen('Resolution', cfgScreen.scrNum);  % get/set the on screen resolution
 
 end

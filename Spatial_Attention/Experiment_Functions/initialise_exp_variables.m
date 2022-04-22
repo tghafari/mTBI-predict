@@ -1,5 +1,5 @@
-function cfgExp = initialise_exp_variables(cfgExp)
-% cfgExp = initialise_exp_variables(cfgExp)
+function [cfgExp, cfgOutput] = initialise_exp_variables(cfgExp)
+% [cfgExp, cfgOutput] = initialise_exp_variables(cfgExp)
 % Introduces variables of interest for SpAtt task
 % to change any repetition you should edit this function
 
@@ -16,6 +16,8 @@ cfgExp.corrResp = ones(cfgExp.numStim,1);  % 1=>target present 0=>catch trials
 cfgExp.corrResp(2:10:end,:) = 0; 
 cfgExp.corrResp = cfgExp.corrResp(randperm(length(cfgExp.corrResp)));  % randomize order of catch trials
 cfgExp.respTimOut = 500;  % time during which subject can respond in ms
+
+cfgOutput.presd = zeros(cfgExp.numStim, 1);  % preallocate cfgOutput for unpressed trials
 
 if strcmp(cfgExp.answer.site,'Birmingham'), cfgExp.site = 2; elseif strcmp(cfgExp.answer.site,'Nottingham'), cfgExp.site = 3;
     strcmp(cfgExp.answer.site,'Aston'), cfgExp.site = 1; end  % Aston -> 1, UoB -> 2, UoN ->3

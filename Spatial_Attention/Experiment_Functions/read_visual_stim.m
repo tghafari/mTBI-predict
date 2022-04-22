@@ -6,13 +6,14 @@ function cfgStim = read_visual_stim(cfgFile, cfgExp, cfgStim)
 fileDirStim = dir([cfgFile.stim, '*.bmp']);  % only use the files ending in .bmp (not unwanted files)
 fileDirCue = dir([cfgFile.cue, '*.jpg']);
 
-cfgStim.visStim = cell(length(fileDirStim) - 3, 1);  % preallocation
+[~,idx] = sort(str2double(regexp({fileDirStim.name},'(?<=cube3D)\d+','match','once'))); % sort the file names increasingly  
+cfgStim.fNameStimSortd = fileDirStim(idx);
+
+cfgStim.visStim = cell(length(1:cfgStim.stimRotSpeed:length(cfgStim.fNameStimSortd)), 1);  % preallocation
 % cfgStim.visStimR = cell(length(fileDirStim) - 3, 1);  % preallocation
 % cfgStim.visStimL = cell(length(fileDirStim) - 3, 1);  % preallocation
 cfgStim.cueStim = cell(cfgExp.numStim, 1);  % preallocation
 
-[~,idx] = sort(str2double(regexp({fileDirStim.name},'(?<=cube3D)\d+','match','once'))); % sort the file names increasingly  
-cfgStim.fNameStimSortd = fileDirStim(idx);
 
 % read right and left images separately
 for spd = 1:cfgStim.stimRotSpeed:length(cfgStim.fNameStimSortd)
