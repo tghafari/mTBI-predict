@@ -19,9 +19,9 @@ if cfgExp.corrResp(nstim)
             , [cfgScreen.fixDotRect', cfgStim.rectLR(cfgStim.cueRndIdx(nstim),:)']);  % put the red dot according to the cue direction(cueRandIdx-> 1:left, 2:right)
         Screen('Flip', cfgScreen.window, cfgScreen.vbl + (cfgScreen.waitFrm - 0.5) * cfgScreen.ifi);
     end
+    cfgOutput.dotOffTmPnt(nstim) = send_trigger(cfgTrigger, cfgExp, cfgTrigger.dotOff);  % trigger dot off
     Screen('FillOval', cfgScreen.window, cfgScreen.fixDotColor, cfgScreen.fixDotRect);
     Screen('Flip', cfgScreen.window, cfgScreen.vbl + (cfgScreen.waitFrm - 0.5) * cfgScreen.ifi);
-    cfgOutput.dotOffTmPnt(nstim) = send_trigger(cfgTrigger, cfgExp, cfgTrigger.dotOff);  % trigger dot off
     cfgOutput.stmOffTmPnt(nstim) = send_trigger(cfgTrigger, cfgExp, cfgTrigger.stimOff);  % trigger stim off
     cfgOutput.respStartTime(nstim) = GetSecs; % to get reaction times relative to stimulus offset
 else
@@ -32,6 +32,7 @@ else
         Screen('FillOval', cfgScreen.window, cfgScreen.fixDotColor, cfgScreen.fixDotRect);
         Screen('Flip', cfgScreen.window, cfgScreen.vbl + (cfgScreen.waitFrm - 0.5) * cfgScreen.ifi);
     end
+    cfgOutput.catchOnTmPnt(nstim) = send_trigger(cfgTrigger, cfgExp, cfgTrigger.catchOn);  % trigger catch trial
     Screen('FillOval', cfgScreen.window, cfgScreen.fixDotColor, cfgScreen.fixDotRect);
     Screen('Flip', cfgScreen.window, cfgScreen.vbl + (cfgScreen.waitFrm - 0.5) * cfgScreen.ifi);
     cfgOutput.stmOffTmPnt(nstim) = send_trigger(cfgTrigger, cfgExp, cfgTrigger.stimOff);  % trigger stim off

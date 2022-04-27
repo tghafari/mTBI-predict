@@ -60,5 +60,4 @@ for blk = 1:cfgExp.numBlock
 end
 
 draw_myText(cfgScreen, cfgExp, cfgTxt.endTxt);
-cleanup(cfgFile, cfgExp, cfgScreen, cfgEyelink);
-
+cfgOutput = cleanup(cfgFile, cfgExp, cfgScreen, cfgEyelink, cfgOutput, cfgTrigger);
