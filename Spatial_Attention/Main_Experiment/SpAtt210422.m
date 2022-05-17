@@ -39,13 +39,13 @@ for blk = 1:cfgExp.numBlock
         
         % beginig of blocks fixation dot
         cfgOutput.strtTmPnt(nstim) = send_trigger(cfgTrigger, cfgExp, cfgTrigger.start);
-        display_fixation_dot(cfgScreen, cfgExp, nstim, 1)  % 1 indicated it is ITI
+        display_fixation_dot(cfgScreen, cfgExp, nstim, 1)  % 1 indicates it is ITI
         
         % cue presentation
         cfgOutput = display_cue(presentingStr, nstim, cfgStim, cfgScreen, cfgExp, cfgTrigger, cfgOutput);
         
         % ISI with fixation dot presentation
-        display_fixation_dot(cfgScreen, cfgExp, nstim, 0);  % 0 indicated it is not ITI (it is ISI)
+        display_fixation_dot(cfgScreen, cfgExp, nstim, 0);  % 0 indicates it is not ITI (it is ISI)
         
         % present visual stimulus with/without red flash dot
         cfgOutput = display_visual_stim(presentingStr, nstim, cfgScreen, cfgExp, cfgOutput, cfgStim, cfgTrigger);
@@ -55,7 +55,7 @@ for blk = 1:cfgExp.numBlock
         
     end
     calculate_show_feedback(cfgOutput, cfgExp, blk, cfgScreen);
-    draw_myText(cfgScreen, cfgExp, cfgTxt.breakTxt);
+    cfgOutput = draw_myText(cfgScreen, cfgExp, text, cfgTxt, cfgOutput, cfgTrigger, cfgFile, cfgEyelink);
     
 end
 

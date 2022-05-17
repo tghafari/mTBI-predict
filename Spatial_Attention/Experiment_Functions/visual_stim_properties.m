@@ -9,7 +9,7 @@ cfgStim.destVisStimCentre = CenterRect(cfgStim.destVisStimCentre, cfgScreen.wind
 cfgStim.destVisStimR = cfgStim.destVisStimCentre + angle2pix(cfgScreen, cfgStim.visStimToR);  
 cfgStim.destVisStimL = cfgStim.destVisStimCentre - angle2pix(cfgScreen, cfgStim.visStimToL);  
 
-cfgStim.visStimMat = [cfgStim.visStim; flip(cfgStim.visStim)];  % matrix of moving gratings
+cfgStim.visStimMat = repmat(cfgStim.visStim, 2, 1);  % matrix of inward moving gratings
 % create enough visual stimuli for each trial
 for stm = 1:length(cfgExp.stimFrm)
     cfgStim.visStimR{stm} = repmat(cfgStim.visStimMat, ceil(cfgExp.stimFrm(stm)/length(cfgStim.visStim)/2), 1);  % every cfgExp.stimSpeedFrm = one complete rotation

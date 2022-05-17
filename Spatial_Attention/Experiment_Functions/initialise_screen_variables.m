@@ -29,7 +29,7 @@ elseif cfgExp.MEGLab && cfgExp.site == 3  % if collectin in Nottingham
 else
     [cfgScreen.dispSize.width, cfgScreen.dispSize.height]...
         = Screen('DisplaySize', cfgScreen.scrNum);  % get the physical size of the screen in millimeters
-    cfgScreen.distance = 100;  % set the distance from participant to the projector
+    cfgScreen.distance = 60;  % set the distance from participant to the projector
     cfgScreen.resolution = Screen('Resolution', cfgScreen.scrNum);  % get/set the on screen resolution
 
 end

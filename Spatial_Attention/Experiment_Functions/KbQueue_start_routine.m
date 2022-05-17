@@ -5,7 +5,7 @@ function cfgExp = KbQueue_start_routine(cfgExp)
 
 KbName('UnifyKeyNames');
 cfgExp.quitKey = KbName('ESCAPE');  % quit key
-cfgExp.pauseKey = KbName('p');  % pause key
+cfgExp.noKey = KbName('n');  % no key
 cfgExp.respKey = KbName('RightArrow');  % keyboard response
 cfgExp.NATAKey = KbName('7&');  % NATA box response
 cfgExp.yesKey = KbName('y');  % yes response
