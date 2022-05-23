@@ -12,10 +12,10 @@ cfgExp.yesKey = KbName('y');  % yes response
 
 % KB response: '4$' and '7&' are the left and right index fingers of the (5-button) NATA boxes
 if cfgExp.MEGLab == 1
-    cfgExp.activeKeys = [cfgExp.quitKey, cfgExp.pauseKey, cfgExp.NATAKey, cfgExp.yesKey];
+    cfgExp.activeKeys = [cfgExp.quitKey, cfgExp.NATAKey, cfgExp.yesKey];
     cfgExp.deviceNum = -1;  % listen to all devices during test/train
 else
-    cfgExp.activeKeys = [cfgExp.quitKey, cfgExp.pauseKey, cfgExp.respKey, cfgExp.yesKey];
+    cfgExp.activeKeys = [cfgExp.quitKey, cfgExp.respKey, cfgExp.yesKey];
     cfgExp.deviceNum = -1;  % listen to all devices during test/train
 end
 

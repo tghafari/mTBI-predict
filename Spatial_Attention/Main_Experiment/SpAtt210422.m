@@ -16,7 +16,7 @@ setup_datapixx(cfgExp, cfgScreen)  % sets up propixx
 cfgTxt = txt_collection;  % collection of all texts
 %% Screen Setup
 
-[cfgScreen.window, cfgScreen.windowRect] = PsychImaging('OpenWindow', cfgScreen.scrNum, cfgScreen.black, cfgScreen.fullScrn);  % open an on screen window and color it gray
+[cfgScreen.window, cfgScreen.windowRect] = PsychImaging('OpenWindow', cfgScreen.scrNum, cfgScreen.backgroundColor, cfgScreen.fullScrn);  % open an on screen window and color it gray
 cfgScreen = basic_setup_screen(cfgScreen);
 cfgEyelink = initialise_eyelink(cfgFile, cfgEyelink, cfgScreen);  % initialise eyelink
 %% Visual stimulus and fixation cross characteristics and hardware timing
@@ -59,5 +59,5 @@ for blk = 1:cfgExp.numBlock
     
 end
 
-draw_myText(cfgScreen, cfgExp, cfgTxt.endTxt);
+cfgOutput = draw_myText(cfgScreen, cfgExp, text, cfgTxt, cfgOutput, cfgTrigger, cfgFile, cfgEyelink);
 cfgOutput = cleanup(cfgFile, cfgExp, cfgScreen, cfgEyelink, cfgOutput, cfgTrigger);
