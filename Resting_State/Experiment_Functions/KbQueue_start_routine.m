@@ -5,13 +5,9 @@ function cfgExp = KbQueue_start_routine(cfgExp)
 
 KbName('UnifyKeyNames');
 cfgExp.quitKey = KbName('ESCAPE');  % quit key
-cfgExp.pauseKey = KbName('p');  % pause key
-cfgExp.respKey = KbName('RightArrow');  % keyboard response
+cfgExp.noKey = KbName('n');  % no key
 cfgExp.yesKey = KbName('y');  % yes response
-
-% participant cannot respond with NATA box
-cfgExp.activeKeys = [cfgExp.quitKey, cfgExp.pauseKey, cfgExp.respKey, cfgExp.yesKey];
-cfgExp.deviceNum = -1;  % listen to all devices during test/train
+cfgExp.activeKeys = [cfgExp.quitKey, cfgExp.noKey, cfgExp.yesKey];
 
 % only listen for specific keys
 scanList = zeros(1,256);

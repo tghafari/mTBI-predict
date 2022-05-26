@@ -12,7 +12,7 @@ while ~notWaiting
     [~, contPresd] = KbStrokeWait(cfgExp.deviceNum);
     if contPresd(cfgExp.yesKey)
         notWaiting = true;
-    elseif contPresd(cfgExp.noKey)
+    elseif contPresd(cfgExp.noKey) || contPresd(cfgExp.quitKey)
         Screen('Flip', cfgScreen.window);
         DrawFormattedText(cfgScreen.window, cfgTxt.quitTxt, 'center', 'center', [cfgScreen.black, cfgScreen.black, cfgScreen.black]);
         Screen('Flip', cfgScreen.window);

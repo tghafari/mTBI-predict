@@ -5,10 +5,12 @@ function el_stop(cfgFile)
 Eyelink('StopRecording');
 Eyelink('CloseFile');
 
-fprintf('Receiving data file ''%s''\n', cfgFile.edfFile);  % download data file
-status = Eyelink('ReceiveFile', [cfgFile.BIDSname, cfgFile.edfFile], cfgFile.subDir, 1); %transfer file to experiment directory
-if status > 0
-    fprintf('ReceiveFile status %d\n', status);
+fprintf('Receiving data file ''%s''\n', cfgFile.eyelink);  % download data file
+el_status = Eyelink('ReceiveFile', cfgFile.eyelink, cfgFile.subDir, 1); %transfer file to experiment directory
+if el_status > 0
+    copy_status = copyfile(cfgFile.eyelink, cfgFile.subDir);  % copy eyelink file for renaming
+    move_status = movefile(cfgFile.eyelink, [cfgFile.BIDSname, cfgFile.edfFile]);  % rename the eyelink file according to BIDS
+    fprintf('ReceiveFile status %d & %d & %d\n', el_status, copy_status, move_status);
 end
 cleanup;
 

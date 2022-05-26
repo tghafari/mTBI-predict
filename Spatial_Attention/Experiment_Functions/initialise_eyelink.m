@@ -1,11 +1,12 @@
-function cfgEyelink = initialise_eyelink(cfgFile, cfgEyelink, cfgScreen, cfgExp)
-% cfgEyelink = initialise_eyelink(cfgFile, cfgEyelink, cfgScreen, cfgExp)
+function cfgEyelink = initialise_eyelink(cfgFile, cfgEyelink, cfgScreen)
+% cfgEyelink = initialise_eyelink(cfgFile, cfgEyelink, cfgScreen)
 % initialise eye link, set parameters and start recording
+
+cfgEyelink.eyeUsed = 'LEFT_EYE'; % eye used for monocular eyetracking
 
 try
     if cfgEyelink.on
-        Eyelink('Initialize');
-        if exist([cfgFile.subDir, cfgFile.eyelink], 'file') > 0  % check whether files already exist for this subject/session
+        if exist(cfgFile.edfFile, 'file') > 0  % check whether files already exist for this subject/session
             warning('Eyelink file will be overwritten');
             inp1 = input('Do you want to continue? y/n   ','s');
             if inp1 == 'n'
@@ -13,8 +14,7 @@ try
                 error('session aborted by operator')
             end
         end
-        cfgEyelink.cameraDistance = 90;  % distance between participant and camera in cm
-        cfgEyelink = el_start(cfgEyelink, cfgScreen, cfgFile, cfgExp);  % set parameters of eyelink and calibrate
+        cfgEyelink = el_start(cfgEyelink, cfgScreen, cfgFile);  % set parameters of eyelink and calibrate
     end 
 catch
     warning('Eyetracker setup failed! Eyelink triggers will not be sent!');

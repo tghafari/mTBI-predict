@@ -27,7 +27,7 @@ while noResp
         [~, abrtPrsd] = KbStrokeWait;
         if abrtPrsd(cfgExp.yesKey)
             cfgOutput.abrtTmPoint(nstim) = send_trigger(cfgTrigger, cfgExp, cfgTrigger.off);  % send the quit trigger
-            cleanup(cfgFile, cfgExp, cfgScreen, cfgEyelink);
+            cfgOutput = cleanup(cfgFile, cfgExp, cfgScreen, cfgEyelink, cfgOutput, cfgTrigger);
             warning('Experiment aborted by user')
             break
         end

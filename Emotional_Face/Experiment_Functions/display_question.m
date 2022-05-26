@@ -6,7 +6,7 @@ function cfgOutput = display_question(cfgTxt, nstim, cfgScreen, cfgExp, cfgTrigg
 cfgOutput.questionOnTmPnt(nstim) = send_trigger(cfgTrigger, cfgExp, cfgTrigger.questionOn);
 cfgOutput.respStartTime(nstim) = GetSecs; % to get reaction times relative to stimulus offset
 for frm = 1:cfgExp.quesFrm
-    DrawFormattedText(cfgScreen.window, cfgTxt.question, 'center', 'center', [cfgScreen.white, cfgScreen.white, cfgScreen.white]);
+    DrawFormattedText(cfgScreen.window, cfgTxt.question, 'center', 'center', [cfgScreen.black, cfgScreen.black, cfgScreen.black]);
     Screen('FillOval', cfgScreen.window, cfgScreen.fixDotColor, cfgScreen.fixDotRect);
     Screen('Flip', cfgScreen.window, cfgScreen.vbl + (cfgScreen.waitFrm - 0.5) * cfgScreen.ifi);
 end

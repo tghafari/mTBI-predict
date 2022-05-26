@@ -24,6 +24,7 @@ cfgFile.BIDSname = ['sub-', cfgExp.answer.sub, '_', 'ses-', cfgExp.answer.ses, '
     , 'task-', cfgExp.answer.task, '_', 'run-', cfgExp.answer.run];  % BIDS specific file name
 cfgFile.edfFile = ['_eyetracking', '.edf'];  % eyetracking file name
 cfgFile.logFile = ['_logfile', '.mat'];  % logfile file name
+cfgFile.eyelink = ['et_', cfgExp.answer.sub];  % file name to use on eyelink pc
 
 end
 

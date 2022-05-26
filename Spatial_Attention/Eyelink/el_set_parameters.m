@@ -4,14 +4,13 @@ function cfgEyelink = el_set_parameters(cfgEyelink, cfgScreen, cfgExp)
 
 % set global variables for Eyelink
 el = cfgEyelink.defaults;
-el.eye_used = cfgEyelink.eyeUsed;  % which eye is used for eyetracking
 el.calibrationtargetsize = 1;
 el.calibrationtargetwidth = 0.5;
 el.targetbeep = 0;
 el.feedbackbeep = 0;
 el.displayCalResults = 1;
 el.eyeimagesize = 50;  % percentage of screen
-el.backgroundcolour = cfgScreen.backgrounColor;
+el.backgroundcolour = cfgScreen.backgroundColor;
 
 try
 disp('Updating Parameters')
@@ -34,10 +33,10 @@ Eyelink('message','DISPLAY_COORDS %ld %ld %ld %ld', cfgScreen.fullScrn(1) - cfgS
 
 % enable binocular for UoB only
 if strcmp(cfgExp.answer.site, 'Birmingham')
-    Eyelink('command','binocular_enabled = YES') 
+    Eyelink('command','binocular_enabled = YES');
     cfgEyelink.eyeUsed = 'BOTH';  
 else
-    Eyelink('command','binocular_enabled = NO')
+    Eyelink('command','binocular_enabled = NO');
     el.eye_used = 'LEFT';  % eye used for monocular eyetracking
     cfgEyelink.eyeUsed = el.eye_used; 
 end
@@ -80,10 +79,10 @@ Eyelink('Command', 'pupil_size_diameter = YES');
 
 %% Sending physical parameters to the edfs:
 
-Eyelink('Message', sprintf('Calibration_area: %s', num2str(cfgScreen.fullScrn)))
-Eyelink('Message', sprintf('Screen_size_mm: %s', [num2str(cfgScreen.dispSize.height), ' ', num2str(cfgScreen.dispSize.width)]))
-Eyelink('Message', sprintf('Screen_distance_mm: %s', num2str(cfgScreen.distance*10)))
-Eyelink('Message', sprintf('Camera_position_mm: %s', num2str(cfgEyelink.cameraDistance*10)))
+Eyelink('Message', sprintf('Calibration_area: %s', num2str(cfgScreen.fullScrn)));
+Eyelink('Message', sprintf('Screen_size_mm: %s', [num2str(cfgScreen.dispSize.height), ' ', num2str(cfgScreen.dispSize.width)]));
+Eyelink('Message', sprintf('Screen_distance_mm: %s', num2str(cfgScreen.distance*10)));
+Eyelink('Message', sprintf('Camera_position_mm: %s', num2str(cfgEyelink.cameraDistance*10)));
 
 catch
     warning('error is in el_set_params')

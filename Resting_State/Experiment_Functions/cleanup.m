@@ -6,7 +6,8 @@ cfgOutput.endTmPnt = send_trigger(cfgTrigger, cfgExp, cfgTrigger.off);
 
 % check if the logfile is being overwritten
 if exist([cfgFile.subDir, cfgFile.BIDSname, cfgFile.logFile], 'file') > 0
-    cont = input('Warning! log file will be overwritten, do you want to continue? (y/n) ','s');
+    warning('log file will be overwritten!');
+    cont = input('Do you want to continue? (y/n) ','s');
     while true
         if cont == 'y'
             break
