@@ -1,2 +1,2 @@
 # mTBI-predict
-MEG repository of mTBI-predict project
+Neuroimaging repository for paradigms of mTBI-predict project
