@@ -5,7 +5,7 @@ function cfgExp = initialise_exp_variables(cfgExp)
 
 rng('shuffle')
 cfgExp.numBlock = 3;  % total number of blocks 
-cfgExp.numTrial = 76;  % number of trials in each block
+cfgExp.numTrial = 50;  % number of trials in each block
 cfgExp.numStim = cfgExp.numTrial * cfgExp.numBlock;  % number of stimuli in total
 cfgExp.cueDur = 1400;  % duration of cue presentation in ms
 cfgExp.ISIDur = 1750;  % interval between cue and grating (stimulus)

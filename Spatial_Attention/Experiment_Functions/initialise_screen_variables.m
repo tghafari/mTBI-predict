@@ -15,7 +15,7 @@ if cfgExp.MEGLab && cfgExp.site == 1  % if collecting in Aston
     cfgScreen.resolution = Screen('Resolution', cfgScreen.scrNum);  % get/set the on screen resolution
 
 elseif cfgExp.MEGLab && cfgExp.site == 2  % if collectin in Birmingham
-    cfgScreen.distance = 100;  % set the distance from participant to the projector in cm
+    cfgScreen.distance = 112;  % set the distance from participant to the projector in cm
     cfgScreen.dispSize.width = 715;  % physical width of screen in mm
     cfgScreen.dispSize.height = 405;  % physical height of screen in mm
     cfgScreen.resolution = Screen('Resolution', cfgScreen.scrNum);  % get/set the on screen resolution

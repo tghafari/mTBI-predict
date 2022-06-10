@@ -23,7 +23,7 @@ cfgEyelink = initialise_eyelink(cfgFile, cfgEyelink, cfgScreen, cfgExp);  % init
 
 cfgScreen = fix_dot_properties(cfgScreen);  % characteristics of fixation dot
 cfgExp = time2frame(cfgExp, cfgScreen);  % time and frame conversions
-cfgStim = visual_stim_properties(cfgScreen, cfgStim, cfgExp);  % destination rectangle to present the stimulus
+cfgStim = visual_stim_properties(cfgScreen, cfgStim);  % destination rectangle to present the stimulus
 presentingStr = make_texture_images(cfgScreen, cfgStim, cfgExp);  % make texture for visual stim and cue
 cfgTrigger = initialise_trigger_port(cfgExp, cfgTrigger);  % initiate triggers
 %% Main Experiment
@@ -31,22 +31,22 @@ cfgTrigger = initialise_trigger_port(cfgExp, cfgTrigger);  % initiate triggers
 cfgExp = KbQueue_start_routine(cfgExp);  % start KbQueu routine
 cfgScreen.vbl = Screen('Flip',cfgScreen.window);  % get the first VBL
 cfgOutput.vbl = cfgScreen.vbl;  % put first vbl into cfgOutput as well
-cfgOutput = draw_myText(cfgScreen, cfgExp, cfgTxt.startTxt, cfgTxt, cfgOutput, cfgTrigger, cfgFile, cfgEyelink);
+cfgOutput = draw_myText(cfgScreen, cfgExp, cfgTxt.startTxt, cfgTxt, cfgOutput, cfgTrigger, cfgFile, cfgEyelink, 1);
 
 nstim = 0;  % count number of stimuli in total
 for blk = 1:cfgExp.numBlock
+    cfgOutput.blkStrtTmPnt(blk) = send_trigger(cfgTrigger, cfgExp, cfgTrigger.blkNum(blk), cfgEyelink, sprintf('block n. %d', blk));
     for trl = 1:cfgExp.numTrial
         nstim = nstim + 1;  % count stims presented in total
-        
-        % beginig of blocks fixation dot
-        cfgOutput.strtTmPnt(nstim) = send_trigger(cfgTrigger, cfgExp, cfgTrigger.start);
-        display_fixation_dot(cfgScreen, cfgExp, nstim, 1)  % 1 indicates it is ITI
+
+        % beginig of trial fixation dot
+        cfgOutput = display_fixation_dot(cfgScreen, cfgExp, nstim, 1, cfgOutput, cfgTrigger, cfgEyelink);  % 1 indicates it is ITI
         
         % cue presentation
         cfgOutput = display_cue(presentingStr, nstim, cfgStim, cfgScreen, cfgExp, cfgTrigger, cfgOutput);
         
         % ISI with fixation dot presentation
-        display_fixation_dot(cfgScreen, cfgExp, nstim, 0);  % 0 indicates it is not ITI (it is ISI)
+        cfgOutput = display_fixation_dot(cfgScreen, cfgExp, nstim, 0, cfgOutput, cfgTrigger, cfgEyelink);  % 0 indicates it is not ITI (it is ISI)
         
         % present visual stimulus with/without red flash dot
         cfgOutput = display_visual_stim(presentingStr, nstim, cfgScreen, cfgExp, cfgOutput, cfgStim, cfgTrigger);
@@ -56,8 +56,8 @@ for blk = 1:cfgExp.numBlock
         
     end
     calculate_show_feedback(cfgOutput, cfgExp, blk, cfgScreen);
-    cfgOutput = draw_myText(cfgScreen, cfgExp, cfgTxt.breakTxt, cfgTxt, cfgOutput, cfgTrigger, cfgFile, cfgEyelink);
+    cfgOutput = draw_myText(cfgScreen, cfgExp, cfgTxt.breakTxt, cfgTxt, cfgOutput, cfgTrigger, cfgFile, cfgEyelink, nstim);
 end
 
-cfgOutput = draw_myText(cfgScreen, cfgExp, cfgTxt.endTxt, cfgTxt, cfgOutput, cfgTrigger, cfgFile, cfgEyelink);
+cfgOutput = draw_myText(cfgScreen, cfgExp, cfgTxt.endTxt, cfgTxt, cfgOutput, cfgTrigger, cfgFile, cfgEyelink, nstim);
 cfgOutput = cleanup(cfgFile, cfgExp, cfgScreen, cfgEyelink, cfgOutput, cfgTrigger);

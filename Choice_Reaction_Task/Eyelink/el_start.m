@@ -3,12 +3,12 @@ function cfgEyelink = el_start(cfgEyelink, cfgScreen, cfgFile, cfgExp)
 % Open screen for calibration, calibrate and start recording
 
 try
-    window_EL = Screen('OpenWindow', cfgScreen.scrNum, cfgScreen.backgroundColor, [0,0,300,300]);
+    window_EL = Screen('OpenWindow', cfgScreen.scrNum, cfgScreen.backgroundColor, cfgScreen.fullScrn);
     cfgEyelink.defaults = EyelinkInitDefaults(window_EL);  % details about the graphics environment and initializations
     ListenChar(1);  % disable key output to Matlab window - change to 2 on real data collection
     
     if ~EyelinkInit  % initialise the connection with the Eyelink
-        fprintf('Eyelink Init aborted.\n');
+        fprintf('Eyelink Init aborted.\n'); 
         cleanup
         return;
     else
@@ -34,9 +34,13 @@ try
     end
     
     cfgEyelink = el_set_parameters(cfgEyelink, cfgScreen, cfgExp);  % set custom parameters
-
+    
+    disp('Starting Calibration');
+    EyelinkDoTrackerSetup(cfgEyelink.defaults);
+    
+    disp('Start Eyetrack recording')
     Screen('Close', window_EL);  % close eyelink screen
-    Eyelink('StartRecording');
+    Eyelink('StartRecording');    
     WaitSecs(0.1);  % record a few samples before we actually start displaying
     Eyelink('Message', 'SYNCTIME');  % mark zero-plot time in data file
     ListenChar(0);

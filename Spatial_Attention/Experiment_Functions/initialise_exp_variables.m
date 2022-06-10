@@ -4,8 +4,8 @@ function [cfgExp, cfgOutput] = initialise_exp_variables(cfgExp)
 % to change any repetition you should edit this function
 
 rng('shuffle')
-cfgExp.numBlock = 2;  % total number of blocks 
-cfgExp.numTrial = 10;  % number of trials in each block
+cfgExp.numBlock = 3;  % total number of blocks 
+cfgExp.numTrial = 40;  % number of trials in each block
 cfgExp.numStim = cfgExp.numTrial * cfgExp.numBlock;  % number of stimuli in total
 cfgExp.ITIDur =  1000 + (2000 - 1000) .* rand(cfgExp.numStim,1);  % duration of ITI in ms
 cfgExp.cueDur = 200;  % duration of cue presentation in ms
@@ -20,7 +20,7 @@ cfgExp.respTimOut = 500;  % time during which subject can respond in ms
 cfgOutput.presd = zeros(cfgExp.numStim, 1);  % preallocate cfgOutput for unpressed trials
 
 if strcmp(cfgExp.answer.site,'Birmingham'), cfgExp.site = 2; elseif strcmp(cfgExp.answer.site,'Nottingham'), cfgExp.site = 3;
-    strcmp(cfgExp.answer.site,'Aston'), cfgExp.site = 1; end  % Aston -> 1, UoB -> 2, UoN ->3
+elseif strcmp(cfgExp.answer.site,'Aston'), cfgExp.site = 1; end  % Aston -> 1, UoB -> 2, UoN ->3
 if strcmp(cfgExp.answer.pc,'MEG'), cfgExp.MEGLab = 1; else, cfgExp.MEGLab = 0; end  % MEG lab computer-> 1 PC-> 0
 if strcmp(cfgExp.answer.test,'task'), cfgExp.task = 1; else, cfgExp.task = 0; end  % are we collecting data and running the task?
 if strcmp(cfgExp.answer.test,'train'), cfgExp.train = 1; else, cfgExp.train = 0; end  % are we training the participant?

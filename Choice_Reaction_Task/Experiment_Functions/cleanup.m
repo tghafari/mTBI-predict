@@ -2,7 +2,7 @@ function cfgOutput = cleanup(cfgFile, cfgExp, cfgScreen, cfgEyelink, cfgOutput, 
 % cfgOutput = cleanup(cfgFile, cfgExp, cfgScreen, cfgEyelink, cfgOutput, cfgTrigger)
 % saves all the variables and closes datapixx and eyelink
 sca
-cfgOutput.endTmPnt = send_trigger(cfgTrigger, cfgExp, cfgTrigger.off);
+cfgOutput.endTmPnt = send_trigger(cfgTrigger, cfgExp, cfgTrigger.expEnd, cfgEyelink, 'end of experiment');
 
 % check if the logfile is being overwritten
 if exist([cfgFile.subDir, cfgFile.BIDSname, cfgFile.logFile], 'file') > 0

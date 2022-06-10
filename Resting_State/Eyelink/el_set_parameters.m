@@ -10,7 +10,12 @@ el.targetbeep = 0;
 el.feedbackbeep = 0;
 el.displayCalResults = 1;
 el.eyeimagesize = 50;  % percentage of screen
-el.backgroundcolour = cfgScreen.backgroundColor;
+el.cameraDistance = 90;  % distance between participant and camera in cm
+el.backgroundcolour = cfgScreen.backgroundColor;  % set the eyelink background color
+el.foregroundcolour = 255; %cfgScreen.white;  % set the text/fixation cross color of eyelink
+el.imgtitlecolour = 255; %cfgScreen.white;
+el.calibrationtargetcolour = [255, 255, 255]; %[cfgScreen.white, cfgScreen.white, cfgScreen.white];
+el.msgfontcolour = 255; %cfgScreen.white;
 
 try
 disp('Updating Parameters')
@@ -48,7 +53,7 @@ Eyelink('Command', 'saccade_acceleration_threshold = 3800');
 Eyelink('Command', 'saccade_motion_threshold = 0.0');
 Eyelink('Command', 'saccade_pursuit_fixup = 60');
 Eyelink('Command', 'fixation_update_interval = 0');
-Eyelink('Command', 'calibration_type = HV13');
+Eyelink('Command', 'calibration_type = HV9');
 Eyelink('Command', 'generate_default_targets = YES');
 Eyelink('Command', 'enable_automatic_calibration = YES');
 Eyelink('Command', 'automatic_calibration_pacing = 1000');
@@ -82,7 +87,7 @@ Eyelink('Command', 'pupil_size_diameter = YES');
 Eyelink('Message', sprintf('Calibration_area: %s', num2str(cfgScreen.fullScrn)));
 Eyelink('Message', sprintf('Screen_size_mm: %s', [num2str(cfgScreen.dispSize.height), ' ', num2str(cfgScreen.dispSize.width)]));
 Eyelink('Message', sprintf('Screen_distance_mm: %s', num2str(cfgScreen.distance*10)));
-Eyelink('Message', sprintf('Camera_position_mm: %s', num2str(cfgEyelink.cameraDistance*10)));
+Eyelink('Message', sprintf('Camera_position_mm: %s', num2str(cfgEyelink.defaults.cameraDistance*10)));
 
 catch
     warning('error is in el_set_params')

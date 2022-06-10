@@ -1,15 +1,26 @@
 function  cfgTrigger = introduce_triggers
 % cfgTrigger = introduce_triggers
 % trigger bits and codes for triggerInit and triggerSend
-STI001 = 1;  STI002 = 2;  STI003 = 4;  STI004 = 8; 
-STI005 = 16; % STI006 = 32; STI007 = 64; STI008 = 128;
-% STI009 = 256; STI010 = 512;  STI011 = 1024;
+% below is the list of stim channels and their corresponding code:
+% STI001 = 1;  STI002 = 2;  STI003 = 4;  STI004 = 8; 
+% STI005 = 16; STI006 = 32; STI007 = 64; STI008 = 128;
+% for mor info check github wiki
+% (https://github.com/tghafari/mTBI-predict/wiki/2.1.-MEG-and-Eyetracker-coding-schemes)
+
 
 cfgTrigger.off = 0;
-cfgTrigger.start = STI001;
-cfgTrigger.cueOn = STI002;
-cfgTrigger.cueOff = STI003;
-cfgTrigger.catchOn = STI004;  % for catch trials
-cfgTrigger.resp = STI005;  % button press
+cfgTrigger.trialStart = 1; 
+cfgTrigger.trialEnd = 2;
+cfgTrigger.cueRight = 101;
+cfgTrigger.cueLeft = 102;
+cfgTrigger.cueOff = 103;
+cfgTrigger.catchTrial = 104;
+cfgTrigger.respRight = 254;  % right button press
+cfgTrigger.respLeft = 255;  % left button press
+cfgTrigger.blkNum = [11, 12, 13];  % corresponding to block number 1, 2, 3
+cfgTrigger.blkEnd = 14;
+cfgTrigger.expEnd = 20;
+cfgTrigger.abort = 21;
+
 
 end

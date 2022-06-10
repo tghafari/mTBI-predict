@@ -9,7 +9,11 @@ while noResp
     keyCod = find(firstPrsd, 1);  % collects the pressed key code
     
     if presd && ismember(keyCod, cfgExp.responses) % store response variables
-        cfgOutput.respTmPnt(nstim) = send_trigger(cfgTrigger, cfgExp, cfgTrigger.resp);  % send the resp trigger
+        if ismember(keyCod, [cfgExp.NATAKeyR, cfgExp.respKeyR])
+            cfgOutput.respTmPnt(nstim) = send_trigger(cfgTrigger, cfgExp, cfgTrigger.respRight, cfgEyelink, 'Right button press');  % send the resp trigger
+        elseif ismember(keyCod, [cfgExp.NATAKeyL, cfgExp.respKeyL])
+            cfgOutput.respTmPnt(nstim) = send_trigger(cfgTrigger, cfgExp, cfgTrigger.respLeft, cfgEyelink, 'Left button press');  % send the resp trigger
+        end
         cfgOutput.respTmKbQueue(nstim) = firstPrsd(keyCod);  % exact time of button press - more useful
         cfgOutput.keyName{nstim} = KbName(keyCod);  % which key was pressed
         cfgOutput.RT_KbQueue(nstim) = cfgOutput.respTmKbQueue(nstim) - cfgOutput.respStartTime(nstim);  % calculates RT - using time point in KbQueue
@@ -24,9 +28,9 @@ while noResp
         Screen('Flip', cfgScreen.window);
         [~, abrtPrsd] = KbStrokeWait;
         if abrtPrsd(cfgExp.yesKey)
-            cfgOutput.abrtTmPoint(nstim) = send_trigger(cfgTrigger, cfgExp, cfgTrigger.off);  % send the quit trigger
+            cfgOutput.abrtTmPoint = send_trigger(cfgTrigger, cfgExp, cfgTrigger.abort, cfgEyelink, 'Experiment aborted by operator');  % send the quit trigger
             cfgOutput = cleanup(cfgFile, cfgExp, cfgScreen, cfgEyelink, cfgOutput, cfgTrigger);
-            warning('Experiment aborted by user')
+            warning('Experiment aborted by operator')
             break
         end
         KbQueueFlush;

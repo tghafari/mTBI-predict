@@ -15,8 +15,8 @@ if cfgExp.corrResp(nstim)
     for frm = 1:cfgExp.dotFrm
         Screen('DrawTextures', cfgScreen.window, [presentingStr.visStimR{nstim}{frm}, presentingStr.visStimL{nstim}{frm}]...
             , [],[cfgStim.destVisStimR; cfgStim.destVisStimL]');
-        Screen('FillOval', cfgScreen.window, [cfgScreen.fixDotColor', cfgScreen.fixDotFlashColor']...
-            , [cfgScreen.fixDotRect', cfgStim.rectLR(cfgStim.cueRndIdx(nstim),:)']);  % put the red dot according to the cue direction(cueRandIdx-> 1:left, 2:right)
+        Screen('FillOval', cfgScreen.window, [cfgScreen.fixDotColor, cfgScreen.fixDotFlashColor']...
+            , [cfgScreen.fixDotRect, cfgStim.rectLR(cfgStim.cueRndIdx(nstim),:)']);  % put the red dot according to the cue direction(cueRandIdx-> 1:left, 2:right)
         Screen('Flip', cfgScreen.window, cfgScreen.vbl + (cfgScreen.waitFrm - 0.5) * cfgScreen.ifi);
     end
     cfgOutput.dotOffTmPnt(nstim) = send_trigger(cfgTrigger, cfgExp, cfgTrigger.dotOff);  % trigger dot off

@@ -37,7 +37,7 @@ end
 cfgScreen.black = BlackIndex(cfgScreen.scrNum);
 cfgScreen.white = WhiteIndex(cfgScreen.scrNum);
 cfgScreen.grey = cfgScreen.white/2;
-cfgScreen.backgroundColor = cfgScreen.grey;
+cfgScreen.backgroundColor = cfgScreen.black;
 cfgScreen.fntSize = 50;
 cfgScreen.backProjection = 0;  % is a backprojection screen used? (1 = yes, 0 = no),
 cfgScreen.propixxMode = 0;  % 2 for 480 Hz, 5 for 1440 Hz, 0 for 120 Hz

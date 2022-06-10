@@ -10,7 +10,7 @@ cfgFile = create_file_directory(cfgExp);
 cfgExp = initialise_exp_variables(cfgExp);  % introduce experiment variables
 cfgTrigger = introduce_triggers;  % introduce triggers
 cfgCue = initialise_cue_variables;
-cfgCue = read_cue(cfgFile, cfgExp, cfgCue);  % randomly read visual stimuli and cues for all trials
+[cfgCue, cfgExp, cfgTrigger] = read_cue(cfgFile, cfgExp, cfgCue, cfgTrigger);  % randomly read visual stimuli and cues for all trials
 cfgScreen = initialise_screen_variables(cfgExp);  % introduce visual variables
 setup_datapixx(cfgExp, cfgScreen)  % sets up propixx
 cfgTxt = txt_collection;  % collection of all texts
@@ -31,33 +31,38 @@ cfgTrigger = initialise_trigger_port(cfgExp, cfgTrigger);  % initiate triggers
 cfgExp = KbQueue_start_routine(cfgExp);  % start KbQueu routine
 cfgScreen.vbl = Screen('Flip',cfgScreen.window);  % get the first VBL
 cfgOutput.vbl = cfgScreen.vbl;  % put first vbl into cfgOutput as well
-cfgOutput = draw_myText(cfgScreen, cfgExp, cfgTxt.startTxt, cfgTxt, cfgOutput, cfgTrigger, cfgFile, cfgEyelink);
+cfgOutput = draw_myText(cfgScreen, cfgExp, cfgTxt.startTxt, cfgTxt, cfgOutput, cfgTrigger, cfgFile, cfgEyelink, 1);
 
 nstim = 0;  % count number of stimuli in total
 for blk = 1:cfgExp.numBlock
+    cfgOutput.blkStrtTmPnt(blk) = send_trigger(cfgTrigger, cfgExp, cfgTrigger.blkNum(blk), cfgEyelink, sprintf('block n. %d', blk));
     for trl = 1:cfgExp.numTrial
         nstim = nstim + 1;  % count stims presented in total
-        
-        % beginig of blocks fixation dot
-        cfgOutput.strtTmPnt(nstim) = send_trigger(cfgTrigger, cfgExp, cfgTrigger.start);
-        display_fixation_dot(cfgScreen, cfgExp)
+        cfgOutput.strtTmPnt(nstim) = send_trigger(cfgTrigger, cfgExp, cfgTrigger.trialStart, cfgEyelink, 'trial start');
         
         if ~cfgExp.catchTrial(nstim)
-        % cue presentation
-        cfgOutput = display_cue(presentingStr, nstim, cfgCue, cfgScreen, cfgExp, cfgTrigger, cfgOutput);
-        
         % ISI with fixation dot presentation
         display_fixation_dot(cfgScreen, cfgExp); 
               
+        % cue presentation
+        cfgOutput = display_cue(presentingStr, nstim, cfgCue, cfgScreen, cfgExp, cfgTrigger, cfgOutput, cfgEyelink);
+
         % listen for a response
         cfgOutput = response_collector(cfgExp, cfgOutput, cfgTrigger, nstim, cfgTxt, cfgScreen, cfgFile, cfgEyelink);
+       
+        elseif cfgExp.catchTrial(nstim)
+        % catch trial
+        display_fixation_dot(cfgScreen, cfgExp)
+        cfgOutput.catchTmPnt(nstim) = send_trigger(cfgTrigger, cfgExp, cfgTrigger.catchTrial, cfgEyelink, 'catch trial');
+        
         end
+        cfgOutput.strtTmPnt(nstim) = send_trigger(cfgTrigger, cfgExp, cfgTrigger.trialEnd, cfgEyelink, 'trial end');
 
     end
-    calculate_show_feedback(cfgOutput, cfgExp, blk, cfgScreen);
-    cfgOutput = draw_myText(cfgScreen, cfgExp, cfgTxt.breakTxt, cfgTxt, cfgOutput, cfgTrigger, cfgFile, cfgEyelink);
+    cfgOutput = calculate_show_feedback(cfgOutput, cfgExp, blk, cfgScreen, cfgTrigger, cfgEyelink);
+    cfgOutput = draw_myText(cfgScreen, cfgExp, cfgTxt.breakTxt, cfgTxt, cfgOutput, cfgTrigger, cfgFile, cfgEyelink, nstim);
     
 end
 
-cfgOutput = draw_myText(cfgScreen, cfgExp, cfgTxt.endTxt, cfgTxt, cfgOutput, cfgTrigger, cfgFile, cfgEyelink);
+cfgOutput = draw_myText(cfgScreen, cfgExp, cfgTxt.endTxt, cfgTxt, cfgOutput, cfgTrigger, cfgFile, cfgEyelink, nstim);
 cfgOutput = cleanup(cfgFile, cfgExp, cfgScreen, cfgEyelink, cfgOutput, cfgTrigger);

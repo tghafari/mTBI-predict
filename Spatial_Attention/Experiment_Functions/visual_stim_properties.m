@@ -1,5 +1,5 @@
-function cfgStim = visual_stim_properties(cfgScreen, cfgStim, cfgExp)
-% cfgScreen = visual_stim_properties(cfgScreen, cfgStim, cfgExp)
+function cfgStim = visual_stim_properties(cfgScreen, cfgStim)
+% cfgScreen = visual_stim_properties(cfgScreen, cfgStim)
 % define the destination rectangle in which visStims will be presented
 % width and height should be in visual degrees
 
@@ -9,16 +9,9 @@ cfgStim.destVisStimCentre = CenterRect(cfgStim.destVisStimCentre, cfgScreen.wind
 cfgStim.destVisStimR = cfgStim.destVisStimCentre + angle2pix(cfgScreen, cfgStim.visStimToR);  
 cfgStim.destVisStimL = cfgStim.destVisStimCentre - angle2pix(cfgScreen, cfgStim.visStimToL);  
 
-cfgStim.visStimMat = repmat(cfgStim.visStim, 2, 1);  % matrix of inward moving gratings
-% create enough visual stimuli for each trial
-for stm = 1:length(cfgExp.stimFrm)
-    cfgStim.visStimR{stm} = repmat(cfgStim.visStimMat, ceil(cfgExp.stimFrm(stm)/length(cfgStim.visStim)/2), 1);  % every cfgExp.stimSpeedFrm = one complete rotation
-    cfgStim.visStimL{stm} = repmat(cfgStim.visStimMat, ceil(cfgExp.stimFrm(stm)/length(cfgStim.visStim)/2), 1);  
-end
-
 % calculate the centre of visual stimuli (for dot flash presentation)
-cfgStim.rectLR = [CenterRect(cfgScreen.fixDotRect, cfgStim.destVisStimL)...
-    ; CenterRect(cfgScreen.fixDotRect, cfgStim.destVisStimR)];  % put both rects in one matrix for use in another function
+cfgStim.rectLR = [CenterRect(cfgScreen.fixDotRect(:,2)', cfgStim.destVisStimL)...
+    ; CenterRect(cfgScreen.fixDotRect(:,2)', cfgStim.destVisStimR)];  % put both rects in one matrix for use in another function
 
 % destination of cue
 rectCue = [0, 0, angle2pix(cfgScreen, cfgStim.destRectCueSize), angle2pix(cfgScreen, cfgStim.destRectCueSize)];

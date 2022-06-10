@@ -4,7 +4,7 @@ function cfgEyelink = initialise_eyelink(cfgFile, cfgEyelink, cfgScreen, cfgExp)
 
 try
     if cfgEyelink.on
-        Eyelink('Initialize');
+%         Eyelink('Initialize');
         if exist([cfgFile.subDir, cfgFile.eyelink], 'file') > 0  % check whether files already exist for this subject/session
             warning('Eyelink file will be overwritten');
             inp1 = input('Do you want to continue? y/n   ','s');
@@ -13,7 +13,6 @@ try
                 error('session aborted by operator')
             end
         end
-        cfgEyelink.cameraDistance = 90;  % distance between participant and camera in cm
         cfgEyelink = el_start(cfgEyelink, cfgScreen, cfgFile, cfgExp);  % set parameters of eyelink and calibrate
     end 
 catch
