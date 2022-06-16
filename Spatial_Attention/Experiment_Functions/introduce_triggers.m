@@ -7,8 +7,8 @@ function  cfgTrigger = introduce_triggers
 % for mor info check github wiki
 % (https://github.com/tghafari/mTBI-predict/wiki/1.1.-MEG-and-Eyetracker-coding-schemes)
 
-% cfgTrigger.off = 0;
-% cfgTrigger.trialStart = 1;
+cfgTrigger.off = 0;
+cfgTrigger.trialStart = 1;
 cfgTrigger.trialEnd = 2;
 cfgTrigger.cueRight = 101;
 cfgTrigger.cueLeft = 102;
@@ -19,8 +19,7 @@ cfgTrigger.stimOff = 202;  % difference between stim off and start is the ITI
 cfgTrigger.dotOnRight = 211;
 cfgTrigger.dotOnLeft = 212;
 cfgTrigger.dotOff = 213;
-cfgTrigger.respRight = 254;  % right button press
-cfgTrigger.respLeft = 255;  % left button press
+cfgTrigger.resp = 255;  %  button press
 cfgTrigger.blkNum = [11, 12, 13];  % corresponding to block number 1, 2, 3
 cfgTrigger.blkEnd = 14;
 cfgTrigger.expEnd = 20;

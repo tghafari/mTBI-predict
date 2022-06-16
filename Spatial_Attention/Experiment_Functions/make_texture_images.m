@@ -2,6 +2,15 @@ function presentingStr = make_texture_images(cfgScreen, cfgStim, cfgExp)
 % presentingStr = make_texture_images(cfgScreen, cfgStim, cfgExp)   
 % makes textures of visual stim and cue
 
+% randomly read in R & L visual stim- this snippet should be here because of the number of frames
+cfgStim.visStimMat = repmat([cfgStim.visStim; flip(cfgStim.visStim)], ceil(max(cfgExp.stimFrm)/100), 1);  % matrix of inward and outward moving gratings
+% create enough visual stimuli for each trial
+for stm = 1:length(cfgExp.stimFrm)
+    tempStrt = randi(max(cfgExp.stimFrm));
+    cfgStim.visStimR{stm} = cfgStim.visStimMat(tempStrt : tempStrt + max(cfgExp.stimFrm) + 10);  % every cfgExp.stimSpeedFrm = one complete rotation
+    cfgStim.visStimL{stm} = cfgStim.visStimMat(tempStrt : tempStrt + max(cfgExp.stimFrm) + 10);  % 10 is added just to make sure there is enough stims
+end
+
 for readImg = cfgExp.numStim:-1:1  % create an openGL texture for stim images
     for frm = length(cfgStim.visStimR{readImg}):-1:1
     presentingStr.visStimR{readImg}{frm} = Screen('MakeTexture', cfgScreen.window, cfgStim.visStimR{readImg}{frm});

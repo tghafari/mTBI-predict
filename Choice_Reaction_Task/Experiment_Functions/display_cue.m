@@ -3,8 +3,8 @@ function cfgOutput = display_cue(presentingStr, nstim, cfgCue, cfgScreen, cfgExp
 % draw ans flip fixation cross with coordinates in cfgScreen
 % for the duration specified in cfgExp
 
-cfgOutput.cueOnTmPnt(nstim) = send_trigger(cfgTrigger, cfgExp, cfgTrigger.cues(nstim), cfgEyelink...
-    , sprintf('cue onset to %s', cell2mat(cfgTrigger.cuesRL(nstim))));
+cfgOutput.cueOnTmPnt(nstim) = send_trigger(cfgTrigger, cfgExp, str2double(cfgTrigger.cuesDir{nstim, 1}), cfgEyelink...
+    , sprintf('cue onset to %s', cfgTrigger.cuesDir{nstim, 2}));
 cfgOutput.respStartTime(nstim) = GetSecs;
 
 for frm = 1:cfgExp.cueFrm

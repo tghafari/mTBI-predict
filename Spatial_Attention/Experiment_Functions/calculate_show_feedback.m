@@ -1,6 +1,8 @@
-function calculate_show_feedback(cfgOutput, cfgExp, blk, cfgScreen)
-% calculate_show_feedback(cfgOutput, cfgExp, blk, cfgScreen)
+function cfgOutput = calculate_show_feedback(cfgOutput, cfgExp, nstim, blk, cfgScreen, cfgTrigger, cfgEyelink)
+% cfgOutput = calculate_show_feedback(cfgOutput, cfgExp, nstim, blk, cfgScreen, cfgTrigger, cfgEyelink)
 % calculates performance for each block
+
+cfgOutput.blkEnd(nstim) = send_trigger(cfgTrigger, cfgExp, cfgTrigger.blkEnd, cfgEyelink, 'end of block');
 
 FB = cfgOutput.presd((blk-1)*cfgExp.numTrial+1:blk*cfgExp.numTrial) - cfgExp.corrResp((blk-1)*cfgExp.numTrial+1:blk*cfgExp.numTrial);
 TPR = sum(FB == 1) ./ length(FB);  % because pressed is stored as 2, TPR = 2 - 1

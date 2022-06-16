@@ -31,7 +31,7 @@ cfgTrigger = initialise_trigger_port(cfgExp, cfgTrigger);  % initiate triggers
 cfgExp = KbQueue_start_routine(cfgExp);  % start KbQueu routine
 cfgScreen.vbl = Screen('Flip',cfgScreen.window);  % get the first VBL
 cfgOutput.vbl = cfgScreen.vbl;  % put first vbl into cfgOutput as well
-cfgOutput = draw_myText(cfgScreen, cfgExp, cfgTxt.startTxt, cfgTxt, cfgOutput, cfgTrigger, cfgFile, cfgEyelink, 1);
+cfgOutput = draw_myText(cfgScreen, cfgExp, cfgTxt.startTxt, cfgTxt, cfgOutput, cfgTrigger, cfgFile, cfgEyelink);
 
 nstim = 0;  % count number of stimuli in total
 for blk = 1:cfgExp.numBlock
@@ -50,19 +50,18 @@ for blk = 1:cfgExp.numBlock
         % listen for a response
         cfgOutput = response_collector(cfgExp, cfgOutput, cfgTrigger, nstim, cfgTxt, cfgScreen, cfgFile, cfgEyelink);
        
-        elseif cfgExp.catchTrial(nstim)
-        % catch trial
+        elseif cfgExp.catchTrial(nstim) % catch trial
         display_fixation_dot(cfgScreen, cfgExp)
         cfgOutput.catchTmPnt(nstim) = send_trigger(cfgTrigger, cfgExp, cfgTrigger.catchTrial, cfgEyelink, 'catch trial');
-        
         end
-        cfgOutput.strtTmPnt(nstim) = send_trigger(cfgTrigger, cfgExp, cfgTrigger.trialEnd, cfgEyelink, 'trial end');
 
+        cfgOutput.trialEndTmPnt(nstim) = send_trigger(cfgTrigger, cfgExp, cfgTrigger.trialEnd, cfgEyelink, 'trial end');
     end
-    cfgOutput = calculate_show_feedback(cfgOutput, cfgExp, blk, cfgScreen, cfgTrigger, cfgEyelink);
-    cfgOutput = draw_myText(cfgScreen, cfgExp, cfgTxt.breakTxt, cfgTxt, cfgOutput, cfgTrigger, cfgFile, cfgEyelink, nstim);
-    
+    cfgOutput = calculate_show_feedback(cfgOutput, cfgExp, nstim, blk, cfgScreen, cfgTrigger, cfgEyelink);
+    if blk ~= cfgExp.numBlock
+    cfgOutput = draw_myText(cfgScreen, cfgExp, cfgTxt.breakTxt, cfgTxt, cfgOutput, cfgTrigger, cfgFile, cfgEyelink);
+    end
 end
 
-cfgOutput = draw_myText(cfgScreen, cfgExp, cfgTxt.endTxt, cfgTxt, cfgOutput, cfgTrigger, cfgFile, cfgEyelink, nstim);
+cfgOutput = draw_myText(cfgScreen, cfgExp, cfgTxt.endTxt, cfgTxt, cfgOutput, cfgTrigger, cfgFile, cfgEyelink);
 cfgOutput = cleanup(cfgFile, cfgExp, cfgScreen, cfgEyelink, cfgOutput, cfgTrigger);

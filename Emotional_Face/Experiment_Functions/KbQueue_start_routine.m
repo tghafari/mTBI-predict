@@ -5,10 +5,10 @@ function cfgExp = KbQueue_start_routine(cfgExp)
 
 KbName('UnifyKeyNames');
 cfgExp.quitKey = KbName('ESCAPE');  % quit key
-cfgExp.respKeyF = KbName('RightArrow');  % keyboard response female
-cfgExp.respKeyM = KbName('LeftArrow');  % keyboard response male
-cfgExp.NATAKeyF = KbName('7&');  % NATA box response female
-cfgExp.NATAKeyM = KbName('4$');  % NATA box response male
+cfgExp.respKeyM = KbName('RightArrow');  % keyboard response male
+cfgExp.respKeyF = KbName('LeftArrow');  % keyboard response female
+cfgExp.NATAKeyM = KbName('7&');  % NATA box response male
+cfgExp.NATAKeyF = KbName('4$');  % NATA box response female
 cfgExp.yesKey = KbName('y');  % yes response
 cfgExp.noKey = KbName('n');  % no key
 cfgExp.responses = [cfgExp.NATAKeyF, cfgExp.NATAKeyM, cfgExp.respKeyF, cfgExp.respKeyM];

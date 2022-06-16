@@ -1,18 +1,33 @@
 function  cfgTrigger = introduce_triggers
-%[trigOff,trigStart,trigVisOn,trigVisOff,trigAud,trigFrqTag,trigTrialInfo] = introduce_triggers
+% cfgTrigger = introduce_triggers
 % trigger bits and codes for triggerInit and triggerSend
-STI001 = 1;  STI002 = 2;  STI003 = 4;  STI004 = 8; 
-STI005 = 16; STI006 = 32; STI007 = 64; STI008 = 128;
-% STI009 = 256; STI010 = 512;  STI011 = 1024;
+% below is the list of stim channels and their corresponding code:
+% STI001 = 1;  STI002 = 2;  STI003 = 4;  STI004 = 8; 
+% STI005 = 16; STI006 = 32; STI007 = 64; STI008 = 128;
+% for mor info check github wiki
+% (https://github.com/tghafari/mTBI-predict/wiki/2.1.-MEG-and-Eyetracker-coding-schemes)
+
 
 cfgTrigger.off = 0;
-cfgTrigger.start = STI001;
-cfgTrigger.fixOn = STI002;
-cfgTrigger.fixOff = STI003;
-cfgTrigger.stimOn = STI004;  % difference between stim off and stim on is the stimDur
-cfgTrigger.stimOff = STI005;  % difference between stim off and next stim on is the ISI
-cfgTrigger.questionOn = STI006;  % display question
-cfgTrigger.questionOff = STI007; 
-cfgTrigger.resp = STI008;  % button press
+cfgTrigger.trialStart = 1; 
+cfgTrigger.trialEnd = 2;
+cfgTrigger.faceHappy = 101;  % onset of face
+cfgTrigger.faceAngry = 102;  % onset of face
+cfgTrigger.faceNeutral = 103;  % onset of face
+cfgTrigger.faceIDHappy = 110 : 109 + (18 * 2);  % there are 18 female and 18 male faces (36 different identities): 2 frames after onset
+cfgTrigger.faceIDAngry = 150 : 149 + (18 * 2);  % 2 frames after face onset
+cfgTrigger.faceIDNeutral = 190 : 189 + (18 * 2);  % 2 frames after face onset
+cfgTrigger.faceMale = 231;  % 4 frames after onset
+cfgTrigger.faceFemale = 232;  % 4 frames after onset
+cfgTrigger.faceOff = 104;
+cfgTrigger.questionOn = 105;
+cfgTrigger.questionOff = 106;
+cfgTrigger.respMale = 254;  % right button press
+cfgTrigger.respFemale = 255;  % left button press
+cfgTrigger.blkNum = [11, 12, 13];  % corresponding to block number 1, 2, 3
+cfgTrigger.blkEnd = 14;
+cfgTrigger.expEnd = 20;
+cfgTrigger.abort = 21;
+
 
 end
