@@ -1,5 +1,5 @@
 %% Basic Setup
-
+clear; close all; sca; fclose('all');  % this should be outside of function, otherwise might not work!
 cfgEyelink = basic_setup_experiment;  % basic PTB setup and clearing up
 %% Input and OS folder preparations
 
@@ -54,7 +54,6 @@ for blk = 1:cfgExp.numBlock
         % listen for a response
         cfgOutput = response_collector(cfgExp, cfgOutput, cfgTrigger, nstim, cfgTxt, cfgScreen, cfgFile, cfgEyelink);
         
-        cfgOutput.trialEndTmPnt(nstim) = send_trigger(cfgTrigger, cfgExp, cfgTrigger.trialEnd, cfgEyelink, 'trial end');
     end
     cfgOutput = calculate_show_feedback(cfgOutput, cfgExp, nstim, blk, cfgScreen, cfgTrigger, cfgEyelink);
     if blk ~= cfgExp.numBlock

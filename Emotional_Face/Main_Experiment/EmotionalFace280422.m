@@ -1,5 +1,5 @@
 %% Basic Setup
-
+clear; close all; sca; fclose('all');  % this should be outside of function, otherwise might not work!
 cfgEyelink = basic_setup_experiment;  % basic PTB setup and clearing up
 %% Input and OS folder preparations
 
@@ -38,7 +38,6 @@ for blk = 1:cfgExp.numBlock
     cfgOutput.blkStrtTmPnt(blk) = send_trigger(cfgTrigger, cfgExp, cfgTrigger.blkNum(blk), cfgEyelink, sprintf('block n. %d', blk));
     for trl = 1:cfgExp.numTrial
         nstim = nstim + 1;  % count stims presented in total
-        cfgOutput.strtTmPnt(nstim) = send_trigger(cfgTrigger, cfgExp, cfgTrigger.trialStart, cfgEyelink, 'trial start');
         
         % beginig of blocks fixation dot
         if trl == 1
@@ -59,7 +58,6 @@ for blk = 1:cfgExp.numBlock
         cfgOutput = response_collector(cfgExp, cfgOutput, cfgTrigger, nstim, cfgTxt, cfgScreen, cfgFile, cfgEyelink);
         end
 
-        cfgOutput.trialEndTmPnt(nstim) = send_trigger(cfgTrigger, cfgExp, cfgTrigger.trialEnd, cfgEyelink, 'trial end');
     end
     
     cfgOutput = calculate_show_feedback(cfgOutput, cfgExp, nstim, blk, cfgScreen, cfgTrigger, cfgEyelink);

@@ -16,7 +16,7 @@ while noResp
         cfgOutput.presd(nstim) = presd + 1;  % collect all responses for hit rate nad correct rejection analysis
         cfgOutput.RT_KbQueue(nstim) = cfgOutput.respTmKbQueue(nstim) - cfgOutput.respStartTime(nstim);  % calculates RT - using time point in KbQueue
         if cfgExp.corrResp(nstim)
-            cfgOutput.RT_trig(nstim) = cfgOutput.respTmPnt(nstim) - cfgOutput.dotOffTmPnt(nstim);  % calculates RT - using triggers
+            cfgOutput.RT_trig(nstim) = cfgOutput.respTmPnt(nstim) - cfgOutput.dotOnTmPnt(nstim);  % calculates RT - using triggers
         end
         KbQueueFlush;
         noResp = 0;

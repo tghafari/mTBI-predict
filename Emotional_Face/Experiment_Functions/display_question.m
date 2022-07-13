@@ -10,7 +10,6 @@ for frm = 1:cfgExp.quesFrm
     Screen('FillOval', cfgScreen.window, cfgScreen.fixDotColor, cfgScreen.fixDotRect);
     Screen('Flip', cfgScreen.window, cfgScreen.vbl + (cfgScreen.waitFrm - 0.5) * cfgScreen.ifi);
 end
-cfgOutput.questionOffTmPnt(nstim) = send_trigger(cfgTrigger, cfgExp, cfgTrigger.questionOff, cfgEyelink, 'question offset');
 
 end
 

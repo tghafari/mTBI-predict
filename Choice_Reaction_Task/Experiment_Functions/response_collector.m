@@ -17,7 +17,7 @@ while noResp
         cfgOutput.respTmKbQueue(nstim) = firstPrsd(keyCod);  % exact time of button press - more useful
         cfgOutput.keyName{nstim} = KbName(keyCod);  % which key was pressed
         cfgOutput.RT_KbQueue(nstim) = cfgOutput.respTmKbQueue(nstim) - cfgOutput.respStartTime(nstim);  % calculates RT - using time point in KbQueue
-        cfgOutput.RT_trig(nstim) = cfgOutput.respTmPnt(nstim) - cfgOutput.cueOffTmPnt(nstim);  % calculates RT - using triggers
+        cfgOutput.RT_trig(nstim) = cfgOutput.respTmPnt(nstim) - cfgOutput.cueOnTmPnt(nstim);  % calculates RT - using triggers
         
         KbQueueFlush;
         noResp = 0;
