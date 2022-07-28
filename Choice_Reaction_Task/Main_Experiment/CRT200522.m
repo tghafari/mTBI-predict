@@ -1,5 +1,5 @@
 %% Basic Setup
-clear; close all; sca; fclose('all');  % this should be outside of function, otherwise might not work!
+clear; close all; sca; fclose('all');  % EVALUATE BEFORE RUN. This should be outside of function, otherwise might not work!
 cfgEyelink = basic_setup_experiment;  % basic PTB setup and clearing up
 %% Input and OS folder preparations
 
