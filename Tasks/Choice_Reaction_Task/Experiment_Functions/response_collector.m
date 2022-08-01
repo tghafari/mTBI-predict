@@ -2,7 +2,6 @@ function cfgOutput = response_collector(cfgExp, cfgOutput, cfgTrigger, nstim, cf
 % cfgOutput = response_collector(cfgExp, cfgOutput, cfgTrigger, nstim, cfgTxt, cfgScreen, cfgFile)
 % listens for participant's response
 
-
 noResp = 1;
 while noResp
     [presd, firstPrsd] = KbQueueCheck(cfgExp.deviceNum);  % listens for response

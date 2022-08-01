@@ -8,11 +8,12 @@ cfgExp.quitKey = KbName('ESCAPE');  % quit key
 cfgExp.noKey = KbName('n');  % no key
 cfgExp.yesKey = KbName('y');  % yes response
 cfgExp.activeKeys = [cfgExp.quitKey, cfgExp.noKey, cfgExp.yesKey];
+cfgExp.deviceNum = -1;
 
 % only listen for specific keys
 scanList = zeros(1,256);
 scanList(cfgExp.activeKeys) = 1;
-KbQueueCreate(cfgExp.deviceNum,scanList);  % create queue
+KbQueueCreate(cfgExp.deviceNum, scanList);  % create queue
 KbQueueStart;  % start listening to input
 KbQueueFlush;  % clear all keyboard presses so far
 

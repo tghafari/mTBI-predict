@@ -5,8 +5,8 @@ function [cfgExp, cfgOutput] = initialise_exp_variables(cfgExp)
 
 rng('shuffle')
 cfgExp.numBlock = 3;  % total number of blocks 
-cfgExp.numRep = 1;  % number of repetitions of each specific visual stimuli
-cfgExp.numImg = 10;  % number of face images for each gender (2) and emotion (3: neu, hap, ang)
+cfgExp.numRep = 2;  % number of repetitions of each specific visual stimuli
+cfgExp.numImg = 18;  % number of face images for each gender (2) and emotion (3: neu, hap, ang)
 cfgExp.numTrial = cfgExp.numImg * cfgExp.numRep * 2 * 3 / cfgExp.numBlock;  % number of trials in each block
 cfgExp.numStim = cfgExp.numTrial * cfgExp.numBlock;  % number of stimuli/trials in total
 cfgExp.ISIDur = 750 + (1000 - 750) .* rand(cfgExp.numStim, 1);  % interval between two images in ms (fixation dot duration)

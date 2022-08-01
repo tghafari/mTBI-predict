@@ -3,16 +3,18 @@ function cfgOutput = display_fixation_dot(cfgScreen, cfgExp, cfgTxt, cfgOutput, 
 % draw and flip fixation cross with coordinates in cfgScreen
 % for the duration specified in cfgExp for resting state
 
-for frm = 1:cfgExp.restFrm
-    Screen('FillOval', cfgScreen.window, cfgScreen.fixDotColor, cfgScreen.fixDotRect);
-    Screen('Flip', cfgScreen.window, cfgScreen.vbl + (cfgScreen.waitFrm - 0.5) * cfgScreen.ifi);
-end
+% waitForQuit = GetSecs;
 
-notDisplaying = false;  % only enable the experimenter to continue/ start
-while ~notDisplaying
+noResp = 1;  % only enable the experimenter to continue/ start
+while noResp
     [presd, firstPrsd] = KbQueueCheck(cfgExp.deviceNum);  % listens for response
     keyCod = find(firstPrsd, 1);  % collects the pressed key code
-if presd && keyCod == cfgExp.quitKey
+
+    for frm = 1:cfgExp.restFrm
+        Screen('FillOval', cfgScreen.window, cfgScreen.fixDotColor, cfgScreen.fixDotRect);
+        Screen('Flip', cfgScreen.window, cfgScreen.vbl + (cfgScreen.waitFrm - 0.5) * cfgScreen.ifi);
+    
+    if presd && keyCod == cfgExp.quitKey
         Screen('Flip', cfgScreen.window);
         DrawFormattedText(cfgScreen.window, cfgTxt.quitTxt, 'center', 'center', [cfgScreen.white, cfgScreen.white, cfgScreen.white]);
         Screen('Flip', cfgScreen.window);
@@ -24,8 +26,11 @@ if presd && keyCod == cfgExp.quitKey
             break
         end
         KbQueueFlush;
+        noResp = false;
         WaitSecs(0.5)
+    end
+    noResp = false;
+    end
 end
 
 end
-

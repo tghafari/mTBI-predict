@@ -32,7 +32,7 @@ cfgExp = KbQueue_start_routine(cfgExp);  % start KbQueu routine
 cfgScreen.vbl = Screen('Flip',cfgScreen.window);  % get the first VBL
 cfgOutput.vbl = cfgScreen.vbl;  % put first vbl into cfgOutput as well
 cfgOutput = draw_myText(cfgScreen, cfgExp, cfgTxt.startTxt, cfgTxt, cfgOutput, cfgTrigger, cfgFile, cfgEyelink);
-
+sca
 nstim = 0;  % count number of stimuli in total
 for blk = 1:cfgExp.numBlock
     cfgOutput.blkStrtTmPnt(blk) = send_trigger(cfgTrigger, cfgExp, cfgTrigger.blkNum(blk), cfgEyelink, sprintf('block n. %d', blk));
@@ -40,13 +40,13 @@ for blk = 1:cfgExp.numBlock
         nstim = nstim + 1;  % count stims presented in total
 
         % beginig of trial fixation dot
-        cfgOutput = display_fixation_dot(cfgScreen, cfgExp, nstim, 1, cfgOutput, cfgTrigger, cfgEyelink);  % 1 indicates it is ITI
+        cfgOutput = display_fixation_dot(cfgScreen, cfgExp, nstim, 1, cfgOutput);  % 1 indicates it is ITI
         
         % cue presentation
         cfgOutput = display_cue(presentingStr, nstim, cfgStim, cfgScreen, cfgExp, cfgTrigger, cfgOutput, cfgEyelink);
         
         % ISI with fixation dot presentation
-        cfgOutput = display_fixation_dot(cfgScreen, cfgExp, nstim, 0, cfgOutput, cfgTrigger, cfgEyelink);  % 0 indicates it is not ITI (it is ISI)
+        cfgOutput = display_fixation_dot(cfgScreen, cfgExp, nstim, 0, cfgOutput);  % 0 indicates it is not ITI (it is ISI)
         
         % present visual stimulus with/without red flash dot
         cfgOutput = display_visual_stim(presentingStr, nstim, cfgScreen, cfgExp, cfgOutput, cfgStim, cfgTrigger, cfgEyelink);

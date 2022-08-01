@@ -1,5 +1,5 @@
-function cfgOutput = display_fixation_dot(cfgScreen, cfgExp, nstim, ITI, cfgOutput, cfgTrigger, cfgEyelink)
-% cfgOutput = display_fixation_dot(cfgScreen, cfgExp, nstim, ITI, cfgOutput, cfgTrigger, cfgEyelink)
+function cfgOutput = display_fixation_dot(cfgScreen, cfgExp, nstim, ITI, cfgOutput)
+% cfgOutput = display_fixation_dot(cfgScreen, cfgExp, nstim, ITI, cfgOutput)
 % ITI = 0>ISI, ITI = 1>ITI
 % draw ans flip fixation cross with coordinates in cfgScreen
 % for the duration specified in cfgExp for either ITI or ISI

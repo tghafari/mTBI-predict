@@ -9,10 +9,15 @@ cfgExp.noKey = KbName('n');  % no key
 cfgExp.yesKey = KbName('y');  % yes response
 cfgExp.respKey = KbName('RightArrow');  % keyboard response
 cfgExp.NATAKey = KbName('7&');  % NATA box response
+cfgExp.AstonKey = KbName('1!');  % AU and UoN button box responses
 
 % KB response: '4$' and '7&' are the left and right index fingers of the (5-button) NATA boxes
 if cfgExp.MEGLab == 1
-    cfgExp.activeKeys = [cfgExp.quitKey, cfgExp.NATAKey, cfgExp.yesKey, cfgExp.noKey];
+    if cfgExp.site == 2
+        cfgExp.activeKeys = [cfgExp.quitKey, cfgExp.NATAKey, cfgExp.yesKey, cfgExp.noKey];
+    elseif cfgExp.site == 1 || cfgExp.site == 3
+        cfgExp.activeKeys = [cfgExp.quitKey, cfgExp.AstonKey, cfgExp.yesKey, cfgExp.noKey];
+    end
     cfgExp.deviceNum = -1;  % listen to all devices during test/train
 else
     cfgExp.activeKeys = [cfgExp.quitKey, cfgExp.respKey, cfgExp.yesKey, cfgExp.noKey];
