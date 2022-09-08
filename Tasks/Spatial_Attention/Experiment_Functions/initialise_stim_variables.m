@@ -2,7 +2,7 @@ function cfgStim = initialise_stim_variables
 % cfgStim = initialise_stim_variables
 % initialise variables of cue and grating
 
-cfgStim.stimRotSpeed = 3; % number of 360-degree rotations per second
+cfgStim.stimRotSpeed = 2; % number of 360-degree rotations per second
 cfgStim.destRectH = 7;  % height of destination rectangle for stimulus in visual degrees
 cfgStim.destRectW = 7;  % width of destination rectangle for stimulus in visual degrees
 cfgStim.destRectCueSize = 3;  % size of destination rectangle for cue
