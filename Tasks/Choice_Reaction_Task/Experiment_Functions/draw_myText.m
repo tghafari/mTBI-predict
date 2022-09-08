@@ -1,5 +1,5 @@
-function cfgOutput = draw_myText(cfgScreen, cfgExp, text, cfgTxt, cfgOutput, cfgTrigger, cfgFile, cfgEyelink)
-% cfgOutput = draw_myText(cfgScreen, cfgExp, text, cfgTxt, cfgOutput, cfgTrigger, cfgFile, cfgEyelink)
+function cfgOutput = draw_myText(cfgScreen, cfgExp, text, cfgTxt, cfgOutput, cfgTrigger, cfgFile, cfgEyelink, cfgCue)
+% cfgOutput = draw_myText(cfgScreen, cfgExp, text, cfgTxt, cfgOutput, cfgTrigger, cfgFile, cfgEyelink, cfgCue)
 % draws white text on the centre of the Screen and waits for experimenter
 % to press "y" to continue
 
@@ -19,7 +19,7 @@ while ~notWaiting
         [~, abrtPrsd] = KbStrokeWait;
         if abrtPrsd(cfgExp.yesKey)
             cfgOutput.abrtTmPoint = send_trigger(cfgTrigger, cfgExp, cfgTrigger.off, cfgEyelink, 'Experiment aborted by operator');  % send the quit trigger
-            cleanup(cfgFile, cfgExp, cfgScreen, cfgEyelink, cfgOutput, cfgTrigger);
+            cfgOutput = cleanup(cfgFile, cfgExp, cfgScreen, cfgEyelink, cfgOutput, cfgTrigger, cfgTxt, cfgCue);
             warning('Experiment aborted by operator')
             break
         end

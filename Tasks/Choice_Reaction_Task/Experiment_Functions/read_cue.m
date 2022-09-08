@@ -16,6 +16,7 @@ end
 % triggers
 cfgExp.corrResp = cell(cfgExp.numStim, 2);
 cfgTrigger.cuesDir = cell(cfgExp.numStim, 2);
+
 cfgExp.corrResp(find(cfgCue.cueRndIdx == 1), 1) = {'RightArrow'};
 cfgExp.corrResp(find(cfgCue.cueRndIdx == 1), 2) = {'7&'};
 cfgExp.corrResp(find(cfgCue.cueRndIdx == 2), 1) = {'LeftArrow'};

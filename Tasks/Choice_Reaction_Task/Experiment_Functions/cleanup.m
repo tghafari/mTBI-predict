@@ -1,6 +1,7 @@
-function cfgOutput = cleanup(cfgFile, cfgExp, cfgScreen, cfgEyelink, cfgOutput, cfgTrigger)
-% cfgOutput = cleanup(cfgFile, cfgExp, cfgScreen, cfgEyelink, cfgOutput, cfgTrigger)
+function cfgOutput = cleanup(cfgFile, cfgExp, cfgScreen, cfgEyelink, cfgOutput, cfgTrigger, cfgTxt, cfgCue) %#ok<INUSD> 
+% cfgOutput = cleanup(cfgFile, cfgExp, cfgScreen, cfgEyelink, cfgOutput, cfgTrigger, cfgTxt, cfgCue)
 % saves all the variables and closes datapixx and eyelink
+% last two variables are in just to be saved
 sca
 cfgOutput.endTmPnt = send_trigger(cfgTrigger, cfgExp, cfgTrigger.expEnd, cfgEyelink, 'end of experiment');
 
