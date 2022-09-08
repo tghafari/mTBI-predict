@@ -4,13 +4,14 @@ function [cfgExp, cfgOutput] = initialise_exp_variables(cfgExp)
 % to change any repetition you should edit this function
 
 rng('shuffle')
-cfgExp.numBlock = 3;  % total number of blocks 
-cfgExp.numRep = 2;  % number of repetitions of each specific visual stimuli
-cfgExp.numImg = 18;  % number of face images for each gender (2) and emotion (3: neu, hap, ang)
+% total time: ~7.5 minute (2 to 2.5 sec each trial, ~2.5 min each block)
+cfgExp.numBlock = 3;  % total number of blocks (3)
+cfgExp.numRep = 2;  % number of repetitions of each specific visual stimuli (2)
+cfgExp.numImg = 18;  % number of face images for each gender (2) and emotion (3: neu, hap, ang) (18)
 cfgExp.numTrial = cfgExp.numImg * cfgExp.numRep * 2 * 3 / cfgExp.numBlock;  % number of trials in each block
 cfgExp.numStim = cfgExp.numTrial * cfgExp.numBlock;  % number of stimuli/trials in total
 cfgExp.ISIDur = 750 + (1000 - 750) .* rand(cfgExp.numStim, 1);  % interval between two images in ms (fixation dot duration)
-cfgExp.stimDur = 750 + (1000 - 750) .* rand(cfgExp.numStim, 1) - (2 * 5);  % duration of face presentation in ms
+cfgExp.stimDur = 750 + (1000 - 750) .* rand(cfgExp.numStim, 1) - (2 * 5);  % duration of face presentation in ms (subtract trigger duration) 
 cfgExp.numQu = ceil(0.125 * cfgExp.numStim);  % 12.5% of trials include a question about the gender of the face
 cfgExp.quesPres = [ones(cfgExp.numQu, 1); zeros(cfgExp.numStim - cfgExp.numQu, 1)];  % 1=>question present 0=>no question
 cfgExp.quesPres = cfgExp.quesPres(randperm(length(cfgExp.quesPres)));  % randomize order of question trials

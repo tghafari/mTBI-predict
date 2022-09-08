@@ -1,8 +1,9 @@
-function cfgOutput = cleanup(cfgFile, cfgExp, cfgScreen, cfgEyelink, cfgOutput, cfgTrigger)
-% cfgOutput = cleanup(cfgFile, cfgExp, cfgScreen, cfgEyelink, cfgOutput, cfgTrigger)
+function cfgOutput = cleanup(cfgFile, cfgExp, cfgScreen, cfgEyelink, cfgOutput, cfgTrigger, cfgTxt, cfgStim) %#ok<INUSD> 
+% cfgOutput = cleanup(cfgFile, cfgExp, cfgScreen, cfgEyelink, cfgOutput, cfgTrigger, cfgTxt, cfgStim)
 % saves all the variables and closes datapixx and eyelink
+% last two variables are in just to be saved
 sca
-cfgOutput.endTmPnt = send_trigger(cfgTrigger, cfgExp, cfgTrigger.off);
+cfgOutput.endTmPnt = send_trigger(cfgTrigger, cfgExp, cfgTrigger.restEnd, cfgEyelink, 'end of resting state');
 
 % check if the logfile is being overwritten
 if exist([cfgFile.subDir, cfgFile.BIDSname, cfgFile.logFile], 'file') > 0

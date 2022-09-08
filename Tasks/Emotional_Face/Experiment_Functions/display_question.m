@@ -4,7 +4,7 @@ function cfgOutput = display_question(cfgTxt, nstim, cfgScreen, cfgExp, cfgTrigg
 % for the duration specified in cfgExp
 
 cfgOutput.questionOnTmPnt(nstim) = send_trigger(cfgTrigger, cfgExp, cfgTrigger.questionOnset, cfgEyelink, 'question onset');
-cfgOutput.respStartTime(nstim) = GetSecs; % to get reaction times relative to stimulus offset
+
 for frm = 1:cfgExp.quesFrm
     DrawFormattedText(cfgScreen.window, cfgTxt.question, 'center', 'center', [cfgScreen.white, cfgScreen.white, cfgScreen.white]);
     Screen('FillOval', cfgScreen.window, cfgScreen.fixDotColor, cfgScreen.fixDotRect);
