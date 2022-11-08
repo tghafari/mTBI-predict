@@ -1,13 +1,20 @@
 # -*- coding: utf-8 -*-
 """
 ===============================================
-03. Reads MEG data to checks triggers
+03. Reads MEG data to checks triggers and raw
+data
 
-this code uses reads meg events for equipment
+this code uses reads meg events for quality
 testing
 
 written by Tara Ghafari
 ==============================================
+ToDos:
+    1) rerun bids conversion 
+Questions:
+    1) why do we copy raw file?
+    2) where is the copy() stored in variables?
+    3) how come there are more gradio and magneto sensors after filtering?
 """
 
 import os.path as op
@@ -19,50 +26,73 @@ from mne_bids import BIDSPath, read_raw_bids
 
 # fill these out
 site = 'Birmingham'
-subject = '1'  # subject code in mTBI project
+subject = '04'  # subject code in mTBI project
 session = '01'  # data collection session within each run
 run = '01'  # data collection run for each participant
 pilot = 'P' # is the data collected 'P'ilot or 'T'ask?
 task = 'SpAtt'
-
+meg_suffix = 'meg'
+meg_extension = '.fif'
+events_suffix = 'events'
+events_extension = '.tsv'
 
 # specify specific file names
-bids_root = r'Z:\MEG_data\MNE-bids-data-anonymized'  # RDS folder for bids formatted data
+bids_root = r'Z:\Projects\mTBI predict\Collected Data\MNE-bids-data'  # RDS folder for bids formatted data
 bids_path = BIDSPath(subject=subject, session=session,
-                     task=task, run=run, root=bids_root)
-bids_fname = op.join('sub-' + subject + '_ses-' + session + '_task-' + task + 
-                     '_run-' + run)  # type of data should be added to the end of this names
+                     task=task, run=run, root=bids_root, 
+                     suffix=meg_suffix, extension=meg_extension)
 
 # read and plot raw stim channel
 raw = read_raw_bids(bids_path=bids_path, verbose=False)
-raw.copy().pick_types(meg=False, stim=True).plot()
+
 
 # Passing the TSV file to read_csv() with tab separator
-events_file = pd.read_csv(op.join(bids_root, 'sub-' + subject, 'ses-' + session,
-                                  'meg', bids_fname + '_events.tsv'), sep='\t')
+raw.copy().pick_types(meg=False, stim=True).plot()
+
+events_bids_path = bids_path.copy().update(suffix=events_suffix,
+                                           extension=events_extension)
+events_file = pd.read_csv(events_bids_path, sep='\t')
 event_onsets = events_file[['onset', 'value', 'trial_type']]
 
-# Check durations using triggers
-durations = ['cue', 'stim', 'dot'] #, 'response'] # TODO only add after redoing bids with response onset - SpAtt
-dur_dict = {}
-
-for dur in durations:    
-    dur_dict[dur + "_onset"] = event_onsets.loc[event_onsets['trial_type'].str.contains(f'{dur} onset'),
-                                               'onset'].to_numpy()
-# Check duration of cue presentation
-cue_offsets = event_onsets.loc[event_onsets['trial_type'].str.contains('cue offset'), 'onset']  # get the index of cue offset
-cue_dur = cue_offsets.to_numpy() - dur_dict['cue_onset']
-
-# Response duration # TODO only before redoing bids
-response_onset = event_onsets.loc[event_onsets['trial_type'].str.contains('response'),
-                                  'onset'].to_numpy()
-RT = dur_dict['dot_onset'] - response_onset  # not enough responses
-# Plot all cue durations
-plt.hist(cue_dur)
+# Plot all events
 event_onsets.plot(kind='scatter', x='onset', y='trial_type')
+plt.xlabel('onset(sec)')
+plt.ylabel('event type')
 plt.show()
 
+# Check durations using triggers
+durations_onset = ['cue', 'catch', 'stim', 'dot', 'response press']
+durations_offset = ['cue'] #, 'stim', 'dot']  # stim and dot are removed in actual data collection
+dur_dict = {}
 
+for dur in durations_onset:    
+    dur_dict[dur + " onset"] = event_onsets.loc[event_onsets['trial_type'].str.contains(f'{dur} onset'),
+                                               'onset'].to_numpy()
+
+for dur in durations_offset:   
+    dur_dict[dur + " offset"] = event_onsets.loc[event_onsets['trial_type'].str.contains(f'{dur} offset'),
+                                               'onset'].to_numpy()
+
+# Check duration of cue presentation  
+dur_dict['cue duration'] = dur_dict['cue offset'] - dur_dict['cue onset']
+dur_dict['stim_to_dot duration'] = dur_dict['dot onset'] - dur_dict['stim onset']
+dur_dict['RT'] = dur_dict['response press onset'] - dur_dict['dot onset'] 
+
+# Plot all durations
+for dur in ['cue duration', 'stim_to_dot duration', 'RT']:
+    plt.hist(dur_dict[dur])
+    plt.title(dur)
+    plt.xlabel('time in sec')
+    plt.ylabel('number of events')
+    plt.show()
+
+
+
+
+
+
+
+###################################### for other tasks- needs modification ############################################################
 # Emotional Face -> not finalised:
 #     dur_dict[dur + "_duration"] = dur_dict[dur + "_offset"] - dur_dict[dur + "_onset"]
     

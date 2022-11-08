@@ -10,17 +10,21 @@ written by Tara Ghafari
 adapted from flux pipeline
 ==============================================
 ToDos:
-    1)
-    2) 
+    1) rename eog and ecg channels (if wrong names)
+    2) run maxfilter on anonymized data before 
+    reading them here
     
 Issues:
     1) many of the blinks are not identified by find_eog_events
-    2) hEOG is flat in sub=03
-    3) read-Raw-bids doesn't work on the derivatives
+    2) there is no ecg or veog channgel for sub=03
+    3) 
+
+Contributions to community:
+    1) read-Raw-bids doesn't work on the derivatives
     folder -> using mne_io_read_raw_fif instead
-    4) get_bids_path_from_fname cannot recognize
+    2) get_bids_path_from_fname cannot recognize
     bids root from sss file
-    5) BIDSPath doesn't read sss as suffix
+    3) BIDSPath doesn't read sss as suffix
     
 Questions:
     1) why blink_onsets has -0.25?
@@ -33,29 +37,47 @@ import numpy as np
 
 import mne
 from mne.preprocessing import annotate_muscle_zscore
+from mne_bids import BIDSPath
 
 # fill these out
 site = 'Birmingham'
-subject = '03'  # subject code in mTBI project
+subject = '04'  # subject code in mTBI project
 session = '01'  # data collection session within each run
 run = '01'  # data collection run for each participant
 pilot = 'P' # is the data collected 'P'ilot or 'T'ask?
 task = 'SpAtt'
-file_extension = '.fif'
-file_suffix = '-sss'
+meg_suffix = 'meg'
+meg_extension = '.fif'
+input_suffix = 'raw_sss'
+deriv_suffix = 'ann'
+
+remove_line_noise = False
 
 # specify specific file names
-bids_root = r'Z:\MEG_data\MNE-bids-data'  # RDS folder for bids formatted data
-deriv_root = op.join(bids_root, 'derivatives', 'flux-pipeline' )  # RDS folder for results
-deriv_folder = op.join(deriv_root , 'sub-' + subject, 'task-' + task)
-bids_fname = op.join('sub-' + subject + '_ses-' + session + '_task-' + task + 
-                     '_run-' + run)  # define the max filtered file name
-mne_read_raw_fname = op.join(deriv_folder, bids_fname + file_suffix + file_extension)
+bids_root = r'Z:\MEG_data\MNE-bids-data' #'-anonymized'  # RDS folder for bids formatted data
+bids_path = BIDSPath(subject=subject, session=session,
+                     task=task, run=run, root=bids_root, 
+                     suffix=meg_suffix, extension=meg_extension)
+deriv_folder = op.join(bids_root, 'derivatives', 'flux-pipeline' ,
+                       'sub-' + subject, 'task-' + task)  # RDS folder for results
+bids_fname = bids_path.basename.replace(meg_suffix, input_suffix)  # only used for suffices that are not recognizable to bids 
+input_fname = op.join(deriv_folder, bids_fname)
+deriv_fname = str(input_fname).replace(input_suffix, deriv_suffix)
 
-# read max filtered data 
-raw_sss = mne.io.read_raw_fif(mne_read_raw_fname, preload=True)  # read_raw_bids doesn't work on derivatives
+# Read max filtered data 
+raw_sss = mne.io.read_raw_fif(input_fname, preload=True)  # read_raw_bids doesn't work on derivatives
+# raw_sss.crop(1,6)  # crop several minutes for faster processing (for code development only)
 
-# Identifying and annotating eye blinks using vEOG
+# Remove power line noise
+if remove_line_noise:
+# meg_picks = mne.pick_types(raw_sss.info, meg=True)
+    power_freqs = (50, 100, 150)
+    raw_sss.notch_filter(freqs=power_freqs)
+
+# Identifying and annotating eye blinks using vEOG (EOG001)
+raw_sss.copy().pick_channels(ch_names=['EOG001','EOG002'  # vEOG, hEOG, EKG
+                                       ,'ECG003']).plot()  # 'plot to make sure channel' 
+                                                           # 'names are correct, rename otherwise'
 eog_events = mne.preprocessing.find_eog_events(raw_sss, ch_name='EOG001')
 onset = eog_events[:,0] / raw_sss.info['sfreq'] -.25 #'from flux pipline, but why?'
                                                      # 'blink onsets in seconds'
@@ -81,21 +103,13 @@ annotation_muscle._orig_time = None  # remove date and time from the annotation 
 
 # Include annotations in dataset and inspect
 raw_sss.set_annotations(annotation_blink + annotation_muscle)
-raw_sss.set_channel_types({'EOG001':'eog', 'EOG002':'eog'})  # set both vEOG and hEOG as EOG channels
+raw_sss.set_channel_types({'EOG001':'eog', 'EOG002':'eog', 'ECG003':'ecg'})  # set both vEOG and hEOG as EOG channels
 eog_picks = mne.pick_types(raw_sss.info, meg=False, eog=True)
 scale = dict(eog=500e-6)
 raw_sss.plot(order=eog_picks, scalings=scale, start=50)
 
 # Save the artifact annotated file
-raw_sss.save(op.join(deriv_folder, bids_fname + file_suffix + '-ann' + 
-                     file_extension), overwrite=True)
-
-
-
-
-
-
-
+raw_sss.save(deriv_fname, overwrite=True)
 
 
 
