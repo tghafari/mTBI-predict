@@ -102,7 +102,7 @@ for task in tasks:
                                                    # (not the response triggers)'
 
     # Save the events in a dedicted FIF-file: 
-    # mne.write_events(filename_events, events, overwrite=True)
+    mne.write_events(filename_events, events, overwrite=True)
         
     # Report the events file
     sfreq = raw.info['sfreq']

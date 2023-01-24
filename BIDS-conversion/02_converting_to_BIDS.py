@@ -4,13 +4,16 @@
 02. Convert raw MEG data into BIDS format
 
 this code converts raw MEG data (.fif & .ds)
-to BIDS format
+as well as T1 MRIs to BIDS format.
+It also anonizes MEG and defaces MRI file.
 
 written by Tara Ghafari
 ==============================================
 
 ToDos:
     1) add MRI to bids folder
+    2) check the anonimization of MEG 
+    3) deface MRI with mne_bids
 
 Issued/Contributions to community:
     1) anonymization with bids only work on the
@@ -20,13 +23,20 @@ Issued/Contributions to community:
 Notes:
     CTF data is still under development by mne_bids
     team
+    first run find_events and coregistration before 
+    running this script
 """
 
 import os.path as op
 
+import matplotlib.pyplot as plt
+
+from nilearn.plotting import plot_anat
+
 import mne
-from mne_bids import (BIDSPath, write_raw_bids, write_meg_calibration,
-                      write_meg_crosstalk, write_anat, anonymize_dataset, make_report)
+from mne_bids import (BIDSPath, write_raw_bids, read_raw_bids, 
+                      write_meg_calibration, write_meg_crosstalk, 
+                      get_anat_landmarks, write_anat)
 
 # fill these out
 site = 'Birmingham'
@@ -41,6 +51,9 @@ year = '2022'
 
 data_root = r'Z:\Projects\mTBI_predict\Collected_Data'
 
+# MEG bids conversion
+""" using the events extracted from the MEG file, we now convert MEG file to
+bids format"""
 
 tasks = ['SpAtt', 'CRT', 'EmoFace','rest', 'noise']   # short name of task
 for task in tasks:
@@ -65,8 +78,7 @@ for task in tasks:
     # specify communal file names
     raw_fname = op.join(data_path, file_name + file_extension)
     events_data = op.join(data_path,file_name + '-eve' + file_extension)
-    bids_root_unannon = r'Z:\MEG_data\MNE-bids-data'
-    bids_root = r'Z:\MEG_data\MNE-bids-data-anonymized'
+    bids_root = op.join(data_root, 'MNE-bids-data')
 
     # Define the fine calibration and cross-talk compensation files 
     maxfilter_folder = r'Z:\Projects\mTBI predict\Programming\Python\Preprocessing\MaxFilter'
@@ -97,11 +109,6 @@ for task in tasks:
     else:
         bids_path = BIDSPath(subject=subject, session=session,
                              task=task, run=run, root=bids_root)
-        
-    # Direction of T1W MRI file
-    MRI_data_folder = op.join(data_root, 'MRI_data', 'sub-' + subject)
-    # trans_fname = ...
-    
     
     # Define events according to the event values       
     if task == 'SpAtt':
@@ -167,10 +174,43 @@ for task in tasks:
     # Write in Maxfilter files
     write_meg_calibration(calibration_file, bids_path=bids_path, verbose=False)
     write_meg_crosstalk(crosstalk_file, bids_path=bids_path, verbose=False)
-    # bids_path.datatype = 'anat'
-    # write_anat(image=t1w_path, bids_path=bids_path, landmarks=mri_landmarks,
-    # verbose=False)
     
-# Run anonymization and make a metadadta report for the whole dataset (after bids converting all subjects)
-# anonymize_dataset(bids_root_in=bids_root, bids_root_out=bids_root_anon)
-# print(make_report(bids_path.root))
+# MRI bids conversion
+""" using the trans file created by coregistration, we now convert T1W MRI file 
+to bids format"""
+
+trans_folder = op.join(bids_root, 'derivatives', 'flux-pipeline',
+                       'sub-' + subject, 'T1w-MRI')  # RDS folder for trans file
+trans_fname = op.join(trans_folder, 'sub-' + subject + '_ses-' + session
+                      + '_' + 'coreg-trans.fif')
+fs_sub_dir = r'Z:\Projects\mTBI_predict\Collected_Data\MRI_data\sub-04'  # FreeSurfer directory
+fs_sub = f'sub-{subject}'
+t1_fname = op.join(fs_sub_dir, fs_sub + '.nii')
+
+# Create the BIDSpath object
+""" creat MRI specific bidspath object and then use trans file to transform 
+landmarks from the raw file to the voxel space of the image"""
+
+t1w_bids_path = BIDSPath(subject=subject, session=session, 
+                         root=bids_root, suffix='T1w')
+
+info = read_raw_bids(bids_path=bids_path, verbose=False).info
+trans = mne.read_trans(trans_fname)  
+landmarks = get_anat_landmarks(
+    image=t1_fname,  # path to the nifti file
+    info=info,  # MEG data file info from the subject
+    trans=trans,
+    fs_subject=fs_sub,
+    fs_subjects_dir=fs_sub_dir)
+
+t1w_bids_path = write_anat(
+    image=t1_fname, bids_path=t1w_bids_path,
+    landmarks=landmarks, deface=True,
+    overwrite=True, verbose=True)
+
+# Take a quick look at the MRI
+t1_nii_fname = op.join(t1w_bids_path.directory, t1w_bids_path.basename)
+
+fig, ax = plt.subplots()
+plot_anat(t1_nii_fname, axes=ax, title='Defaced')
+plt.show()
