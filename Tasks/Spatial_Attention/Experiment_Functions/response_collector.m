@@ -8,9 +8,10 @@ while noResp
     [presd, firstPrsd] = KbQueueCheck(cfgExp.deviceNum);  % listens for response
     keyCod = find(firstPrsd,1);  % collects the pressed key code
     
-    if presd && (keyCod == cfgExp.NATAKey || keyCod == cfgExp.respKey)  % store response variables
+    if presd && ismember(keyCod, cfgExp.responses)  % store response variables
         cfgOutput.respTmPnt(nstim) = send_trigger(cfgTrigger, cfgExp, cfgTrigger.resp, cfgEyelink...
-            , 'button press onset');
+            , 'button press onset'); 
+        WaitSecs(0.002);  % wait to make sure the response trigger is reset
         cfgOutput.respTmKbQueue(nstim) = firstPrsd(keyCod);  % exact time of button press - more useful
         cfgOutput.keyName{nstim} = KbName(keyCod);  % which key was pressed
         cfgOutput.presd(nstim) = presd + 1;  % collect all responses for hit rate and correct rejection analysis

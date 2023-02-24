@@ -10,7 +10,7 @@ function  cfgTrigger = introduce_triggers
 % change all on, off, start, end to onset and offset
 cfgTrigger.off = 0;
 cfgTrigger.trialStart = 1;
-% cfgTrigger.trialEnd = 2;
+cfgTrigger.trialEnd = 2;
 cfgTrigger.faceHappy = 101;  % onset of face
 cfgTrigger.faceAngry = 102;  % onset of face
 cfgTrigger.faceNeutral = 103;  % onset of face
@@ -21,7 +21,7 @@ cfgTrigger.faceMale = 231;  % 4 frames after onset
 cfgTrigger.faceFemale = 232;  % 4 frames after onset
 cfgTrigger.faceOff = 104;
 cfgTrigger.questionOnset = 105;
-% cfgTrigger.questionOff = 106;
+cfgTrigger.questionOff = 106;
 cfgTrigger.respMale = 254;  % right button press
 cfgTrigger.respFemale = 255;  % left button press
 cfgTrigger.blkNum = [11, 12, 13];  % corresponding to block number 1, 2, 3

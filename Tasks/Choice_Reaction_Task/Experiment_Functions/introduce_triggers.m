@@ -10,7 +10,7 @@ function  cfgTrigger = introduce_triggers
 
 cfgTrigger.off = 0;
 cfgTrigger.trialStart = 1; 
-cfgTrigger.trialEnd = 2;
+% cfgTrigger.trialEnd = 2;
 cfgTrigger.cueRight = 101;
 cfgTrigger.cueLeft = 102;
 cfgTrigger.cueOff = 103;

@@ -27,11 +27,16 @@ end
 
 mkdir([cfgFile.res, 'sub-', cfgExp.answer.sub, filesep, 'ses-', cfgExp.answer.ses, filesep, 'meg', filesep]);  % make result directory with BIDS format
 cfgFile.subDir = [cfgFile.res, 'sub-', cfgExp.answer.sub, filesep, 'ses-' cfgExp.answer.ses, filesep, 'meg', filesep];  % store subject directory address
+if strcmp(cfgExp.answer.test,'train')
+    cfgFile.BIDSname = ['sub-', cfgExp.answer.sub, '_', 'ses-', cfgExp.answer.ses, '_'...
+     , 'train-', cfgExp.answer.task, '_', 'run-', cfgExp.answer.run];  % BIDS specific file name
+else
 cfgFile.BIDSname = ['sub-', cfgExp.answer.sub, '_', 'ses-', cfgExp.answer.ses, '_'...
     , 'task-', cfgExp.answer.task, '_', 'run-', cfgExp.answer.run];  % BIDS specific file name
+end
 cfgFile.edfFile = ['_eyetracking', '.edf'];  % eyetracking file name
 cfgFile.logFile = ['_logfile', '.mat'];  % logfile file name
-cfgFile.eyelink = ['et_', cfgExp.answer.sub];  % file name to use on eyelink pc
+cfgFile.eyelink = ['e', cfgExp.answer.run, cfgExp.answer.sub];  % file name to use on eyelink pc
 
 end
 

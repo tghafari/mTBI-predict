@@ -5,8 +5,8 @@ function [cfgExp, cfgOutput] = initialise_exp_variables(cfgExp)
 
 rng('shuffle')
 % total time: ~8 minute (2.2 to 2.7 sec each trial, ~2 min each block)
-cfgExp.numBlock = 4;  % total number of blocks - prev:3
-cfgExp.numTrial = 50;  % number of trials in each block 
+cfgExp.numBlock = 2;  % total number of blocks (4)
+cfgExp.numTrial = 20;  % number of trials in each block (50)
 cfgExp.numStim = cfgExp.numTrial * cfgExp.numBlock;  % number of stimuli in total
 cfgExp.cueDur = 1200;  % duration of cue presentation in ms (1200 in violante 2017) - prev:1400
 cfgExp.ISIDur = 800;  % interval between cue and grating (stimulus) (800ms in violante 2017) - prev:1750
@@ -14,6 +14,7 @@ cfgExp.catchTrial = zeros(cfgExp.numStim, 1);  % 1=>target present 0=>catch tria
 cfgExp.catchTrial(2:10:end, :) = 1; 
 cfgExp.catchTrial = cfgExp.catchTrial(randperm(length(cfgExp.catchTrial)));  % randomize order of catch trials
 cfgExp.respTimOut = 1500;  % time during which subject can respond in ms
+cfgExp.EMITrl = [cfgExp.numTrial/2, cfgExp.numTrial];  % the trials on which we will present the effort measure index (EMI)
 
 cfgOutput.keyName = cell(cfgExp.numStim, 1);  % preallocate cfgOutput for unpressed trials
 

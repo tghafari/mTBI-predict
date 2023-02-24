@@ -8,10 +8,12 @@ while noResp
     keyCod = find(firstPrsd, 1);  % collects the pressed key code
     
     if presd && ismember(keyCod, cfgExp.responses) % store response variables
-        if ismember(keyCod, [cfgExp.NATAKeyR, cfgExp.respKeyR])
+        if ismember(keyCod, [cfgExp.NATAKeyR, cfgExp.AstonNottKeyR, cfgExp.respKeyR])
             cfgOutput.respTmPnt(nstim) = send_trigger(cfgTrigger, cfgExp, cfgTrigger.respRight, cfgEyelink, 'right button press');  % send the resp trigger
-        elseif ismember(keyCod, [cfgExp.NATAKeyL, cfgExp.respKeyL])
+            WaitSecs(0.002);  % wait to make sure the response trigger is reset
+        elseif ismember(keyCod, [cfgExp.NATAKeyL, cfgExp.AstonNottKeyL, cfgExp.respKeyL])
             cfgOutput.respTmPnt(nstim) = send_trigger(cfgTrigger, cfgExp, cfgTrigger.respLeft, cfgEyelink, 'left button press');  % send the resp trigger
+            WaitSecs(0.002);  % wait to make sure the response trigger is reset
         end
         cfgOutput.respTmKbQueue(nstim) = firstPrsd(keyCod);  % exact time of button press - more useful
         cfgOutput.keyName{nstim} = KbName(keyCod);  % which key was pressed
@@ -21,6 +23,8 @@ while noResp
         KbQueueFlush;
         noResp = 0;
         break
+    elseif ~presd
+        cfgOutput.keyName{nstim} = 'no resp';
     elseif presd && keyCod == cfgExp.quitKey
         Screen('Flip', cfgScreen.window);
         DrawFormattedText(cfgScreen.window, cfgTxt.quitTxt, 'center', 'center', [cfgScreen.white, cfgScreen.white, cfgScreen.white]);

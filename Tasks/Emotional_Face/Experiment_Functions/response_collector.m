@@ -9,10 +9,12 @@ while noResp
     keyCod = find(firstPrsd, 1);  % collects the pressed key code
     
     if presd && ismember(keyCod, cfgExp.responses) % store response variables
-        if ismember(keyCod, [cfgExp.NATAKeyM, cfgExp.respKeyM])
+        if ismember(keyCod, [cfgExp.NATAKeyM, cfgExp.respKeyM, cfgExp.AstonNottKeyM])
             cfgOutput.respTmPnt(nstim) = send_trigger(cfgTrigger, cfgExp, cfgTrigger.respMale, cfgEyelink, 'male button press');  % send the right resp trigger
-        elseif ismember(keyCod, [cfgExp.NATAKeyF, cfgExp.respKeyF])
+            WaitSecs(0.002);  % wait to make sure the response trigger is reset
+        elseif ismember(keyCod, [cfgExp.NATAKeyF, cfgExp.respKeyF, cfgExp.AstonNottKeyF])
             cfgOutput.respTmPnt(nstim) = send_trigger(cfgTrigger, cfgExp, cfgTrigger.respFemale, cfgEyelink, 'female button press');  % send the left resp trigger
+            WaitSecs(0.002);  % wait to make sure the response trigger is reset
         end
         cfgOutput.respTmKbQueue(nstim) = firstPrsd(keyCod);  % exact time of button press - more useful
         cfgOutput.keyName{nstim} = KbName(keyCod);  % which key was pressed

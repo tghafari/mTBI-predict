@@ -7,13 +7,14 @@ KbName('UnifyKeyNames');
 cfgExp.quitKey = KbName('ESCAPE');  % quit key
 cfgExp.respKeyR = KbName('RightArrow');  % keyboard response female
 cfgExp.respKeyL = KbName('LeftArrow');  % keyboard response male
-cfgExp.NATAKeyR = KbName('7&');  % NATA box response female
-cfgExp.NATAKeyL = KbName('4$');  % NATA box response male
+cfgExp.NATAKeyR = KbName('7&');  % NATA box response right
+cfgExp.NATAKeyL = KbName('4$');  % NATA box response left
+cfgExp.AstonNottKeyR = KbName('1!');  % AU and UoN button box responses for right index #TO BE CHECKED
+cfgExp.AstonNottKeyL = KbName('5%');  % AU and UoN button box responses for left index #TO BE CHECKED
 cfgExp.yesKey = KbName('y');  % yes response
 cfgExp.noKey = KbName('n');  % no key
-cfgExp.responses = [cfgExp.NATAKeyR, cfgExp.NATAKeyL, cfgExp.respKeyR, cfgExp.respKeyL];
+cfgExp.responses = [cfgExp.NATAKeyR, cfgExp.NATAKeyL, cfgExp.AstonNottKeyR, cfgExp.AstonNottKeyL, cfgExp.respKeyR, cfgExp.respKeyL];
 
-% KB response: '4$' and '7&' are the left and right index fingers of the (5-button) NATA boxes
 if cfgExp.MEGLab == 1
     cfgExp.activeKeys = [cfgExp.quitKey, cfgExp.NATAKeyR, cfgExp.NATAKeyL, cfgExp.yesKey, cfgExp.noKey];
     cfgExp.deviceNum = -1;  % listen to all devices during test/train
