@@ -8,7 +8,7 @@ function ansr = prompt_input
 prompt     = {'Site', 'Subject Code', 'Session', 'Task', 'Run', 'Task/Test', 'Testing PC'}; 
 dlgtitle   = 'Details';
 dims       = [1, 30; 1, 30; 1, 30; 1, 30; 1, 30; 1, 30; 1, 30];
-defaultans = {'Birmingham', 'T101', '01', 'rest', '01', 'test', 'win'};
+defaultans = {'Nottingham', 'T101', '01', 'rest', '01', 'test', 'MEG'};
 answer = inputdlg(prompt, dlgtitle, dims, defaultans);
 ansr = cell2struct(answer, {'site', 'sub', 'ses', 'task', 'run', 'test', 'pc'}, 1);
 
