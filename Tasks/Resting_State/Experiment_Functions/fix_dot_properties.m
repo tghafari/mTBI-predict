@@ -5,14 +5,14 @@ function cfgScreen = fix_dot_properties(cfgScreen)
 
 % Surrounding fixation dot
 cfgScreen.fixDotCentreBig = cfgScreen.centre;  % -100 coordinates of fixation dot- normally above center
-cfgScreen.fixDotSizeBig = 0.5;  % size of fixation dot in visual degrees
+cfgScreen.fixDotSizeBig = 1;  % size of fixation dot in visual degrees
 cfgScreen.fixDotRectBig = [cfgScreen.fixDotCentreBig - angle2pix(cfgScreen, cfgScreen.fixDotSizeBig./2)...
     , cfgScreen.fixDotCentreBig + angle2pix(cfgScreen, cfgScreen.fixDotSizeBig./2)];  % rect for fixation dot 
 cfgScreen.fixDotColorBig = [1 1 1];  % color of fixation dot in rgb (white)
 
 % Centre fixation dot
 cfgScreen.fixDotCentreSmall = cfgScreen.centre;  % -100 coordinates of fixation dot- normally above center
-cfgScreen.fixDotSizeSmall = 0.3;  % size of fixation dot in visual degrees
+cfgScreen.fixDotSizeSmall = 0.7;  % size of fixation dot in visual degrees
 cfgScreen.fixDotRectSmall = [cfgScreen.fixDotCentreSmall - angle2pix(cfgScreen, cfgScreen.fixDotSizeSmall./2)...
     , cfgScreen.fixDotCentreSmall + angle2pix(cfgScreen, cfgScreen.fixDotSizeSmall./2)];  % rect for fixation dot 
 cfgScreen.fixDotColorSmall = [0 0 0];  % color of fixation dot in rgb (black)
