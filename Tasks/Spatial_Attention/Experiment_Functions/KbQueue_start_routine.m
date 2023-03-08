@@ -9,7 +9,7 @@ cfgExp.noKey = KbName('n');  % no key
 cfgExp.yesKey = KbName('y');  % yes response
 cfgExp.respKey = KbName('RightArrow');  % keyboard response
 cfgExp.NATAKey = KbName('7&');  % NATA box response
-cfgExp.AstonNottKey = KbName('1!');  % AU and UoN button box responses #TO BE CHECKED
+cfgExp.AstonNottKey = KbName('b');  % AU and UoN button box responses #Check for Aston
 cfgExp.responses = [cfgExp.NATAKey, cfgExp.AstonNottKey, cfgExp.respKey];
 
 % KB response: '4$' and '7&' are the left and right index fingers of the (5-button) NATA boxes
