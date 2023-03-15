@@ -7,17 +7,17 @@ fileDirStim = dir([cfgFile.stim, '*.bmp']);
 
 for fl = 1:length(fileDirStim)  % select only images with emotions of interest
     if contains(fileDirStim(fl).name, 'f_ne_c', 'IgnoreCase', true)
-        cfgStim.faces.neutral.f{fl} = imread(fileDirStim(fl).name);
+        cfgStim.faces.neutral.f{fl} = imread([fileDirStim(fl).folder filesep fileDirStim(fl).name]);
     elseif contains(fileDirStim(fl).name, 'f_ha_c', 'IgnoreCase', true)
-        cfgStim.faces.happy.f{fl} = imread(fileDirStim(fl).name);
+        cfgStim.faces.happy.f{fl} = imread([fileDirStim(fl).folder filesep fileDirStim(fl).name]);
     elseif contains(fileDirStim(fl).name, 'f_an_c', 'IgnoreCase', true)
-        cfgStim.faces.angry.f{fl} = imread(fileDirStim(fl).name);
+        cfgStim.faces.angry.f{fl} = imread([fileDirStim(fl).folder filesep fileDirStim(fl).name]);
     elseif contains(fileDirStim(fl).name, 'm_ne_c', 'IgnoreCase', true)
-        cfgStim.faces.neutral.m{fl} = imread(fileDirStim(fl).name);
+        cfgStim.faces.neutral.m{fl} = imread([fileDirStim(fl).folder filesep fileDirStim(fl).name]);
     elseif contains(fileDirStim(fl).name, 'm_ha_c', 'IgnoreCase', true)
-        cfgStim.faces.happy.m{fl} = imread(fileDirStim(fl).name);
+        cfgStim.faces.happy.m{fl} = imread([fileDirStim(fl).folder filesep fileDirStim(fl).name]);
     elseif contains(fileDirStim(fl).name, 'm_an_c', 'IgnoreCase', true)
-        cfgStim.faces.angry.m{fl} = imread(fileDirStim(fl).name);
+        cfgStim.faces.angry.m{fl} = imread([fileDirStim(fl).folder filesep fileDirStim(fl).name]);
     end
 end
 

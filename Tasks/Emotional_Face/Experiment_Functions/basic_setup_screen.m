@@ -15,6 +15,6 @@ topPriorityLevel = MaxPriority(cfgScreen.window);  % retreive the maximum priori
 Priority(topPriorityLevel);
 
 Screen('TextSize', cfgScreen.window, cfgScreen.fntSize);
-HideCursor();
+% HideCursor();
 
 end

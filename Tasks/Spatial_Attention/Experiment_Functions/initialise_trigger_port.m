@@ -10,7 +10,7 @@ if cfgExp.MEGLab == 1
     elseif cfgExp.site == 2
         cfgTrigger.address = hex2dec('BFF8');  % port address for UoB
     elseif cfgExp.site == 3
-        cfgTrigger.address = hex2dec('BFF8');  % port address for UoN #TO BE CHECKED
+        cfgTrigger.address = hex2dec('FFF8');  % port address for UoN #TO BE CHECKED
     end
     cfgTrigger.handle = io64;
     cfgTrigger.status = io64(cfgTrigger.handle);
