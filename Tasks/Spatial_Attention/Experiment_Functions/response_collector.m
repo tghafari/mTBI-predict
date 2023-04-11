@@ -22,6 +22,8 @@ while noResp
         KbQueueFlush;
         noResp = 0;
         break
+    elseif ~presd
+        cfgOutput.keyName{nstim} = 'no resp';
     elseif presd && keyCod == cfgExp.quitKey
         Screen('Flip', cfgScreen.window);
         DrawFormattedText(cfgScreen.window, cfgTxt.quitTxt, 'center', 'center', [cfgScreen.white, cfgScreen.white, cfgScreen.white]);

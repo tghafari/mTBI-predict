@@ -8,7 +8,7 @@ if cfgExp.MEGLab == 1
     if cfgExp.site == 1 
         cfgTrigger.address = hex2dec('3FF8');  % port address for Aston
     elseif cfgExp.site == 2
-        cfgTrigger.address = hex2dec('BFF8');  % port address for UoB
+        cfgTrigger.address = hex2dec('CFF8');  % port address for UoB
     elseif cfgExp.site == 3
         cfgTrigger.address = hex2dec('FFF8');  % port address for UoN
     end

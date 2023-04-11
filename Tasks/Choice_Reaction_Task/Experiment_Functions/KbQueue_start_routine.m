@@ -9,21 +9,20 @@ cfgExp.respKeyR = KbName('RightArrow');  % keyboard response female
 cfgExp.respKeyL = KbName('LeftArrow');  % keyboard response male
 cfgExp.NATAKeyR = KbName('7&');  % NATA box response right
 cfgExp.NATAKeyL = KbName('4$');  % NATA box response left
-cfgExp.AstonNottKeyR = KbName('b');  % AU and UoN button box responses for right index 
-cfgExp.AstonNottKeyL = KbName('e');  % AU and UoN button box responses for left index #LR 6^ OK for Notts, not sure for aston 1! OK for Notts
+cfgExp.AstonNottKeyR = KbName('b');  % AU and UoN button box responses for right index #CHECK FOR ASTON
+cfgExp.AstonNottKeyL = KbName('e');  % AU and UoN button box responses for left index #CHECK FOR ASTON
 cfgExp.yesKey = KbName('y');  % yes response
 cfgExp.noKey = KbName('n');  % no key
 cfgExp.responses = [cfgExp.NATAKeyR, cfgExp.NATAKeyL, cfgExp.AstonNottKeyR, cfgExp.AstonNottKeyL, cfgExp.respKeyR, cfgExp.respKeyL];
 
 if cfgExp.MEGLab == 1
-    cfgExp.activeKeys = [cfgExp.quitKey, cfgExp.NATAKeyR, cfgExp.NATAKeyL, cfgExp.AstonNottKeyR, cfgExp.AstonNottKeyL, cfgExp.yesKey, cfgExp.noKey];
-    cfgExp.deviceNum = -1;  % listen to all devices during test/train
+    cfgExp.activeKeys = [cfgExp.quitKey, cfgExp.NATAKeyR, cfgExp.NATAKeyL,cfgExp.AstonNottKeyR, cfgExp.AstonNottKeyL, cfgExp.yesKey, cfgExp.noKey];
 else
-    cfgExp.activeKeys = [cfgExp.quitKey, cfgExp.respKeyR, cfgExp.respKeyL, cfgExp.AstonNottKeyR, cfgExp.AstonNottKeyL, cfgExp.yesKey, cfgExp.noKey];
-    cfgExp.deviceNum = -1;  % listen to all devices during test/train
+    cfgExp.activeKeys = [cfgExp.quitKey, cfgExp.respKeyR, cfgExp.respKeyL, cfgExp.yesKey, cfgExp.noKey];
 end
 
 % only listen for specific keys
+cfgExp.deviceNum = -1;  % listen to all devices during test/train
 scanList = zeros(1,256);
 scanList(cfgExp.activeKeys) = 1;
 KbQueueCreate(cfgExp.deviceNum,scanList);  % create queue

@@ -10,9 +10,7 @@ addpath([cd, '\Experiment_Functions\']);  % add the sub-functions
 addpath([cd, '\Eyelink\']);  % add Eyelink functions
 addpath([cd, '\Results\']);  % add result folder
 
-if strcmp(cfgExp.answer.pc,'mac')  % needs modification in case of using mac at all
-    cfgFile.res  = 'Projects/mTBI predict/Programming/Matlab/Results/';
-elseif strcmp(cfgExp.answer.pc,'win')
+if strcmp(cfgExp.answer.pc,'win')
     cfgFile.res = [cd, '\Results\'] ; 
 elseif strcmp(cfgExp.answer.pc,'MEG')
     cfgFile.res = [cd, '\Results\'] ; 
@@ -25,6 +23,8 @@ cfgFile.BIDSname = ['sub-', cfgExp.answer.sub, '_', 'ses-', cfgExp.answer.ses, '
 cfgFile.edfFile = ['_eyetracking', '.edf'];  % eyetracking file name
 cfgFile.logFile = ['_logfile', '.mat'];  % logfile file name
 cfgFile.eyelink = ['e', cfgExp.answer.run, cfgExp.answer.sub];  % file name to use on eyelink pc
+
+cd(fileparts(tmp.Filename));  % move back to the experiment_functions directory for io64.mexw64 file
 
 end
 

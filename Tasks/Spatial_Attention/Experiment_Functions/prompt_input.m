@@ -5,10 +5,10 @@ function ansr = prompt_input
 %computer (MEG or Win)
 % Subject codes-> T: testing, B: actual data
 
-prompt     = {'Site', 'Subject Code', 'Session', 'Task', 'Run', 'Train/Task/Test', 'Testing PC'}; 
+prompt     = {'Site', 'Subject Code', 'Session', 'Task', 'Run', 'train/task/test', 'Testing PC'}; 
 dlgtitle   = 'Details';
 dims       = [1, 30; 1, 30; 1, 30; 1, 30; 1, 30; 1, 30; 1, 30];
-defaultans = {'Nottingham', 'T101', '01', 'spatt', '01', 'test', 'MEG'};
+defaultans = {'Birmingham', 'T101', '01', 'spatt', '01', 'test', 'win'};
 answer = inputdlg(prompt, dlgtitle, dims, defaultans);
 ansr = cell2struct(answer, {'site', 'sub', 'ses', 'task', 'run', 'test', 'pc'}, 1);
 

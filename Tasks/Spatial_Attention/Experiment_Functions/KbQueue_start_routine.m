@@ -9,7 +9,7 @@ cfgExp.noKey = KbName('n');  % no key
 cfgExp.yesKey = KbName('y');  % yes response
 cfgExp.respKey = KbName('RightArrow');  % keyboard response
 cfgExp.NATAKey = KbName('7&');  % NATA box response
-cfgExp.AstonNottKey = KbName('b');  % AU and UoN button box responses #Check for Aston
+cfgExp.AstonNottKey = KbName('b');  % AU and UoN button box responses #TO BE CHECKED for AU
 cfgExp.responses = [cfgExp.NATAKey, cfgExp.AstonNottKey, cfgExp.respKey];
 
 % KB response: '4$' and '7&' are the left and right index fingers of the (5-button) NATA boxes
@@ -19,13 +19,12 @@ if cfgExp.MEGLab == 1
     elseif cfgExp.site == 1 || cfgExp.site == 3
         cfgExp.activeKeys = [cfgExp.quitKey, cfgExp.AstonNottKey, cfgExp.yesKey, cfgExp.noKey];
     end
-    cfgExp.deviceNum = -1;  % listen to all devices during test/train
 else
     cfgExp.activeKeys = [cfgExp.quitKey, cfgExp.respKey, cfgExp.yesKey, cfgExp.noKey];
-    cfgExp.deviceNum = -1;  % listen to all devices during test/train
 end
 
 % only listen for specific keys
+cfgExp.deviceNum = -1;  % listen to all devices during test/train
 scanList = zeros(1,256);
 scanList(cfgExp.activeKeys) = 1;
 KbQueueCreate(cfgExp.deviceNum,scanList);  % create queue

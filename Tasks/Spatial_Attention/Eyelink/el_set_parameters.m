@@ -36,15 +36,9 @@ Eyelink('Command','screen_pixel_coords = %ld %ld %ld %ld', cfgScreen.fullScrn(1)
 Eyelink('message','DISPLAY_COORDS %ld %ld %ld %ld', cfgScreen.fullScrn(1) - cfgScreen.fullScrn(1), cfgScreen.fullScrn(2) - cfgScreen.fullScrn(2)...
     , cfgScreen.fullScrn(3) - cfgScreen.fullScrn(1), cfgScreen.fullScrn(4) - cfgScreen.fullScrn(2));
 
-% enable binocular for UoB only
-if strcmp(cfgExp.answer.site, 'Birmingham')
-    Eyelink('command','binocular_enabled = YES');
-    cfgEyelink.eyeUsed = 'BOTH';  
-else
-    Eyelink('command','binocular_enabled = NO');
-    el.eye_used = 'LEFT';  % eye used for monocular eyetracking
-    cfgEyelink.eyeUsed = el.eye_used; 
-end
+% enable binocular as default
+Eyelink('command','binocular_enabled = YES');
+cfgEyelink.eyeUsed = 'BOTH';
 
 % use Psychophysical setting
 Eyelink('Command', 'recording_parse_type = GAZE');
@@ -53,7 +47,7 @@ Eyelink('Command', 'saccade_acceleration_threshold = 3800');
 Eyelink('Command', 'saccade_motion_threshold = 0.0');
 Eyelink('Command', 'saccade_pursuit_fixup = 60');
 Eyelink('Command', 'fixation_update_interval = 0');
-Eyelink('Command', 'calibration_type = HV9');
+Eyelink('Command', 'calibration_type = HV5');
 Eyelink('Command', 'generate_default_targets = YES');
 Eyelink('Command', 'enable_automatic_calibration = YES');
 Eyelink('Command', 'automatic_calibration_pacing = 1000');

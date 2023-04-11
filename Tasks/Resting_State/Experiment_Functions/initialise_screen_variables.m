@@ -14,13 +14,13 @@ if cfgExp.MEGLab && cfgExp.site == 1  % if collecting in Aston
     cfgScreen.dispSize.height = 405;  % physical height of screen in cm
     cfgScreen.resolution = Screen('Resolution', cfgScreen.scrNum);  % get/set the on screen resolution
 
-elseif cfgExp.MEGLab && cfgExp.site == 2  % if collecting in Birmingham
+elseif cfgExp.MEGLab && cfgExp.site == 2  % if collectin in Birmingham
     cfgScreen.distance = 100;  % set the distance from participant to the projector in cm
     cfgScreen.dispSize.width = 715;  % physical width of screen in mm
     cfgScreen.dispSize.height = 405;  % physical height of screen in mm
     cfgScreen.resolution = Screen('Resolution', cfgScreen.scrNum);  % get/set the on screen resolution
 
-elseif cfgExp.MEGLab && cfgExp.site == 3  % if collecting in Nottingham
+elseif cfgExp.MEGLab && cfgExp.site == 3  % if collectin in Nottingham
     cfgScreen.distance = 90;  % set the distance from participant to the projector in cm
     cfgScreen.dispSize.width = 315;  % physical width of screen in mm
     cfgScreen.dispSize.height = 187;  % physical height of screen in mm
@@ -42,7 +42,7 @@ cfgScreen.fntSize = 50;
 cfgScreen.backProjection = 0;  % is a backprojection screen used? (1 = yes, 0 = no),
 cfgScreen.propixxMode = 0;  % 2 for 480 Hz, 5 for 1440 Hz, 0 for 120 Hz
 
-if cfgExp.task
+if cfgExp.task 
         cfgScreen.fullScrn = [0, 0, cfgScreen.resolution.width, cfgScreen.resolution.height];  % full screen for task/ train
 else
         cfgScreen.fullScrn = [300, 300, 900, 900];  % use a smaller screen during testing
