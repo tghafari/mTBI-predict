@@ -18,7 +18,7 @@ if cfgExp.corrResp(nstim)
         Screen('DrawTextures', cfgScreen.window, [presentingStr.visStimR{nstim}{frmDot}, presentingStr.visStimL{nstim}{frmDot}]...
             , [],[cfgStim.destVisStimR; cfgStim.destVisStimL]');
         Screen('FillOval', cfgScreen.window, [cfgScreen.fixDotColor, cfgScreen.fixDotFlashColor']...
-            , [cfgScreen.fixDotRect, cfgStim.rectLR(cfgStim.cueRndIdx(nstim),:)']);  % put the red dot according to the cue direction(cueRandIdx-> 1:left, 2:right)
+            , [cfgScreen.fixDotRect, cfgStim.rectRL(cfgStim.cueRndIdx(nstim),:)']);  % put the red dot according to the cue direction(cueRandIdx-> 1:left, 2:right)
         Screen('Flip', cfgScreen.window, cfgScreen.vbl + (cfgScreen.waitFrm - 0.5) * cfgScreen.ifi);
     end
     if cfgExp.task == 0  % send offset triggers only if not collecting actual data (might interfer with response)

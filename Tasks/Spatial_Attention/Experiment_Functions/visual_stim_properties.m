@@ -11,8 +11,8 @@ cfgStim.destVisStimR = cfgStim.destVisStimCentre + angle2pix(cfgScreen, cfgStim.
 cfgStim.destVisStimL = cfgStim.destVisStimCentre - angle2pix(cfgScreen, cfgStim.visStimToL);  
 
 % calculate the centre of visual stimuli (for dot flash presentation)
-cfgStim.rectLR = [CenterRect(cfgScreen.fixDotRect(:,2)', cfgStim.destVisStimL)...
-    ; CenterRect(cfgScreen.fixDotRect(:,2)', cfgStim.destVisStimR)];  % put both rects in one matrix for use in another function
+cfgStim.rectRL = [CenterRect(cfgScreen.fixDotRect(:,2)', cfgStim.destVisStimR)...
+    ; CenterRect(cfgScreen.fixDotRect(:,2)', cfgStim.destVisStimL)];  % put both rects in one matrix for use in another function
 
 % destination of cue
 rectCue = [0, 0, angle2pix(cfgScreen, cfgStim.destRectCueSize), angle2pix(cfgScreen, cfgStim.destRectCueSize)];
