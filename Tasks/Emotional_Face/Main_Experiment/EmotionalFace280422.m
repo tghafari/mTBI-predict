@@ -3,7 +3,7 @@ clear; close all; sca; fclose('all');  % this should be outside of function, oth
 cfgEyelink = basic_setup_experiment;  % basic PTB setup and clearing up
 %% Input and OS folder preparations
 
-cfgExp.answer = prompt_input;
+cfgExp.answer = pruompt_input;
 cfgFile = create_file_directory(cfgExp);
 %% Make variables and read in images
 

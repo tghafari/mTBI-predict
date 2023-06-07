@@ -10,8 +10,8 @@ cfgScreen.scrNum = max(Screen('Screens'));  % get screen number - draw to the ex
 
 if cfgExp.MEGLab && cfgExp.site == 1  % if collecting in Aston
     cfgScreen.distance = 100;  % set the distance from participant to the projector
-    cfgScreen.dispSize.width = 715;  % physical width of screen in cm
-    cfgScreen.dispSize.height = 405;  % physical height of screen in cm
+    cfgScreen.dispSize.width = 502;  % physical width of screen in cm
+    cfgScreen.dispSize.height = 282;  % physical height of screen in cm
     cfgScreen.resolution = Screen('Resolution', cfgScreen.scrNum);  % get/set the on screen resolution
 
 elseif cfgExp.MEGLab && cfgExp.site == 2  % if collectin in Birmingham

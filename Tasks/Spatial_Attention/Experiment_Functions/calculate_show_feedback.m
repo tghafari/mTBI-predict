@@ -15,6 +15,6 @@ cfgOutput.blkEnd(nstim) = send_trigger(cfgTrigger, cfgExp, cfgTrigger.blkEnd, cf
 
 DrawFormattedText(cfgScreen.window, text, 'center', 'center', [cfgScreen.white, cfgScreen.white, cfgScreen.white]);
 Screen('Flip', cfgScreen.window);
-WaitSecs(1)
+WaitSecs(3)
 
 end

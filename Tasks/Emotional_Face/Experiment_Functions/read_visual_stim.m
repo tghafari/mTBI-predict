@@ -69,7 +69,9 @@ cfgExp.corrResp(find(cfgExp.quesPres),1) = cfgStim.visStim(find(cfgExp.quesPres)
 cfgExp.corrResp(find(contains(cfgStim.visStim(:,6),'m')), 2) = {'RightArrow'};
 cfgExp.corrResp(find(contains(cfgStim.visStim(:,6),'f')), 2) = {'LeftArrow'};
 cfgExp.corrResp(find(contains(cfgStim.visStim(:,6),'m')), 3) = {'7&'};
+cfgExp.corrResp(find(contains(cfgStim.visStim(:,6),'m')), 4) = {'b'};
 cfgExp.corrResp(find(contains(cfgStim.visStim(:,6),'f')), 3) = {'4$'};
+cfgExp.corrResp(find(contains(cfgStim.visStim(:,6),'f')), 4) = {'e'};
 cfgExp.corrResp(find(cfgExp.quesPres == 0), :) = {'no resp'};
 
 
