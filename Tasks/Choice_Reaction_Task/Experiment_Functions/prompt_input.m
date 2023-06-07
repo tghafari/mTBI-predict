@@ -5,7 +5,7 @@ function ansr = prompt_input
 %computer (MEG or Win)
 % Subject codes-> T: testing, B: actual data
 
-prompt     = {'Site', 'Subject Code', 'Session', 'Task', 'Run', 'train/task/test', 'Testing PC'}; 
+prompt     = {'Site', 'Subject Code', 'Session', 'Task', 'Run', 'train/task/test', 'MEG/win?'}; 
 dlgtitle   = 'Details';
 dims       = [1, 30; 1, 30; 1, 30; 1, 30; 1, 30; 1, 30; 1, 30];
 defaultans = {'Birmingham', 'T101', '01', 'CRT', '01', 'test', 'win'};
