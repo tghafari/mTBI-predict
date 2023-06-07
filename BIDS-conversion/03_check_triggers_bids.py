@@ -19,6 +19,7 @@ Questions:
 
 import os.path as op
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 
 import mne
@@ -30,25 +31,25 @@ subject = '04'  # subject code in mTBI project
 session = '01'  # data collection session within each run
 run = '01'  # data collection run for each participant
 pilot = 'P' # is the data collected 'P'ilot or 'T'ask?
-task = 'SpAtt'
+task = 'SpAtt' # default of bids path
 meg_suffix = 'meg'
 meg_extension = '.fif'
 events_suffix = 'events'
 events_extension = '.tsv'
 
 # specify specific file names
-bids_root = r'Z:\Projects\mTBI predict\Collected Data\MNE-bids-data'  # RDS folder for bids formatted data
+bids_root = r'Z:\Projects\mTBI_predict\Collected_Data\MNE-bids-data'  # RDS folder for bids formatted data
 bids_path = BIDSPath(subject=subject, session=session,
-                     task=task, run=run, root=bids_root, 
+                     task=task, run=run, root=bids_root, datatype ='meg',
                      suffix=meg_suffix, extension=meg_extension)
+
+######################## Spatial Attention #########################
 
 # read and plot raw stim channel
 raw = read_raw_bids(bids_path=bids_path, verbose=False)
-
-
-# Passing the TSV file to read_csv() with tab separator
 raw.copy().pick_types(meg=False, stim=True).plot()
 
+# Passing the TSV file to read_csv() with tab separator
 events_bids_path = bids_path.copy().update(suffix=events_suffix,
                                            extension=events_extension)
 events_file = pd.read_csv(events_bids_path, sep='\t')
@@ -61,117 +62,172 @@ plt.ylabel('event type')
 plt.show()
 
 # Check durations using triggers
-durations_onset = ['cue', 'catch', 'stim', 'dot', 'response press']
+durations_onset = ['cue', 'catch', 'stim', 'dot', 'response_press']
 durations_offset = ['cue'] #, 'stim', 'dot']  # stim and dot are removed in actual data collection
-dur_dict = {}
+direction_onset = ['cue_onset', 'dot_onset']
+events_dict = {}
 
 for dur in durations_onset:    
-    dur_dict[dur + " onset"] = event_onsets.loc[event_onsets['trial_type'].str.contains(f'{dur} onset'),
+    events_dict[dur + "_onset"] = event_onsets.loc[event_onsets['trial_type'].str.contains(f'{dur}_onset'),
+                                               'onset'].to_numpy()
+for dur in durations_offset:   
+    events_dict[dur + "_offset"] = event_onsets.loc[event_onsets['trial_type'].str.contains(f'{dur}_offset'),
+                                               'onset'].to_numpy()
+for dirs in direction_onset:
+    events_dict[dirs + "_right"] = event_onsets.loc[event_onsets['trial_type'].str.contains(f'{dirs}_right'),
+                                               'onset'].to_numpy()
+    events_dict[dirs + "_left"] = event_onsets.loc[event_onsets['trial_type'].str.contains(f'{dirs}_left'),
                                                'onset'].to_numpy()
 
-for dur in durations_offset:   
-    dur_dict[dur + " offset"] = event_onsets.loc[event_onsets['trial_type'].str.contains(f'{dur} offset'),
-                                               'onset'].to_numpy()
+# compare number of trials with stimuli and responses
+numbers_dict = {}
+for numbers in  ['cue_onset_right', 'cue_onset_left', 'dot_onset_right', 'dot_onset_left', 
+                      'response_press_onset']:
+    numbers_dict[numbers] = events_dict[numbers].size
+    
+fig, ax = plt.subplots()
+bars = ax.bar(range(len(numbers_dict)), list(numbers_dict.values()))
+plt.xticks(range(len(numbers_dict)), list(numbers_dict.keys()), rotation='45')
+ax.bar_label(bars)
+plt.show()
 
 # Check duration of cue presentation  
-dur_dict['cue duration'] = dur_dict['cue offset'] - dur_dict['cue onset']
-dur_dict['stim_to_dot duration'] = dur_dict['dot onset'] - dur_dict['stim onset']
-dur_dict['RT'] = dur_dict['response press onset'] - dur_dict['dot onset'] 
+events_dict['cue_duration'] = events_dict['cue_offset'] - events_dict['cue_onset']
+events_dict['stim_to_dot_duration'] = events_dict['dot_onset'] - events_dict['stim_onset']
+events_dict['RT'] = events_dict['response_press_onset'] - events_dict['dot_onset'] 
 
 # Plot all durations
-for dur in ['cue duration', 'stim_to_dot duration', 'RT']:
-    plt.hist(dur_dict[dur])
+for dur in ['cue_duration', 'stim_to_dot_duration', 'RT']:
+    plt.hist(events_dict[dur])
     plt.title(dur)
     plt.xlabel('time in sec')
     plt.ylabel('number of events')
     plt.show()
-
-
-
-
-
-
-
-###################################### for other tasks- needs modification ############################################################
-# Emotional Face -> not finalised:
-#     dur_dict[dur + "_duration"] = dur_dict[dur + "_offset"] - dur_dict[dur + "_onset"]
     
-# dur_dict["ISI_duration"] = dur_dict["face_onset"][1:] - dur_dict["face_offset"][:-1]
-# dur_dict["RT"] = dur_dict["question_offset"] - event_onsets.loc\
-#     [event_onsets['trial_type'].str.contains('response'), 'onset'].to_numpy() # doesn't work due to response triggers not being read in pilot data
-    
-conditions = ['angry', 'neutral', 'happy', 'male', 'female', 'onset', 'offset']  # for emoFace
+###################################### Choice Reaction Task ##########################################                                       
+# update bids path and read raw data 
+'remember to clear the variables before running this section'
+'change response right/left onset to response onset right/left + add underscores'
 
-for condition in conditions:
-    dur_dict["face" + condition] = event_onsets.loc[event_onsets['trial_type'].str.contains(f'face {condition}'), 
-                                                   'onset'].to_numpy()
-                                                   
-dur_dict['question onset'] = event_onsets.loc[event_onsets['trial_type'].str.contains('question onset'), 
-                                               'onset'].to_numpy()
-dur_dict['response onset'] = event_onsets.loc[event_onsets['trial_type'].str.contains('responset'), 
-                                               'onset'].to_numpy()
-RT = dur_dict['response onset'] - dur_dict['question onset'][1:]
-
-# older stuff- not finalised
-face_offsets = event_onsets.loc[event_onsets['trial_type'].str.contains('response'), 'onset']  # get the index of cue offset
-face_onsets = event_onsets.loc[event_onsets['trial_type'].str.contains('question off'), 'onset']  # get the index of cue onset
-face_dur = face_offsets.to_numpy() - face_onsets.to_numpy()
-# Plot all cue durations
-plt.hist(face_dur)
-event_onsets.loc[event_onsets['trial_type'].isin(['face onset happy', 'face onset angry',
-             'face onset neutral', 'face male', 'face female',
-             'face offset', 'question on', 'question off',
-             'response button male', 'response button female'])].plot(kind='scatter',
-                                                                      x='onset', y='trial_type')
-event_onsets.loc[event_onsets['trial_type'].isin(['question off',
-             'response button male', 'response button female'])].plot(kind='scatter',
-                                                                      x='onset', y='trial_type')
-                                                                      
-plt.show()
-
-# CRT
-
-# Specify paths
-file_name = 'sub-01_ses-01_task-CRT_run-01'
-data_path = r'Z:\MEG_data\dong_wer\220615'
-
-output_path = op.join(data_path, '..', 'MNE-pilot-data-bids')
-bids_path = BIDSPath(subject='01', session='01',
-                     task='CRT', run='01', root=output_path)
-
-# Read the data and events
+bids_path.update(task='CRT')
 raw = read_raw_bids(bids_path=bids_path, verbose=False)
-
 raw.copy().pick_types(meg=False, stim=True).plot()
 
-events = mne.find_events(raw, stim_channel='STI101',min_duration=0.001001,
-                          consecutive=False, mask=65280,
-                          mask_type='not_and')  #' mask removes triggers associated
-                                                # with response box channel 
-                                                # (not the response triggers)'
-
-events_qu_resp = mne.pick_events(events, include=[255, 254, 106])
-raw.plot(events=events)
-
 # Passing the TSV file to read_csv() with tab separator
-events_file = pd.read_csv(op.join(output_path, 'sub-01\ses-01\meg',
-                                  file_name + '_events.tsv'), sep='\t')
+events_bids_path = bids_path.copy().update(suffix=events_suffix,
+                                           extension=events_extension)
+events_file = pd.read_csv(events_bids_path, sep='\t')
 event_onsets = events_file[['onset', 'value', 'trial_type']]
 
-# Check duration of cue presentation
-cue_offsets = event_onsets.loc[event_onsets['trial_type'].str.contains('cue offset'), 'onset']  # get the index of cue offset
-cue_onsets = event_onsets.loc[event_onsets['trial_type'].str.contains('cue onset'), 'onset']  # get the index of cue onset
-cue_dur = cue_offsets.to_numpy() - cue_onsets.to_numpy()
+# Check durations using triggers
+durations_onset = ['cue', 'trial','t']# 'response'] change 't' to 'response' for next pariticpant with correct triggers
+direction_onset = ['cue_onset', 'response_onset']
 
-# Plot all cue durations
-plt.hist(cue_dur,range=[1.440,1.460])
-event_onsets.plot(kind='scatter', x='onset', y='trial_type')
+events_dict = {}
+
+for dur in durations_onset:    
+    events_dict[dur + "_onset"] = event_onsets.loc[event_onsets['trial_type'].str.contains(f'{dur}_onset'),
+                                               'onset'].to_numpy()
+for dirs in direction_onset:
+    events_dict[dirs + "_right"] = event_onsets.loc[event_onsets['trial_type'].str.contains(f'{dirs}_right'),
+                                               'onset'].to_numpy()
+    events_dict[dirs + "_left"] = event_onsets.loc[event_onsets['trial_type'].str.contains(f'{dirs}_left'),
+                                               'onset'].to_numpy()
+
+# compare number of trials with stimuli and responses
+numbers_dict = {}
+for numbers in  ['cue_onset_right', 'cue_onset_left', 'response_onset_right', 'response_onset_left']:
+    numbers_dict[numbers] = events_dict[numbers].size
+    
+fig, ax = plt.subplots()
+bars = ax.bar(range(len(numbers_dict)), list(numbers_dict.values()))
+plt.xticks(range(len(numbers_dict)), list(numbers_dict.keys()), rotation='45')
+ax.bar_label(bars)
 plt.show()
 
-# read events not using bids
-events = mne.find_events(raw, stim_channel='STI101',min_duration=0.001001,
-                          consecutive=False, mask=65280,
-                          mask_type='not_and')  #' mask removes triggers associated
-                                                # with response box channel 
-                                                # (not the response triggers)'
-events_qu_resp = mne.pick_events(events, include=[255, 102, 101])
+# Check duration of cue presentation  
+events_dict['cue_to_dot_duration'] = events_dict['cue_onset'] - events_dict['trial_onset']
+events_dict['RT'] = events_dict['response_onset'] - events_dict['cue_onset'] 
+    
+# Plot all durations
+for dur in ['cue_to_dot_duration', 'RT']:
+    plt.hist(events_dict[dur])
+    plt.title(dur)
+    plt.xlabel('time in sec')
+    plt.ylabel('number of events')
+    plt.show()
+    
+###################################### Emotional face ##########################################
+
+# update bids path and read raw data 
+'remember to clear the variables before running this section'
+
+bids_path.update(task='EmoFace')
+raw = read_raw_bids(bids_path=bids_path, verbose=False)
+raw.copy().pick_types(meg=False, stim=True).plot()
+
+# Passing the TSV file to read_csv() with tab separator
+events_bids_path = bids_path.copy().update(suffix=events_suffix,
+                                           extension=events_extension)
+events_file = pd.read_csv(events_bids_path, sep='\t')
+event_onsets = events_file[['onset', 'value', 'trial_type']]
+
+# Display triggers separately in a scatter plot (scatter plot of all triggers is very busy)
+triggers_to_show = event_onsets['trial_type'].str.contains('onset')                                         
+event_onsets['trial_type']=='response female onset'  
+event_onsets.loc[event_onsets['trial_type'].str.contains('response'),
+                                           'onset'].to_numpy()
+xData = event_onsets['onset']
+yData = event_onsets['trial_type']
+# Plot all events
+plt.scatter(x=xData[triggers_to_show], y=yData[triggers_to_show])
+plt.xlabel('onset(sec)')
+plt.ylabel('event type')
+plt.show()
+
+# Check durations using triggers
+durations_onset = ['face', 'question', 'male'] # 'male' is included in both response female onset and response male onset
+durations_offset_sex = ['face'] 
+emotions = ['angry', 'neutral', 'happy']
+
+events_dict = {}
+
+for dur in durations_onset:    
+    events_dict[dur + "_onset"] = event_onsets.loc[event_onsets['trial_type'].str.contains(f'{dur} onset'),
+                                               'onset'].to_numpy()
+for dur in durations_offset_sex:   
+    events_dict[dur + "_offset"] = event_onsets.loc[event_onsets['trial_type'].str.contains(f'{dur} offset'),
+                                               'onset'].to_numpy()
+for sex in durations_offset_sex:
+    events_dict[sex + "_female"] = event_onsets.loc[event_onsets['trial_type'].str.contains(f'{sex} female'),
+                                               'onset'].to_numpy()
+    events_dict[sex + "_male"] = event_onsets.loc[event_onsets['trial_type'].str.contains(f'{sex} male'),
+                                                  'onset'].to_numpy()
+for emotion in emotions:
+    events_dict["face_" + emotion] = event_onsets.loc[event_onsets['trial_type'].str.contains(f'face onset {emotion}'),
+                                               'onset'].to_numpy()       
+                                          
+# compare number of trials with stimuli and responses
+numbers_dict = {}
+for numbers in  ['face_angry','face_happy','face_neutral','face_male','face_female',
+                 'question_onset','male_onset']:
+    numbers_dict[numbers] = events_dict[numbers].size
+    
+fig, ax = plt.subplots()
+bars = ax.bar(range(len(numbers_dict)), list(numbers_dict.values()))
+plt.xticks(range(len(numbers_dict)), list(numbers_dict.keys()), rotation='45')
+ax.bar_label(bars)
+plt.show()
+     
+# Check durations
+events_dict['face_duration'] = events_dict['face_offset'] - events_dict['face_onset']
+# remove extra fields for the longer array -- Ask Oscar's opinion
+events_dict['RT'] = events_dict['male_onset'] - events_dict['question_onset'] # male_onset is the response onset
+
+# Plot durations
+for dur in ['face_duration', 'RT']:
+    plt.hist(events_dict[dur])
+    plt.title(dur)
+    plt.xlabel('time in sec')
+    plt.ylabel('number of events')
+    plt.show()
