@@ -3,7 +3,7 @@ function cfgExp = initialise_exp_variables(cfgExp)
 % Introduces variables of interest for SpAtt task
 % to change any repetition you should edit this function
 
-cfgExp.restDur = 5 * 10 * 1000;  % duration of each resting state session in ms (5 min)
+cfgExp.restDur = 5 * 60 * 1000;  % duration of each resting state session in ms (5 min)
 
 if strcmp(cfgExp.answer.site,'Birmingham')
     cfgExp.site = 2;  % UoB -> 2 
