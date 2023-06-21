@@ -17,6 +17,9 @@ el.imgtitlecolour = 255; %cfgScreen.white;
 el.calibrationtargetcolour = [255, 255, 255]; %[cfgScreen.white, cfgScreen.white, cfgScreen.white];
 el.msgfontcolour = 255; %cfgScreen.white;
 
+% size of the screen to use for eyetracking
+num_pix_smaller_than_fullScrn = 100;
+
 try
 disp('Updating Parameters')
 EyelinkUpdateDefaults(el);
@@ -31,10 +34,14 @@ end
 
 % this Command is crucial to map the gaze positions from the tracker to
 % screen pixel positions to determine fixation
-Eyelink('Command','screen_pixel_coords = %ld %ld %ld %ld', cfgScreen.fullScrn(1) - cfgScreen.fullScrn(1), cfgScreen.fullScrn(2) - cfgScreen.fullScrn(2)...
-    , cfgScreen.fullScrn(3) - cfgScreen.fullScrn(1), cfgScreen.fullScrn(4) - cfgScreen.fullScrn(2));
-Eyelink('message','DISPLAY_COORDS %ld %ld %ld %ld', cfgScreen.fullScrn(1) - cfgScreen.fullScrn(1), cfgScreen.fullScrn(2) - cfgScreen.fullScrn(2)...
-    , cfgScreen.fullScrn(3) - cfgScreen.fullScrn(1), cfgScreen.fullScrn(4) - cfgScreen.fullScrn(2));
+Eyelink('Command','screen_pixel_coords = %ld %ld %ld %ld', cfgScreen.fullScrn(1) - cfgScreen.fullScrn(1) + num_pix_smaller_than_fullScrn...
+        , cfgScreen.fullScrn(2) - cfgScreen.fullScrn(2) + num_pix_smaller_than_fullScrn...
+        , cfgScreen.fullScrn(3) - cfgScreen.fullScrn(1) - num_pix_smaller_than_fullScrn...
+        , cfgScreen.fullScrn(4) - cfgScreen.fullScrn(2) - num_pix_smaller_than_fullScrn);
+    Eyelink('message','DISPLAY_COORDS %ld %ld %ld %ld', cfgScreen.fullScrn(1) - cfgScreen.fullScrn(1) + num_pix_smaller_than_fullScrn...
+        , cfgScreen.fullScrn(2) - cfgScreen.fullScrn(2) + num_pix_smaller_than_fullScrn...
+        , cfgScreen.fullScrn(3) - cfgScreen.fullScrn(1) - num_pix_smaller_than_fullScrn...
+        , cfgScreen.fullScrn(4) - cfgScreen.fullScrn(2) - num_pix_smaller_than_fullScrn);   
 
 % enable binocular as default
 Eyelink('command','binocular_enabled = YES');
@@ -47,7 +54,7 @@ Eyelink('Command', 'saccade_acceleration_threshold = 3800');
 Eyelink('Command', 'saccade_motion_threshold = 0.0');
 Eyelink('Command', 'saccade_pursuit_fixup = 60');
 Eyelink('Command', 'fixation_update_interval = 0');
-Eyelink('Command', 'calibration_type = HV5');
+Eyelink('Command', 'calibration_type = HV9');
 Eyelink('Command', 'generate_default_targets = YES');
 Eyelink('Command', 'enable_automatic_calibration = YES');
 Eyelink('Command', 'automatic_calibration_pacing = 1000');
