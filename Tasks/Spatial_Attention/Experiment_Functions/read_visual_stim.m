@@ -26,14 +26,13 @@ end
 
 % collect correct responses +
 % cue, stim and dot triggers
-cfgExp.cuesDir = cell(cfgExp.numStim, 2);  % preallocation
+cfgExp.cuesDir = cell(cfgExp.numStim, 1);  % preallocation
 cfgTrigger.cuesDir = cell(cfgExp.numStim, 2);  % preallocation
 cfgTrigger.dotDir = cell(cfgExp.numStim, 2);  % preallocation
 
 cfgExp.cuesDir(find(cfgStim.cueRndIdx == 1), 1) = {'Right'};
 cfgExp.cuesDir(find(cfgStim.cueRndIdx == 2), 1) = {'Left'};
-cfgExp.cuesDir(:, 2) = {'7&'};  % press 7& for both right and left dot
-cfgExp.cuesDir(find(cfgExp.corrResp == 0), [1, 2]) = {'no resp'};
+cfgExp.cuesDir(find(cfgExp.corrResp == 0), 1) = {'no resp'};
 cfgTrigger.cuesDir(find(cfgStim.cueRndIdx == 1), 1) = {'101'};  % MEG trigger codes are 101 -> cue right, 102 -> cue left
 cfgTrigger.cuesDir(find(cfgStim.cueRndIdx == 2), 1) = {'102'};  % MEG trigger codes are 101 -> cue right, 102 -> cue left
 cfgTrigger.cuesDir(find(cfgStim.cueRndIdx == 1), 2) = {'Right'};  % trigger message for Eyelink
