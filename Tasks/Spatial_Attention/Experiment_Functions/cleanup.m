@@ -24,6 +24,7 @@ catch
     warning('Saving the log files failed.');
 end
 
+if cfgExp.site == 2  % only works in Birmingham
 try
     if cfgExp.MEGLab
         if cfgScreen.backProjection
@@ -35,6 +36,8 @@ try
 catch
     warning('Returing the Propixx to normal state failed.');
 end
+end
+
 try
     if cfgEyelink.on
         el_stop(cfgFile)
