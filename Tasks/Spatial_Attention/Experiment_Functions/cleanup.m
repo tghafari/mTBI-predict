@@ -7,7 +7,8 @@ cfgOutput.endTmPnt = send_trigger(cfgTrigger, cfgExp, cfgTrigger.expEnd, cfgEyel
 
 % check if the logfile is being overwritten
 if exist([cfgFile.subDir, cfgFile.BIDSname, cfgFile.logFile], 'file') > 0
-    warning('log file will be overwritten!');
+    save([cfgFile.subDir, cfgFile.BIDSname, cfgFile.logFile '_BP_' num2str(yyyymmdd(datetime('now')))])
+    warning('log file will be overwritten! (Copy saved anyway)');
     cont = input('Do you want to continue? (y/n) ','s');
     while true
         if cont == 'y'
