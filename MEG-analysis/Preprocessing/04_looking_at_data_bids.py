@@ -20,16 +20,17 @@ from mne_bids import BIDSPath, read_raw_bids
 
 # fill these out
 site = 'Birmingham'
-subject = '04'  # subject code in mTBI project
-session = '01'  # data collection session within each run
+subject = '2004'  # subject code in mTBI project
+session = '01B'  # data collection session within each run
 run = '01'  # data collection run for each participant
 pilot = 'P' # is the data collected 'P'ilot or 'T'ask?
-task = 'SpAtt'
+task = 'rest'
 
 rprt = False
 
 # specify specific file names
-bids_root = r'Z:\MEG_data\MNE-bids-data'  # RDS folder for bids formatted data
+data_root = r'Z:\Projects\mTBI_predict\Collected_Data'
+bids_root = op.join(data_root, 'BIDS')  # RDS folder for bids formatted data
 bids_path = BIDSPath(subject=subject, session=session,
                      task=task, run=run, root=bids_root)
 
@@ -39,11 +40,11 @@ print(raw)
 print(raw.info)
 
 # Plot PSD on raw data up to 60Hz
-raw.plot_psd(fmax=60)
+raw.compute_psd(fmax=60).plot()
 mne.viz.plot_raw_psd(raw, fmin=.5, fmax=40, n_fft=None, picks=None)
 
 # Plot 10 first seconds of raw data
-raw.plot(duration=10, title='raw')
+raw.plot(duration=100, title='raw')
 
 # Raw file report with all chanels
 if rprt:

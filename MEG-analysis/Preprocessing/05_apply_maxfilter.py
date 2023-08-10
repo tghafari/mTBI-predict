@@ -30,25 +30,26 @@ import mne.preprocessing as preproc
 
 # fill these out
 site = 'Birmingham'
-subject = '04'  # subject code in mTBI project
-session = '01'  # data collection session within each run
+subject = '2004'  # subject code in mTBI project
+session = '01B'  # data collection session within each run
 run = '01'  # data collection run for each participant
 pilot = 'P' # is the data collected 'P'ilot or 'T'ask?
-task = 'SpAtt'
+task = 'rest'
 meg_suffix = 'meg'
 meg_extension = '.fif'
 deriv_suffix = 'raw_sss'
 
-rprt = True
+rprt = False
 
 # specify specific file names
-bids_root = r'Z:\MEG_data\MNE-bids-data-anonymized'  # RDS folder for bids formatted data
+data_root = r'Z:\Projects\mTBI_predict\Collected_Data'
+bids_root = op.join(data_root, 'BIDS')  # RDS folder for bids formatted data
 bids_path = BIDSPath(subject=subject, session=session,
-                     task=task, run=run, root=bids_root, 
+                     task=task, run=run, root=bids_root, datatype='meg',
                      suffix=meg_suffix, extension=meg_extension)
 bids_fname = bids_path.basename.replace(meg_suffix, deriv_suffix)  # only used for suffices that are not recognizable to bids 
 
-deriv_root = op.join(bids_root, 'derivatives', 'flux-pipeline')  # RDS folder for results
+deriv_root = op.join(bids_root, 'derivatives')  # RDS folder for results
 if not op.exists(op.join(deriv_root , 'sub-' + subject, 'task-' + task)):
     os.makedirs(op.join(deriv_root , 'sub-' + subject, 'task-' + task))
 deriv_folder = op.join(deriv_root , 'sub-' + subject, 'task-' + task)
