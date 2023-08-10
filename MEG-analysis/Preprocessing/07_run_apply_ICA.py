@@ -31,8 +31,8 @@ from mne_bids import BIDSPath
 
 # fill these out
 site = 'Birmingham'
-subject = '04'  # subject code in mTBI project
-session = '01'  # data collection session within each run
+subject = '2004'  # subject code in mTBI project
+session = '01B'  # data collection session within each run
 run = '01'  # data collection run for each participant
 pilot = 'P' # is the data collected 'P'ilot or 'T'ask?
 task = 'SpAtt'
@@ -44,12 +44,13 @@ deriv_suffix = 'ica'
 rprt = True
 
 # Specify specific file names
-bids_root = r'Z:\MEG_data\MNE-bids-data' #'-anonymized'  # RDS folder for bids formatted data
+data_root = r'Z:\Projects\mTBI_predict\Collected_Data'
+bids_root = op.join(data_root, 'BIDS')  # RDS folder for bids formatted data
 bids_path = BIDSPath(subject=subject, session=session,
                      task=task, run=run, root=bids_root, 
                      suffix=meg_suffix, extension=meg_extension)
-deriv_folder = op.join(bids_root, 'derivatives', 'flux-pipeline' ,
-                       'sub-' + subject, 'task-' + task)  # RDS folder for results
+deriv_folder = op.join(bids_root, 'derivatives', 'sub-' + subject, 
+                       'task-' + task)  # RDS folder for results
 bids_fname = bids_path.basename.replace(meg_suffix, input_suffix)  # only used for suffices that are not recognizable to bids 
 input_fname = op.join(deriv_folder, bids_fname)
 deriv_fname = str(input_fname).replace(input_suffix, deriv_suffix)
@@ -74,8 +75,7 @@ ica.fit(raw_resmpld, verbose=True)
 ica.plot_sources(raw_resmpld, title='ICA')
 ica.plot_components()
 
-ICA_rej_dic = {'sub-03':[1,2,15],
-               'sub-04':[0,7,28]}# manually selected bad ICs or from sub config file
+ICA_rej_dic = {'sub-2004_ses-01B':[0,7,28]}# manually selected bad ICs or from sub config file
 artifact_ICs = ICA_rej_dic[f'sub-{subject}']
 
 
@@ -93,8 +93,6 @@ ica.plot_properties(raw_resmpld, picks=artifact_ICs)
 ica.exclude = artifact_ICs
 raw_ica = raw_ann.copy()
 ica.apply(raw_ica)
-
-# raw_ica = mne.io.concatenate_raws([raw1_ica, raw2_ica])
 
 # plot a few frontal channels before and after ICA
 chs = ['MEG0311', 'MEG0121', 'MEG1211', 'MEG1411', 'MEG0342', 'MEG1432']
