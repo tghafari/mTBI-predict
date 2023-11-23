@@ -19,7 +19,12 @@ end
 cfgStim.visStim = cfgStim.visStim(~cellfun('isempty', cfgStim.visStim'));  % remove indices that are empty due to reading images based on speed
 
 rng('shuffle')
-cfgStim.cueRndIdx = randi(2, cfgExp.numStim, 1);  % random index for cue - 1:right, 2:left
+cfgStim.cueRndIdx = randperm(cfgExp.numStim);  % random index for cue - 1:right, 2:left
+
+% Make sure there's an equal number of 1 and 2 in cfgStim.cueRndIdx
+cfgStim.cueRndIdx(mod(cfgStim.cueRndIdx, 2) == 0) = 2;
+cfgStim.cueRndIdx(mod(cfgStim.cueRndIdx, 2) ~= 0) = 1;
+
 for stim = 1:cfgExp.numStim
     cfgStim.cueStim{stim,1} = imread(fileDirCue(cfgStim.cueRndIdx(stim)).name);  % read cue randomly
 end

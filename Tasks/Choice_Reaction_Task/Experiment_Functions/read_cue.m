@@ -7,7 +7,12 @@ cfgCue.cueStim = cell(cfgExp.numStim, 1);  % preallocation
 
 % read cue images 
 rng('shuffle')
-cfgCue.cueRndIdx = randi(2, cfgExp.numStim, 1);  % random index for cue - 1:right, 2:left
+cfgCue.cueRndIdx = randperm(cfgExp.numStim);  % random index for cue - 1:right, 2:left
+
+% Make sure there's an equal number of 1 and 2 in cfgStim.cueRndIdx
+cfgCue.cueRndIdx(mod(cfgCue.cueRndIdx, 2) == 0) = 2;
+cfgCue.cueRndIdx(mod(cfgCue.cueRndIdx, 2) ~= 0) = 1;
+
 for stim = 1:cfgExp.numStim
     cfgCue.cueStim{stim,1} = imread(fileDirCue(cfgCue.cueRndIdx(stim)).name);  % read cue randomly
 end
