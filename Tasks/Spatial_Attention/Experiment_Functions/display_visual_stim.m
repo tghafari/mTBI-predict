@@ -35,14 +35,17 @@ if cfgExp.corrResp(nstim)
     end
 
 else  % for catch trials
-    cfgOutput.catchOnset(nstim) = send_trigger(cfgTrigger, cfgExp, cfgTrigger.catchTrial, cfgEyelink...
-        , 'catch trial stimulus onset');
+    cfgOutput.stmOnTmPnt(nstim) = send_trigger(cfgTrigger, cfgExp, cfgTrigger.stimOnset, cfgEyelink...
+        , 'stimulus onset');
     for frm = 1:cfgExp.stimFrm(nstim)
         Screen('DrawTextures', cfgScreen.window, [presentingStr.visStimR{nstim}{frm}, presentingStr.visStimL{nstim}{frm}]...
             , [], [cfgStim.destVisStimR; cfgStim.destVisStimL]');
         Screen('FillOval', cfgScreen.window, cfgScreen.fixDotColor, cfgScreen.fixDotRect);
         Screen('Flip', cfgScreen.window, cfgScreen.vbl + (cfgScreen.waitFrm - 0.5) * cfgScreen.ifi);
     end
+    cfgOutput.catchOnset(nstim) = send_trigger(cfgTrigger, cfgExp, cfgTrigger.catchTrial, cfgEyelink...
+        , 'catch trial stimulus onset');
+    
     Screen('FillOval', cfgScreen.window, cfgScreen.fixDotColor, cfgScreen.fixDotRect);
     Screen('Flip', cfgScreen.window, cfgScreen.vbl + (cfgScreen.waitFrm - 0.5) * cfgScreen.ifi);
     cfgOutput.respStartTime(nstim) = GetSecs; % to get reaction times relative to stimulus offset
