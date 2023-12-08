@@ -4,6 +4,8 @@ function cfgExp = initialise_exp_variables(cfgExp)
 % to change any repetition you should edit this function
 
 cfgExp.restDur = 5 * 60 * 1000;  % duration of each resting state session in ms (5 min)
+cfgExp.trgRstTm = 0.005;  % reset time for triggers
+cfgExp.trgSftTm = 0.003;  % safe time after resetting the triggers
 
 if strcmp(cfgExp.answer.site,'Birmingham')
     cfgExp.site = 2;  % UoB -> 2 
