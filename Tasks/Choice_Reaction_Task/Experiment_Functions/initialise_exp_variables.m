@@ -5,11 +5,14 @@ function [cfgExp, cfgOutput] = initialise_exp_variables(cfgExp)
 
 rng('shuffle')
 % total time: ~8 minute (2.2 to 2.7 sec each trial, ~2 min each block)
+cfgExp.trgRstTm = 0.005;  % reset time for triggers
+cfgExp.trgSftTm = 0.003;  % safe time after resetting the triggers
+timeBalancer = cfgExp.trgRstTm + cfgExp.trgSftTm; % time that needs to be removed to compensate for trigger duration
 cfgExp.numBlock = 4;  % total number of blocks (4)
 cfgExp.numTrial = 50;  % number of trials in each block (50)
 cfgExp.numStim = cfgExp.numTrial * cfgExp.numBlock;  % number of stimuli in total
 cfgExp.cueDur = 1200;  % duration of cue presentation in ms (1200 in violante 2017) - prev:1400
-cfgExp.ISIDur = 800;  % interval between cue and grating (stimulus) (800ms in violante 2017) - prev:1750
+cfgExp.ISIDur = 800 - (2 * timeBalancer);  % interval between cue and grating (stimulus) (800ms in violante 2017) - prev:1750 (subtract trig dur: cueOnset, trialOnset)
 cfgExp.catchTrial = zeros(cfgExp.numStim, 1);  % 1=>target present 0=>catch trials
 cfgExp.catchTrial(2:10:end, :) = 1; 
 cfgExp.catchTrial = cfgExp.catchTrial(randperm(length(cfgExp.catchTrial)));  % randomize order of catch trials
