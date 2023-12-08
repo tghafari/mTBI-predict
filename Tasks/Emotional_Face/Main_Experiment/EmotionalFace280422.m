@@ -37,7 +37,6 @@ cfgOutput = draw_myText(cfgScreen, cfgExp, cfgTxt.startTxt, cfgTxt, cfgOutput, c
 nstim = 0;  % count number of stimuli in total
 for blk = 1:cfgExp.numBlock
     cfgOutput.blkStrtTmPnt(blk) = send_trigger(cfgTrigger, cfgExp, cfgTrigger.blkNum(blk), cfgEyelink, sprintf('block n. %d', blk));
-    WaitSecs(0.003)  % wait for triggers to reset
 
     for trl = 1:cfgExp.numTrial
         nstim = nstim + 1;  % count stims presented in total

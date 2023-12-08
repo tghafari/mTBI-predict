@@ -7,11 +7,11 @@ rng('shuffle')
 % total time: ~11 minute (5 to 7.5 sec each trial, ~3.6 min each block)
 cfgExp.trgRstTm = 0.005;  % reset time for triggers
 cfgExp.trgSftTm = 0.003;  % safe time after resetting the triggers
-timeBalancer = cfgExp.trgRstTm + cfgExp.trgSftTm;  % time that needs to be removed from after triggers
+timeBalancer = cfgExp.trgRstTm + cfgExp.trgSftTm; % time that needs to be removed to compensate for trigger duration
 cfgExp.numBlock = 3;  % total number of blocks (3)
 cfgExp.numTrial = 40;  % number of trials in each block (40)
 cfgExp.numStim = cfgExp.numTrial * cfgExp.numBlock;  % number of stimuli in total
-cfgExp.ITIDur =  1000 + (2000 - 1000) .* rand(cfgExp.numStim,1) - timeBalancer;  % duration of ITI in ms (jitter between 1 and 2 sec)
+cfgExp.ITIDur =  1000 + (2000 - 1000) .* rand(cfgExp.numStim,1) - timeBalancer;  % duration of ITI in ms (jitter between 1 and 2 sec) (subtract trigger dur: trialOn)
 cfgExp.cueDur = 200 - timeBalancer;  % duration of cue presentation in ms
 cfgExp.ISIDur = 1000 - timeBalancer;  % interval between cue and grating (stimulus)
 cfgExp.stimDur = 1000 + (3000 - 1000) .* rand(cfgExp.numStim,1) - timeBalancer;  % duration of visual stimulus in ms (jitter between 1 and 3 sec)

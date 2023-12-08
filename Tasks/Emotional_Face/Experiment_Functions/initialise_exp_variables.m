@@ -5,13 +5,16 @@ function [cfgExp, cfgOutput] = initialise_exp_variables(cfgExp)
 
 rng('shuffle')
 % total time: ~7.5 minute (2 to 2.5 sec each trial, ~2.5 min each block)
+cfgExp.trgRstTm = 0.005;  % reset time for triggers
+cfgExp.trgSftTm = 0.003;  % safe time after resetting the triggers
+timeBalancer = cfgExp.trgRstTm + cfgExp.trgSftTm;  % time that needs to be removed to compensate for trigger duration
 cfgExp.numBlock = 3;  % total number of blocks (3)
 cfgExp.numRep = 2;  % number of repetitions of each specific visual stimuli (2)
 cfgExp.numImg = 18;  % number of face images for each gender (2) and emotion (3: neu, hap, ang) (18)
 cfgExp.numTrial = cfgExp.numImg * cfgExp.numRep * 2 * 3 / cfgExp.numBlock;  % number of trials in each block
 cfgExp.numStim = cfgExp.numTrial * cfgExp.numBlock;  % number of stimuli/trials in total
-cfgExp.ISIDur = 750 + (1000 - 750) .* rand(cfgExp.numStim, 1);  % interval between two images in ms (fixation dot duration)
-cfgExp.stimDur = 750 + (1000 - 750) .* rand(cfgExp.numStim, 1) - (2 * 5);  % duration of face presentation in ms (subtract trigger duration) 
+cfgExp.ISIDur = 750 + (1000 - 750) .* rand(cfgExp.numStim, 1) - (2 * timeBalancer);  % interval between two images in ms (fixation dot duration) (subtract triggers: faceOn, trialOn)
+cfgExp.stimDur = 750 + (1000 - 750) .* rand(cfgExp.numStim, 1) - (3 * timeBalancer);  % duration of face presentation in ms (subtract trigger duration: ID, Sex, faceOff) 
 cfgExp.numQu = ceil(0.125 * cfgExp.numStim);  % 12.5% of trials include a question about the gender of the face
 cfgExp.quesPres = [ones(cfgExp.numQu, 1); zeros(cfgExp.numStim - cfgExp.numQu, 1)];  % 1=>question present 0=>no question
 cfgExp.quesPres = cfgExp.quesPres(randperm(length(cfgExp.quesPres)));  % randomize order of question trials
