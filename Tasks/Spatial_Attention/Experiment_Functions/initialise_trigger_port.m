@@ -1,9 +1,11 @@
 function cfgTrigger = initialise_trigger_port(cfgExp, cfgTrigger)
 % cfgTrigger = initialise_trigger_port(cfgExp, cfgTrigger)
+% cfgTrigger.trgSftTm is to make sure the trigger has been sent
 % initiates sending triggers to MEG pc and puts everything in cfgTrigger
 
 cfgTrigger.handle = [];
 cfgTrigger.address = [];
+
 if cfgExp.MEGLab == 1
     if cfgExp.site == 1 
         cfgTrigger.address = hex2dec('3FF8');  % port address for Aston

@@ -5,13 +5,16 @@ function [cfgExp, cfgOutput] = initialise_exp_variables(cfgExp)
 
 rng('shuffle')
 % total time: ~11 minute (5 to 7.5 sec each trial, ~3.6 min each block)
+cfgExp.trgRstTm = 0.005;  % reset time for triggers
+cfgExp.trgSftTm = 0.003;  % safe time after resetting the triggers
+timeBalancer = cfgExp.trgRstTm + cfgExp.trgSftTm;  % time that needs to be removed from after triggers
 cfgExp.numBlock = 3;  % total number of blocks (3)
 cfgExp.numTrial = 40;  % number of trials in each block (40)
 cfgExp.numStim = cfgExp.numTrial * cfgExp.numBlock;  % number of stimuli in total
-cfgExp.ITIDur =  1000 + (2000 - 1000) .* rand(cfgExp.numStim,1);  % duration of ITI in ms (jitter between 1 and 2 sec)
-cfgExp.cueDur = 200;  % duration of cue presentation in ms
-cfgExp.ISIDur = 1000;  % interval between cue and grating (stimulus)
-cfgExp.stimDur = 1000 + (3000 - 1000) .* rand(cfgExp.numStim,1);  % duration of visual stimulus in ms (jitter between 1 and 3 sec)
+cfgExp.ITIDur =  1000 + (2000 - 1000) .* rand(cfgExp.numStim,1) - timeBalancer;  % duration of ITI in ms (jitter between 1 and 2 sec)
+cfgExp.cueDur = 200 - timeBalancer;  % duration of cue presentation in ms
+cfgExp.ISIDur = 1000 - timeBalancer;  % interval between cue and grating (stimulus)
+cfgExp.stimDur = 1000 + (3000 - 1000) .* rand(cfgExp.numStim,1) - timeBalancer;  % duration of visual stimulus in ms (jitter between 1 and 3 sec)
 cfgExp.dotDur = 100;  % duration of red dot presentation
 cfgExp.corrResp = ones(cfgExp.numStim,1);  % 1=>target present 0=>catch trials
 cfgExp.corrResp(2:10:end,:) = 0; 
