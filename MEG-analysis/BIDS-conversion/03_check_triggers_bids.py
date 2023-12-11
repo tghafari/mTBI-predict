@@ -26,28 +26,38 @@ import mne
 from mne_bids import BIDSPath, read_raw_bids
 
 # fill these out
+
 site = 'Birmingham'
-subject = '04'  # subject code in mTBI project
-session = '01'  # data collection session within each run
+subject = '2012'  # subject code in mTBI project
+session = '01B'  # data collection session within each run
 run = '01'  # data collection run for each participant
-pilot = 'P' # is the data collected 'P'ilot or 'T'ask?
-task = 'SpAtt' # default of bids path
+pilot = 'T' # is the data collected 'P'ilot or 'T'ask?
 meg_suffix = 'meg'
 meg_extension = '.fif'
 events_suffix = 'events'
 events_extension = '.tsv'
 
+
+######################## Spatial Attention #########################
+# start with spatial attention
+task = 'SpAtt' 
+
 # specify specific file names
-bids_root = r'Z:\Projects\mTBI_predict\Collected_Data\MNE-bids-data'  # RDS folder for bids formatted data
+bids_root = r'Z:\Projects\mTBI-predict\collected-data\BIDS\task_BIDS'  # RDS folder for bids formatted data
 bids_path = BIDSPath(subject=subject, session=session,
                      task=task, run=run, root=bids_root, datatype ='meg',
                      suffix=meg_suffix, extension=meg_extension)
 
-######################## Spatial Attention #########################
-
 # read and plot raw stim channel
-raw = read_raw_bids(bids_path=bids_path, verbose=False)
-raw.copy().pick_types(meg=False, stim=True).plot()
+# raw = read_raw_bids(bids_path=bids_path, verbose=False, 
+#                     extra_params={'preload':True, 'allow_maxshield':'yes'})
+# n_active = mne.chpi.get_active_chpi(raw)
+# print(f"Average number of coils active during recording: {n_active.mean()}")
+
+
+raw = read_raw_bids(bids_path=bids_path, verbose=False, 
+                     extra_params={'preload':True})
+raw.copy().crop(tmax=25.0).pick("meg").filter(l_freq=0.1, h_freq=150).plot()
 
 # Passing the TSV file to read_csv() with tab separator
 events_bids_path = bids_path.copy().update(suffix=events_suffix,
@@ -87,7 +97,7 @@ for numbers in  ['cue_onset_right', 'cue_onset_left', 'dot_onset_right', 'dot_on
     
 fig, ax = plt.subplots()
 bars = ax.bar(range(len(numbers_dict)), list(numbers_dict.values()))
-plt.xticks(range(len(numbers_dict)), list(numbers_dict.keys()), rotation='45')
+plt.xticks(range(len(numbers_dict)), list(numbers_dict.keys()), rotation=45)
 ax.bar_label(bars)
 plt.show()
 
@@ -120,7 +130,7 @@ events_file = pd.read_csv(events_bids_path, sep='\t')
 event_onsets = events_file[['onset', 'value', 'trial_type']]
 
 # Check durations using triggers
-durations_onset = ['cue', 'trial','t']# 'response'] change 't' to 'response' for next pariticpant with correct triggers
+durations_onset = ['cue', 'trial', 'response'] 
 direction_onset = ['cue_onset', 'response_onset']
 
 events_dict = {}
@@ -141,7 +151,7 @@ for numbers in  ['cue_onset_right', 'cue_onset_left', 'response_onset_right', 'r
     
 fig, ax = plt.subplots()
 bars = ax.bar(range(len(numbers_dict)), list(numbers_dict.values()))
-plt.xticks(range(len(numbers_dict)), list(numbers_dict.keys()), rotation='45')
+plt.xticks(range(len(numbers_dict)), list(numbers_dict.keys()), rotation=45)
 ax.bar_label(bars)
 plt.show()
 
@@ -215,7 +225,7 @@ for numbers in  ['face_angry','face_happy','face_neutral','face_male','face_fema
     
 fig, ax = plt.subplots()
 bars = ax.bar(range(len(numbers_dict)), list(numbers_dict.values()))
-plt.xticks(range(len(numbers_dict)), list(numbers_dict.keys()), rotation='45')
+plt.xticks(range(len(numbers_dict)), list(numbers_dict.keys()), rotation=45)
 ax.bar_label(bars)
 plt.show()
      
