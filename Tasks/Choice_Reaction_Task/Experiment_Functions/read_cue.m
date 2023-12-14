@@ -13,6 +13,16 @@ cfgCue.cueRndIdx = randperm(cfgExp.numStim);  % random index for cue - 1:right, 
 cfgCue.cueRndIdx(mod(cfgCue.cueRndIdx, 2) == 0) = 2;
 cfgCue.cueRndIdx(mod(cfgCue.cueRndIdx, 2) ~= 0) = 1;
 
+% Get catch trial indices for right and left
+right_catch_ind = find(cfgCue.cueRndIdx == 1);
+left_catch_ind = find(cfgCue.cueRndIdx == 2);
+
+% Add catch trials (10% of trials) - equal number for right and left
+right_catch_ind = right_catch_ind(2:10:end);
+left_catch_ind = left_catch_ind(2:10:end);
+cfgExp.catchTrial = zeros(cfgExp.numStim, 1);  % in cfgExp.catchTrial: 0=>target present 1=>catch trials
+cfgExp.catchTrial([right_catch_ind,left_catch_ind])=1;
+
 for stim = 1:cfgExp.numStim
     cfgCue.cueStim{stim,1} = imread(fileDirCue(cfgCue.cueRndIdx(stim)).name);  % read cue randomly
 end
