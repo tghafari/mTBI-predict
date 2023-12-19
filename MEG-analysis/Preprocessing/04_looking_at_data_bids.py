@@ -20,22 +20,23 @@ from mne_bids import BIDSPath, read_raw_bids
 
 # fill these out
 site = 'Birmingham'
-subject = '2004'  # subject code in mTBI project
-session = '01B'  # data collection session within each run
+subject = '2001'  # subject code in mTBI project
+session = '02B'  # data collection session within each run
 run = '01'  # data collection run for each participant
-pilot = 'P' # is the data collected 'P'ilot or 'T'ask?
-task = 'rest'
+meg_suffix = 'meg'
+task = 'SpAtt'
 
-rprt = False
+rprt = True
 
 # specify specific file names
-data_root = r'Z:\Projects\mTBI_predict\Collected_Data'
-bids_root = op.join(data_root, 'BIDS')  # RDS folder for bids formatted data
-bids_path = BIDSPath(subject=subject, session=session,
-                     task=task, run=run, root=bids_root)
+data_root = r'Z:\Projects\mTBI-predict\collected-data'
+bids_root = op.join(data_root, 'BIDS', 'task_BIDS')  # RDS folder for bids formatted data
+bids_path = BIDSPath(subject=subject, session=session, datatype ='meg',
+                     suffix=meg_suffix, task=task, run=run, root=bids_root)
 
 # read and print raw data + meta information
-raw = read_raw_bids(bids_path=bids_path, verbose=False)
+raw = read_raw_bids(bids_path=bids_path, verbose=False, 
+                     extra_params={'preload':True})
 print(raw)
 print(raw.info)
 
@@ -44,18 +45,18 @@ raw.compute_psd(fmax=60).plot()
 mne.viz.plot_raw_psd(raw, fmin=.5, fmax=40, n_fft=None, picks=None)
 
 # Plot 10 first seconds of raw data
-raw.plot(duration=100, title='raw')
+raw.copy().crop(tmax=180).pick(["meg", "stim"]).filter(l_freq=0.1, h_freq=150).plot(title="raw")  # should be filtered bcz of cHPI high freq noise
 
 # Raw file report with all chanels
 if rprt:
-    report_root = r'Z:\Projects\mTBI predict\Results - Outputs\mne Reports'  # RDS folder for reports
+    report_root = r'Z:\Projects\mTBI-predict\results-outputs\mne-reports'  # RDS folder for reports
     if not op.exists(op.join(report_root , 'sub-' + subject, 'task-' + task)):
         os.makedirs(op.join(report_root , 'sub-' + subject, 'task-' + task))
     report_folder = op.join(report_root , 'sub-' + subject, 'task-' + task)
 
     report_fname = op.join(report_folder, 'report_raw.html')
-    
-    raw.pick_types(meg=True, eog=True, ecg=True, stim=True).load_data()
+    raw.pick(["meg", "stim", "eog", "ecg"]).filter(l_freq=0.1, h_freq=150).load_data()
+   # raw.pick_types(meg=True, eog=True, ecg=True, stim=True).load_data()
  
     report = mne.Report(title='Raw data')
     report.add_raw(raw=raw, title='Raw', psd=True)
