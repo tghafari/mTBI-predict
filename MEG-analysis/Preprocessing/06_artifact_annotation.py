@@ -41,8 +41,8 @@ from mne_bids import BIDSPath
 
 # fill these out
 site = 'Birmingham'
-subject = '2004'  # subject code in mTBI project
-session = '01B'  # data collection session within each run
+subject = '2001'  # subject code in mTBI project
+session = '02B'  # data collection session within each run
 run = '01'  # data collection run for each participant
 pilot = 'P' # is the data collected 'P'ilot or 'T'ask?
 task = 'SpAtt'
@@ -54,8 +54,8 @@ deriv_suffix = 'ann'
 remove_line_noise = False
 
 # specify specific file names
-data_root = r'Z:\Projects\mTBI_predict\Collected_Data'
-bids_root = op.join(data_root, 'BIDS')  # RDS folder for bids formatted data
+data_root = r'Z:\Projects\mTBI-predict\collected-data'
+bids_root = op.join(data_root, 'BIDS', 'task_BIDS')  # RDS folder for bids formatted data
 bids_path = BIDSPath(subject=subject, session=session,
                      task=task, run=run, root=bids_root, 
                      suffix=meg_suffix, extension=meg_extension)

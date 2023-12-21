@@ -31,10 +31,9 @@ from mne_bids import BIDSPath
 
 # fill these out
 site = 'Birmingham'
-subject = '2004'  # subject code in mTBI project
-session = '01B'  # data collection session within each run
+subject = '2001'  # subject code in mTBI project
+session = '02B'  # data collection session within each run
 run = '01'  # data collection run for each participant
-pilot = 'P' # is the data collected 'P'ilot or 'T'ask?
 task = 'SpAtt'
 meg_extension = '.fif'
 meg_suffix = 'meg'
@@ -44,8 +43,8 @@ deriv_suffix = 'ica'
 rprt = True
 
 # Specify specific file names
-data_root = r'Z:\Projects\mTBI_predict\Collected_Data'
-bids_root = op.join(data_root, 'BIDS')  # RDS folder for bids formatted data
+data_root = r'Z:\Projects\mTBI-predict\collected-data'
+bids_root = op.join(data_root, 'BIDS', 'task_BIDS')  # RDS folder for bids formatted data
 bids_path = BIDSPath(subject=subject, session=session,
                      task=task, run=run, root=bids_root, 
                      suffix=meg_suffix, extension=meg_extension)
@@ -63,11 +62,11 @@ because that's what we need
 """
 raw_ann = mne.io.read_raw_fif(input_fname, allow_maxshield=True,
                               verbose=True, preload=True)
-raw_resmpld = raw_ann.copy().pick_types(meg=True)
+raw_resmpld = raw_ann.copy().pick(["meg", "eog", "ecg"])
 raw_resmpld.resample(200)
 raw_resmpld.filter(1, 40)
 
-# raw_resmpld = mne.io.concatenate_raws([raw1_resmpld, raw2_resmpld])
+# raw_resmpld = mne.io.concatenate_raws([raw1_resmpld, raw2_resmpld])  # for data that are saved into two files
 
 # Apply ICA and identify artifact components
 ica = ICA(method='fastica', random_state=97, n_components=30, verbose=True)
@@ -75,8 +74,11 @@ ica.fit(raw_resmpld, verbose=True)
 ica.plot_sources(raw_resmpld, title='ICA')
 ica.plot_components()
 
-ICA_rej_dic = {'sub-2004_ses-01B':[0,7,28]}# manually selected bad ICs or from sub config file
-artifact_ICs = ICA_rej_dic[f'sub-{subject}']
+scores = ica.score_sources(raw_resmpld, target='EOG002', score_func='pearsonr')  # helps finding the saccade component
+ica.plot_scores(scores)
+
+ICA_rej_dic = {f'sub-{subject}_ses-{session}':[3,13,29]} # manually selected bad ICs or from sub config file 
+artifact_ICs = ICA_rej_dic[f'sub-{subject}_ses-{session}']
 
 
 # Double check the manually selected artifactual ICs
@@ -103,17 +105,24 @@ raw_ica.plot(order=ch_idx, duration=5, title='after')
 # Save the ICA cleaned data
 raw_ica.save(deriv_fname, overwrite=True)
 
+# only add excluded components to the report
+fig_ica = ica.plot_components(picks=artifact_ICs, title='removed components')
+
 # Filter data for the report
 if rprt:
-    report_root = r'Z:\Projects\mTBI predict\Results - Outputs\mne-Reports'  # RDS folder for results
+    report_root = r'Z:\Projects\mTBI-predict\results-outputs\mne-reports'  # RDS folder for reports
     report_folder = op.join(report_root , 'sub-' + subject, 'task-' + task)
     report_fname = op.join(report_folder,
                        f'mneReport_sub-{subject}.hdf5')  
+    html_report_fname = op.join(report_folder, 'report_raw.html')
     
     report = mne.open_report(report_fname)
-    report.add_ica(ica=ica, title='ICA cleaning', inst=None,
-                   n_jobs=4, tags=('ica'))
+    report.add_figure(fig_ica, title="removed ICA components (eog, ecg)",
+                      tags=('ica'), image_format="PNG")
+    report.add_raw(raw=raw_ica.filter(0, 60), title='raw after ICA', 
+                   psd=True, butterfly=False, tags=('ica'))
     report.save(report_fname, overwrite=True)
+    report.save(html_report_fname, overwrite=True, open_browser=True)  # to check how the report looks
 
 
 

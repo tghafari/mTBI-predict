@@ -56,7 +56,6 @@ if rprt:
 
     report_fname = op.join(report_folder, 'report_raw.html')
     raw.pick(["meg", "stim", "eog", "ecg"]).filter(l_freq=0.1, h_freq=150).load_data()
-   # raw.pick_types(meg=True, eog=True, ecg=True, stim=True).load_data()
  
     report = mne.Report(title='Raw data')
     report.add_raw(raw=raw, title='Raw', psd=True)
