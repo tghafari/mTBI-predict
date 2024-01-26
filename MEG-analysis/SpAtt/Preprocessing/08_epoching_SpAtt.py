@@ -159,9 +159,9 @@ epochs.save(deriv_fname, overwrite=True)
 if rprt:
    report_root = r'Z:\Projects\mTBI-predict\results-outputs\mne-reports'  # RDS folder for reports
    report_folder = op.join(report_root , 'sub-' + subject, 'task-' + task)
-   report_fname = op.join(report_folder,
-                          f'mneReport_sub-{subject}.hdf5')
-   html_report_fname = op.join(report_folder, 'report_raw.html')
+   report_fname = op.join(report_folder, 
+                          f'mneReport_sub-{subject}_{task}.hdf5')    # it is in .hdf5 for later adding images
+   html_report_fname = op.join(report_folder, f'report_preproc_{task}.html')
    
    report = mne.open_report(report_fname)
   

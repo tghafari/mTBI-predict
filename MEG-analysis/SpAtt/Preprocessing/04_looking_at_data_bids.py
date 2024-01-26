@@ -24,7 +24,7 @@ subject = '2001'  # subject code in mTBI project
 session = '02B'  # data collection session within each run
 run = '01'  # data collection run for each participant
 meg_suffix = 'meg'
-task = 'SpAtt'
+task = 'rest'
 
 rprt = True
 

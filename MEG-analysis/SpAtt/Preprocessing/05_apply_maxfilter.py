@@ -34,7 +34,7 @@ subject = '2001'  # subject code in mTBI project
 session = '02B'  # data collection session within each run
 run = '01'  # data collection run for each participant
 meg_suffix = 'meg'
-task = 'SpAtt'
+task = 'rest'
 meg_suffix = 'meg'
 meg_extension = '.fif'
 deriv_suffix = 'raw_sss'
@@ -154,12 +154,12 @@ if rprt:
    if not op.exists(op.join(report_root , 'sub-' + subject, 'task-' + task)):
        os.makedirs(op.join(report_root , 'sub-' + subject, 'task-' + task))
    report_folder = op.join(report_root , 'sub-' + subject, 'task-' + task)
-   report_fname = op.join(report_folder, f'mneReport_sub-{subject}.hdf5')    # it is in .hdf5 for later adding images
-   html_report_fname = op.join(report_folder, 'report_raw.html')
+   report_fname = op.join(report_folder, f'mneReport_sub-{subject}_{task}.hdf5')    # it is in .hdf5 for later adding images
+   html_report_fname = op.join(report_folder, f'report_preproc_{task}.html')
    
    raw_tsss.filter(0,60)
    raw.filter(0,60)
-   report = mne.Report(title=f'Subject n.{subject}')
+   report = mne.Report(title=f'Subject n.{subject}- {task}')
    report.add_raw(raw=raw, title='Raw <60Hz', 
                   psd=True, butterfly=False, tags=('raw'))
    report.add_raw(raw=raw_tsss, title='Max filter (tsss) <60Hz', 

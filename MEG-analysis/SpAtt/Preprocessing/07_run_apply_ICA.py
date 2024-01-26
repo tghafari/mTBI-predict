@@ -34,7 +34,7 @@ site = 'Birmingham'
 subject = '2001'  # subject code in mTBI project
 session = '02B'  # data collection session within each run
 run = '01'  # data collection run for each participant
-task = 'SpAtt'
+task = 'rest'
 meg_extension = '.fif'
 meg_suffix = 'meg'
 input_suffix = 'ann'
@@ -77,7 +77,7 @@ ica.plot_components()
 scores = ica.score_sources(raw_resmpld, target='EOG002', score_func='pearsonr')  # helps finding the saccade component
 ica.plot_scores(scores)
 
-ICA_rej_dic = {f'sub-{subject}_ses-{session}':[3,13,29]} # manually selected bad ICs or from sub config file 
+ICA_rej_dic = {f'sub-{subject}_ses-{session}':[10,14,24]} # manually selected bad ICs or from sub config file 
 artifact_ICs = ICA_rej_dic[f'sub-{subject}_ses-{session}']
 
 
@@ -112,9 +112,9 @@ fig_ica = ica.plot_components(picks=artifact_ICs, title='removed components')
 if rprt:
     report_root = r'Z:\Projects\mTBI-predict\results-outputs\mne-reports'  # RDS folder for reports
     report_folder = op.join(report_root , 'sub-' + subject, 'task-' + task)
-    report_fname = op.join(report_folder,
-                       f'mneReport_sub-{subject}.hdf5')  
-    html_report_fname = op.join(report_folder, 'report_raw.html')
+    report_fname = op.join(report_folder, 
+                           f'mneReport_sub-{subject}_{task}.hdf5')    # it is in .hdf5 for later adding images
+    html_report_fname = op.join(report_folder, f'report_preproc_{task}.html')
     
     report = mne.open_report(report_fname)
     report.add_figure(fig_ica, title="removed ICA components (eog, ecg)",
@@ -123,6 +123,7 @@ if rprt:
                    psd=True, butterfly=False, tags=('ica'))
     report.save(report_fname, overwrite=True)
     report.save(html_report_fname, overwrite=True, open_browser=True)  # to check how the report looks
+
 
 
 
