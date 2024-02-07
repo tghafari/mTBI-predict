@@ -47,10 +47,23 @@ input_suffix = 'epo'
 deriv_suffix = 'psd'
 
 summary_rprt = True  # do you want to add evokeds figures to the summary report?
+platform = 'mac'  # are you using 'bluebear', 'mac', or 'windows'?
+
+if platform == 'bluebear':
+    rds_dir = '/rds/projects/j/jenseno-avtemporal-attention'
+    camcan_dir = '/rds/projects/q/quinna-camcan/dataman/data_information'
+elif platform == 'windows':
+    rds_dir = 'Z:'
+    camcan_dir = 'X:/dataman/data_information'
+elif platform == 'mac':
+    rds_dir = '/Volumes/jenseno-avtemporal-attention'
+    camcan_dir = '/Volumes/quinna-camcan/dataman/data_information'
+
 
 # Specify specific file names
-data_root = r'Z:\Projects\mTBI-predict\collected-data'
-bids_root = op.join(data_root, 'BIDS', 'task_BIDS')  # RDS folder for bids formatted data
+mTBI_root = op.join(rds_dir, r'Projects/mTBI-predict')
+ROI_dir = op.join(mTBI_root, r'results-outputs/group-analysis/task-SpAtt/lateralisation-indices')
+bids_root = op.join(mTBI_root, 'collected-data', 'BIDS', 'task_BIDS')  # RDS folder for bids formatted data
 bids_path = BIDSPath(subject=subject, session=session,
                      task=task, run=run, root=bids_root, 
                      suffix=meg_suffix, extension=meg_extension)
@@ -60,37 +73,27 @@ bids_fname = bids_path.basename.replace(meg_suffix, input_suffix)  # only used f
 input_fname = op.join(deriv_folder, bids_fname)
 deriv_fname = str(input_fname).replace(input_suffix, deriv_suffix)
 
-ROI_dir = r'Z:\Projects\mTBI-predict\results-outputs\group-analysis\task-SpAtt\lateralisation-indices'
 ROI_fname = op.join(ROI_dir, f'sub-{subject}_ROI.csv')
 MI_HLM_fname = op.join(ROI_dir, f'sub-{subject}_MI_HLM.csv')
 ROI_MI_HLM_fname = op.join(ROI_dir, f'sub-{subject}_ROI_MI_HLM.csv')
 ROI_MI_HLM_html =  op.join(ROI_dir, f'sub-{subject}_ROI_MI_HLM.html')
 
 # Read sensor layout sheet from camcan RDS
-info_dir = r'X:/dataman/data_information'
-sensors_layout_sheet = op.join(info_dir, 'sensors_layout_names_old.csv')
+sensors_layout_sheet = op.join(camcan_dir, 'sensors_layout_names.csv')
 sensors_layout_names_df = pd.read_csv(sensors_layout_sheet)
 
 # Remove the extra ' and " from the csv file
 """these variables are in correct right-and-left-corresponding-sensors order"""
 
-right_sensor_names = sensors_layout_names_df['right_sensors'].to_list()
-right_sensors = [channel[1:-1] for channel in right_sensor_names]
-
-left_sensor_names = sensors_layout_names_df['left_sensors'].to_list()
-left_sensors = [channel[1:-1] for channel in left_sensor_names]  
-
-# Save the new channel names for future reference (with no extra ' or ")
-sensors_layout_df_new = pd.DataFrame({'left_sensors': left_sensors,
-                                      'right_sensors': right_sensors})
-# sensors_layout_df_new.to_csv(op.join(info_dir, 'sensors_layout_names.csv'), index=False)
+right_sensors = sensors_layout_names_df['right_sensors'].to_list()
+left_sensors = sensors_layout_names_df['left_sensors'].to_list()
 
 # Read epoched data
 epochs = mne.read_epochs(input_fname, verbose=True, preload=True)
 
 # ========================================= RIGHT SENSORS and ROI====================================
 # Calculate psd for post cue alpha
-psd_params = dict(tmin=0.3, tmax=0.8, fmax=60, picks=['mag','grad'])
+tfr_params = dict(tmin=0.3, tmax=0.8, fmax=60, picks=['mag','grad'])
 
 # Plot and check
 epochs['cue_onset_right'].copy().filter(0.1,60).compute_psd(**psd_params, n_jobs=4).plot()
