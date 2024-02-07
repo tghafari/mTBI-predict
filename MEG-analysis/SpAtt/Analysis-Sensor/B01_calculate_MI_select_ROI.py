@@ -37,6 +37,7 @@ questions?
 import os.path as op
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 
 import mne
 from mne_bids import BIDSPath
@@ -146,16 +147,54 @@ occipital_channels = [channel for channel in epochs.pick('grad').ch_names if cha
 tfr_slow_right_post_stim = tfr_slow_right.copy().crop(tmin=0.3,tmax=0.8,fmin=4, fmax=14).pick(occipital_channels)
 tfr_slow_left_post_stim = tfr_slow_left.copy().crop(tmin=0.3,tmax=0.8,fmin=4, fmax=14).pick(occipital_channels)
 
-# Find the frequency with the highest power for tfr_slow_right_post_stim
-freq_idx_right = np.argmax(np.mean(np.abs(tfr_slow_right_post_stim.data), axis=0))
-# Find the frequency with the highest power for tfr_slow_left_post_stim
-freq_idx_left = np.argmax(np.mean(np.abs(tfr_slow_left_post_stim.data), axis=0))
+# Find the frequency with the highest power by averagin over sensors and time points (data)
+freq_idx_right = np.argmax(np.mean(np.abs(tfr_slow_right_post_stim.data), axis=(0,2)))
+freq_idx_left = np.argmax(np.mean(np.abs(tfr_slow_left_post_stim.data), axis=(0,2)))
 
 # Get the corresponding frequencies
-freq_right = tfr_slow_right_post_stim.freqs[freq_idx_right]
-freq_left = tfr_slow_left_post_stim.freqs[freq_idx_left]
+peak_freq_right = tfr_slow_right_post_stim.freqs[freq_idx_right]
+peak_freq_left = tfr_slow_left_post_stim.freqs[freq_idx_left]
 
+peak_alpha_freq = np.average([peak_freq_right, peak_freq_left])
+peak_alpha_freq_range = np.arange(peak_alpha_freq-2, peak_alpha_freq+3)
 
+# Plot psd and indicate the peak alpha frequency for this participant
+psd_params = dict(picks=occipital_channels, n_jobs=4, verbose=True, fmin=2, fmax=30)
+psd_slow_right_post_stim = epochs['cue_onset_right','cue_onset_left'].copy().filter(2,30).compute_psd(**psd_params)
+
+# Average across epochs and get data
+psd_slow_right_post_stim_avg = psd_slow_right_post_stim.average()
+psds, freqs = psd_slow_right_post_stim_avg.get_data(return_freqs=True)
+psds_mean = psds.mean(axis=0)
+
+# Plot 
+fig, ax = plt.subplots(figsize=(10, 6))
+#plt.figure()
+ax.plot(freqs, psds_mean, color='black')
+ymin, ymax = ax.get_ylim()
+# Indicate peak_alpha_freq_range with a thick gray line
+ax.axvline(x=peak_alpha_freq_range[0], 
+            color='gray', 
+            linestyle='--', 
+            linewidth=2)
+ax.axvline(x=peak_alpha_freq_range[-1], 
+            color='gray', 
+            linestyle='--', 
+            linewidth=2)
+ax.fill_betweenx([ymin, ymax],
+                  peak_alpha_freq_range[0], 
+                  peak_alpha_freq_range[-1], 
+                  color='lightgray', 
+                  alpha=0.5)
+ax.text(np.max(freqs)-5, np.min(psds_mean)*3, f'PAF = {peak_alpha_freq} Hz', 
+         color='black', ha='right', va='bottom')
+plt.xlabel('Frequency (Hz)')
+plt.ylabel('Power (T/m)^2/Hz')
+plt.title('PSDs')
+
+plt.grid(True)
+fig_peak_alpha = plt.gcf()
+plt.show()
 
 
 
@@ -233,22 +272,28 @@ with open(ROI_MI_HLM_html, 'r') as f:
     html_string = f.read()
 
 if summary_rprt:
-   report_root = r'Z:\Projects\mTBI-predict\results-outputs\mne-reports'  # RDS folder for reports
-   report_folder = op.join(report_root , 'sub-' + subject, 'task-' + task)
+    report_root = op.join(mTBI_root, r'results-outputs/mne-reports')  # RDS folder for reports
+    report_folder = op.join(report_root , 'sub-' + subject, 'task-' + task)
 
-   report_fname = op.join(report_folder, 
-                          f'mneReport_sub-{subject}_{task}.hdf5')    # it is in .hdf5 for later adding images
-   html_report_fname = op.join(report_folder, f'report_preproc_{task}.html')
-   
-   report = mne.open_report(report_fname)
+    report_fname = op.join(report_folder, 
+                        f'mneReport_sub-{subject}_{task}.hdf5')    # it is in .hdf5 for later adding images
+    html_report_fname = op.join(report_folder, f'report_preproc_{task}.html')
 
-   report.add_html(html=html_string, 
-                   section='HLM',  # only in ver 1.1
-                   title='Primary Outcome',
-                   tags=('hlm')
+    report = mne.open_report(report_fname)
+
+    report.add_figure(fig=fig_peak_alpha, title='PSD and PAF',
+                    caption='range of peak alpha frequency on \
+                    occipital gradiometers', 
+                    tags=('tfr'),
+                    section='TFR'  # only in ver 1.1
                     )
-   report.save(report_fname, overwrite=True)
-   report.save(html_report_fname, overwrite=True, open_browser=True)  # to check how the report looks
+    #report.add_html(html=html_string, 
+    #               section='HLM',  # only in ver 1.1
+    #              title='Primary Outcome',
+    #             tags=('hlm')
+    #             )
+    report.save(report_fname, overwrite=True)
+    report.save(html_report_fname, overwrite=True, open_browser=True)  # to check how the report looks
 
 
 
