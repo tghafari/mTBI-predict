@@ -4,8 +4,15 @@
 B02. calculate MI and select ROI
 
 This code will 
-    1. calculate PSD for all sensors and 
-    average across epochs (first dimension)
+    1. calculate TFR for cue right and left
+    2. find peak alpha frequency in the averaged 
+    power of all occipital gradiometers
+    3. crop the time point and frequency (4-14Hz)
+      of interest
+
+
+
+
     3. picks right sensors from the psd
     2. calculate (attend right - attend left) \
     / (attend right + attend left) 
@@ -23,9 +30,7 @@ This code will
 written by Tara Ghafari
 ==============================================
 questions?
-    1. what is the order of channels in psds from:
-    psds, freqs = epo_psd.get_data
-    (it must be the same as epo_psd.ch_names)
+
 
 """
 
@@ -89,15 +94,72 @@ right_sensors = sensors_layout_names_df['right_sensors'].to_list()
 left_sensors = sensors_layout_names_df['left_sensors'].to_list()
 
 # Read epoched data
-epochs = mne.read_epochs(input_fname, verbose=True, preload=True)
+epochs = mne.read_epochs(input_fname, verbose=True, preload=True)  # epochs are from -0.8 to 1.2
 
 # ========================================= RIGHT SENSORS and ROI====================================
-# Calculate psd for post cue alpha
-tfr_params = dict(tmin=0.3, tmax=0.8, fmax=60, picks=['mag','grad'])
+# Calculate tfr for post cue alpha
+tfr_params = dict(picks=['grad','mag'], use_fft=True, return_itc=False, average=True, decim=2, n_jobs=4, verbose=True)
 
-# Plot and check
-epochs['cue_onset_right'].copy().filter(0.1,60).compute_psd(**psd_params, n_jobs=4).plot()
-epochs['cue_onset_left'].copy().filter(0.1,60).compute_psd(**psd_params, n_jobs=4).plot()
+freqs = np.arange(2,31,1)  # the frequency range over which we perform the analysis
+n_cycles = freqs / 2  # the length of sliding window in cycle units. 
+time_bandwidth = 2.0  # '(2deltaTdeltaF) number of DPSS tapers to be used + 1.'
+                      # 'it relates to the temporal (deltaT) and spectral (deltaF)' 
+                      # 'smoothing'
+                      # 'the more tapers, the more smooth'->useful for high freq data
+                      
+tfr_slow_right = mne.time_frequency.tfr_multitaper(epochs['cue_onset_right'],  
+                                                  freqs=freqs, 
+                                                  n_cycles=n_cycles,
+                                                  time_bandwidth=time_bandwidth, 
+                                                  **tfr_params                                                  
+                                                  )
+                                                
+tfr_slow_left = mne.time_frequency.tfr_multitaper(epochs['cue_onset_left'],  
+                                                  freqs=freqs, 
+                                                  n_cycles=n_cycles,
+                                                  time_bandwidth=time_bandwidth, 
+                                                  **tfr_params                                                  
+                                                  )
+
+# Plot TFR on all sensors and check
+""" pick which sensors to show later""" 
+tfr_slow_right.plot_topo(tmin=-.5, tmax=1.0, 
+                        baseline=[-.5,-.3], mode='percent',
+                        fig_facecolor='w', font_color='k',
+                        vmin=-1, vmax=1, 
+                        title='TFR of power < 30Hz - cue right')
+tfr_slow_left.plot_topo(tmin=-.5, tmax=1.0,
+                         baseline=[-.5,-.3], mode='percent',
+                         fig_facecolor='w', font_color='k',
+                         vmin=-1, vmax=1, 
+                         title='TFR of power < 30Hz - cue left')
+
+## Finding peak alpha frequency
+# Select occipital sensors
+occipital_picks = mne.read_vectorview_selection("occipital")  # contains both mag and grad
+occipital_picks =  [channel[-4:] for channel in occipital_picks]  # vectorview selection adds a space in the name of channels!
+
+# Create a list of channel names from epochs.ch_names that have the same last four characters as occipital picks and pick only grads
+occipital_channels = [channel for channel in epochs.pick('grad').ch_names if channel[-4:] in occipital_picks]
+
+# Crop post stim alpha
+tfr_slow_right_post_stim = tfr_slow_right.copy().crop(tmin=0.3,tmax=0.8,fmin=4, fmax=14).pick(occipital_channels)
+tfr_slow_left_post_stim = tfr_slow_left.copy().crop(tmin=0.3,tmax=0.8,fmin=4, fmax=14).pick(occipital_channels)
+
+# Find the frequency with the highest power for tfr_slow_right_post_stim
+freq_idx_right = np.argmax(np.mean(np.abs(tfr_slow_right_post_stim.data), axis=0))
+# Find the frequency with the highest power for tfr_slow_left_post_stim
+freq_idx_left = np.argmax(np.mean(np.abs(tfr_slow_left_post_stim.data), axis=0))
+
+# Get the corresponding frequencies
+freq_right = tfr_slow_right_post_stim.freqs[freq_idx_right]
+freq_left = tfr_slow_left_post_stim.freqs[freq_idx_left]
+
+
+
+
+
+
 
 # Pick only right sensors for ROI-- the order of sensors is based on the list you input to pick from psd
 right_psd = epochs['cue_onset_right'].copy().filter(0.1,60).compute_psd(**psd_params, n_jobs=4)
