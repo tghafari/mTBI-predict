@@ -199,7 +199,6 @@ plt.show()
 
 
 
-
 # Pick only right sensors for ROI-- the order of sensors is based on the list you input to pick from psd
 right_psd = epochs['cue_onset_right'].copy().filter(0.1,60).compute_psd(**psd_params, n_jobs=4)
 left_psd = epochs['cue_onset_left'].copy().filter(0.1,60).compute_psd(**psd_params, n_jobs=4)
