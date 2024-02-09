@@ -91,10 +91,10 @@ bids_fname = bids_path.basename.replace(meg_suffix, input_suffix)  # only used f
 input_fname = op.join(deriv_folder, bids_fname)
 deriv_fname = str(input_fname).replace(input_suffix, deriv_suffix)
 
-ROI_fname = op.join(ROI_dir, f'sub-{subject}_ROI.csv')
-MI_HLM_fname = op.join(ROI_dir, f'sub-{subject}_MI_HLM.csv')
-ROI_MI_HLM_fname = op.join(ROI_dir, f'sub-{subject}_ROI_MI_HLM.csv')
-ROI_MI_HLM_html =  op.join(ROI_dir, f'sub-{subject}_ROI_MI_HLM.html')
+ROI_fname = op.join(ROI_dir, f'sub-{subject}_ROI_0902.csv')
+MI_ALI_fname = op.join(ROI_dir, f'sub-{subject}_MI_ALI.csv')
+ROI_MI_ALI_fname = op.join(ROI_dir, f'sub-{subject}_ROI_MI_ALI.csv')
+ROI_MI_ALI_html =  op.join(ROI_dir, f'sub-{subject}_ROI_MI_ALI.html')
 
 # Read sensor layout sheet from camcan RDS
 """these variables are in correct right-and-left-corresponding-sensors order"""
@@ -103,6 +103,8 @@ sensors_layout_names_df = pd.read_csv(sensors_layout_sheet)
 
 right_sensors = [ch[1:8] for ch in sensors_layout_names_df['right_sensors']]
 left_sensors = [ch[1:8] for ch in sensors_layout_names_df['left_sensors']]
+sensors_layout_df = pd.DataFrame({'left_sensors': left_sensors,
+                                  'right_sensors': right_sensors})  
 
 # Read epoched data
 epochs = mne.read_epochs(input_fname, verbose=True, preload=True)  # epochs are from -0.8 to 1.2
@@ -150,7 +152,7 @@ occipital_picks = mne.read_vectorview_selection("occipital")  # contains both ma
 occipital_picks =  [channel[-4:] for channel in occipital_picks]  # vectorview selection adds a space in the name of channels!
 
 # Create a list of channel names from epochs.ch_names that have the same last four characters as occipital picks and pick only grads
-occipital_channels = [channel for channel in epochs.ch_names if channel[-4:] in occipital_picks]
+occipital_channels = [channel for channel in epochs.pick(['grad']).ch_names if channel[-4:] in occipital_picks]
 
 # Crop post stim alpha
 tfr_slow_cue_right_post_stim = tfr_slow_cue_right.copy().crop(tmin=0.3,tmax=0.8,fmin=4, fmax=14).pick(occipital_channels)
@@ -204,7 +206,6 @@ plt.grid(True)
 fig_peak_alpha = plt.gcf()
 plt.show()
 
-
 # ========================================= B. ROI ============================================
 psd_params = dict(picks=['grad'], n_jobs=4, tmin=0.2, tmax=1.2, fmin=0.1, fmax=60)  # 'remove cue presentation duration from the epoch' 
                                                                                     # '1second = 1Hz frequency resolution for psd calculations'
@@ -232,50 +233,47 @@ MI_right_sens = (right_alpha_psds_right_sens -left_alpha_psds_right_sens) \
 MI_right_df = pd.DataFrame({'MI_right': MI_right_sens,
                             'right_sensors': right_sensors})  
 
-
-# ========================================= LEFT SENSORS =======================================
-# Get power and frequency data from right sensors
-right_psds_left_sens, right_freqs_left_sens = right_psd.copy().pick(left_sensors).get_data(return_freqs=True)  # shape: #epochs, #sensors, #frequencies
-left_psds_left_sens, left_freqs_left_sens = left_psd.copy().pick(left_sensors).get_data(return_freqs=True)
-
-# Select alpha and average across epochs
-right_alpha_psds_left_sens = right_psds_left_sens[:,:,(right_freqs_left_sens >= alpha_l_freq)
-                                                    & (right_freqs_left_sens <= alpha_h_freq)]
-right_alpha_psds_left_sens = np.mean(right_alpha_psds_left_sens, axis=(0,2))
-
-left_alpha_psds_left_sens = left_psds_left_sens[:,:,(left_freqs_left_sens >= alpha_l_freq) 
-                                                  & (left_freqs_left_sens <= alpha_h_freq)]
-left_alpha_psds_left_sens = np.mean(left_alpha_psds_left_sens, axis=(0,2))
-
-# Calculate MI for right sensors and sort
-MI_left_sens = (right_alpha_psds_left_sens -left_alpha_psds_left_sens) \
-             / (right_alpha_psds_left_sens + left_alpha_psds_left_sens)
-MI_left_df = pd.DataFrame({'MI_left': MI_left_sens,
-                           'left_sensors': left_sensors})  
-
-# ========================================= ROI and HLM =======================================
 # Sort the right MI DataFrame by MI value and extract the first 5 channel names and save the ROI sensors
 df_sorted = MI_right_df.sort_values(by='MI_right', ascending=False)
 MI_right_ROI = df_sorted.head(5) # create a df of MI right ROI sensors and their MI values
-ROI_right_sens = MI_right_ROI['right_sensors']
-
-
-.tolist() 
+MI_right_ROI = MI_right_ROI.sort_index()  # to ensure the order or sensor names is correct in right and left
+ROI_right_sens = MI_right_ROI['right_sensors'].tolist() 
 
 # Find the corresponding left sensors 
-ROI_symmetric = sensors_layout_names_df[sensors_layout_names_df["right_sensors"].isin(ROI_right_sens)]
+ROI_symmetric = sensors_layout_df[sensors_layout_df['right_sensors'].isin(ROI_right_sens)]  # reorders channels by channem name
 ROI_symmetric.to_csv(ROI_fname, index=False)
 
-# Calculate HLM and put it with all MIs with right and left corresponding sensors in one df
-HLM_all_sens = (MI_right_sens + MI_left_sens)
-HLM_all_sens_df = pd.DataFrame({'HLM':HLM_all_sens})
+ROI_left_sens = ROI_symmetric['left_sensors'].to_list()
 
-MI_HLM_all_sens_df = pd.concat([MI_left_df, MI_right_df, HLM_all_sens_df], axis=1)  
-MI_HLM_all_sens_df.to_csv(MI_HLM_fname, index=False)
+# ========================================= LEFT SENSORS =======================================
+# Get power and frequency data from right sensors
+right_psds_left_ROI_sens, right_freqs_left_ROI_sens = right_psd.copy().pick(ROI_left_sens).get_data(return_freqs=True)  # shape: #epochs, #sensors, #frequencies
+left_psds_left_ROI_sens, left_freqs_left_ROI_sens = left_psd.copy().pick(ROI_left_sens).get_data(return_freqs=True)
 
-ROI_HLM_df = MI_HLM_all_sens_df[MI_HLM_all_sens_df["right_sensors"].isin(ROI_right_sens)]
-ROI_HLM_df.to_csv(ROI_MI_HLM_fname, index=False)
+# Select alpha and average across epochs
+right_alpha_psds_left_ROI_sens = right_psds_left_ROI_sens[:,:,(right_freqs_left_ROI_sens >= alpha_l_freq)
+                                                    & (right_freqs_left_ROI_sens <= alpha_h_freq)]
+right_alpha_psds_left_ROI_sens = np.mean(right_alpha_psds_left_ROI_sens, axis=(0,2))
 
+left_alpha_psds_left_ROI_sens = left_psds_left_ROI_sens[:,:,(left_freqs_left_ROI_sens >= alpha_l_freq) 
+                                                  & (left_freqs_left_ROI_sens <= alpha_h_freq)]
+left_alpha_psds_left_ROI_sens = np.mean(left_alpha_psds_left_ROI_sens, axis=(0,2))
+
+# Calculate MI for right sensors and sort
+MI_left_ROI_sens = (right_alpha_psds_left_ROI_sens - left_alpha_psds_left_ROI_sens) \
+                 / (right_alpha_psds_left_ROI_sens + left_alpha_psds_left_ROI_sens)
+
+MI_left_ROI = pd.DataFrame({'MI_left':MI_left_ROI_sens,
+                            'left_sensors':ROI_left_sens})  
+
+# ========================================= ALI =======================================
+ALI = np.mean(MI_right_ROI['MI_right']) - np.mean(MI_left_ROI['MI_left'])
+ROI_ALI_df = pd.DataFrame({'ALI_avg_ROI':[ALI]})  # scalars should be lists for dataframe conversion
+
+# Save and read the dataframe as html for the report
+ROI_ALI_df.to_html(ROI_MI_ALI_html)
+with open(ROI_MI_ALI_html, 'r') as f:
+    html_string = f.read()
 
 # ========================================= RIGHT SENSORS =======================================
 # Pick alpha on right sensors for ROI-- the order of sensors is based on the list you provided
@@ -304,10 +302,7 @@ MI_right_sens.plot_topo(tmin=-.5, tmax=1.0,
                         fig_facecolor='w', font_color='k',
                         vmin=-1, vmax=1, 
                         title='MI of alpha - right sensors')
-# Save and read the dataframe as html for the report
-ROI_HLM_df.to_html(ROI_MI_HLM_html, index=False)
-with open(ROI_MI_HLM_html, 'r') as f:
-    html_string = f.read()
+
 
 if summary_rprt:
     report_root = op.join(mTBI_root, r'results-outputs/mne-reports')  # RDS folder for reports
@@ -320,16 +315,16 @@ if summary_rprt:
     report = mne.open_report(report_fname)
 
     report.add_figure(fig=fig_peak_alpha, title='PSD and PAF',
-                    caption='range of peak alpha frequency on \
-                    occipital gradiometers', 
-                    tags=('tfr'),
-                    section='TFR'  # only in ver 1.1
-                    )
-    #report.add_html(html=html_string, 
-    #               section='HLM',  # only in ver 1.1
-    #              title='Primary Outcome',
-    #             tags=('hlm')
-    #             )
+                     caption='range of peak alpha frequency on \
+                     occipital gradiometers', 
+                     tags=('tfr'),
+                     section='TFR'  # only in ver 1.1
+                     )
+    report.add_html(html=html_string, 
+                   section='ALI',  # only in ver 1.1
+                   title='Primary Outcome',
+                   tags=('ali')
+                   )
     report.save(report_fname, overwrite=True)
     report.save(html_report_fname, overwrite=True, open_browser=True)  # to check how the report looks
 
