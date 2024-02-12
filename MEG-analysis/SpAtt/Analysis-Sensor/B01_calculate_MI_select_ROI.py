@@ -76,7 +76,7 @@ bids_fname = bids_path.basename.replace(meg_suffix, input_suffix)  # only used f
 input_fname = op.join(deriv_folder, bids_fname)
 deriv_fname = str(input_fname).replace(input_suffix, deriv_suffix)
 
-ROI_fname = op.join(ROI_dir, f'sub-{subject}_ROI_0902.csv')
+ROI_fname = op.join(ROI_dir, f'sub-{subject}_ROI_1202.csv')
 MI_ALI_fname = op.join(ROI_dir, f'sub-{subject}_MI_ALI.csv')
 ROI_MI_ALI_fname = op.join(ROI_dir, f'sub-{subject}_ROI_MI_ALI.csv')
 ROI_MI_ALI_html =  op.join(ROI_dir, f'sub-{subject}_ROI_MI_ALI.html')
@@ -220,7 +220,7 @@ MI_right_df = pd.DataFrame({'MI_right': MI_right_sens,
                             'right_sensors': right_sensors})  
 
 # Sort the right MI DataFrame by MI value and extract the first 5 channel names and save the ROI sensors
-df_sorted = MI_right_df.sort_values(by='MI_right', ascending=False)
+df_sorted = MI_right_df.sort_values(by='MI_right', ascending=False, key=abs)
 MI_right_ROI = df_sorted.head(5) # create a df of MI right ROI sensors and their MI values
 MI_right_ROI = MI_right_ROI.sort_index()  # to ensure the order or sensor names is correct in right and left
 ROI_right_sens = MI_right_ROI['right_sensors'].tolist() 

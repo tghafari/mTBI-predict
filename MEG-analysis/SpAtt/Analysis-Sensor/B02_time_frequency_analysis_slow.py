@@ -61,7 +61,7 @@ deriv_fname_right = str(input_fname).replace(input_suffix, right_deriv_suffix)
 deriv_fname_left = str(input_fname).replace(input_suffix, left_deriv_suffix)
 
 # Read ROI to show on topomap
-ROI_fname = op.join(ROI_dir, f'sub-{subject}_ROI_0902.csv')
+ROI_fname = op.join(ROI_dir, f'sub-{subject}_ROI_1202.csv')
 ROI_symmetric = pd.read_csv(ROI_fname)
 
 # Read peak alpha freq and range
@@ -147,14 +147,14 @@ plt.show()
                       
 # Plot post cue peak alpha range topographically
 peak_alpha_file = np.load(peak_alpha_fname)
-topomap_params = dict(fmin=peak_alpha_file['peak_alpha_freq_range'][0], fmax=peak_alpha_file['peak_alpha_freq_range'][-1])
+fmin_fmax_params = dict(fmin=peak_alpha_file['peak_alpha_freq_range'][0], fmax=peak_alpha_file['peak_alpha_freq_range'][-1])
 fig_topo, axis = plt.subplots(1, 2, figsize=(7, 4))
 tfr_slow_left.plot_topomap(tmin=.35, tmax=.75, 
                            vlim=(-.5,.5),
                            baseline=(-.5, -.3), 
                            mode='percent', 
                            ch_type='grad',
-                           **topomap_params,
+                           **fmin_fmax_params,
                            axes=axis[0],
                            show=False)
 tfr_slow_right.plot_topomap(tmin=.35, tmax=.75, 
@@ -162,7 +162,7 @@ tfr_slow_right.plot_topomap(tmin=.35, tmax=.75,
                             baseline=(-.5, -.3), 
                             mode='percent',
                             ch_type='grad', 
-                            **topomap_params,
+                            **fmin_fmax_params,
                             axes=axis[1],
                             show=False)
 axis[0].title.set_text('cue left')
@@ -171,34 +171,62 @@ fig_topo.suptitle("PAF range (grad), 0.35-0.75sec")
 fig_topo.set_tight_layout(True)
 plt.show()
 
+# ================================== Calculate tfr for alpha for topoplots and MI ===========================================
+tfr_alpha_params = dict(picks=['grad'], use_fft=True, return_itc=False, average=True, decim=2, n_jobs=4, verbose=True)
+
+freqs = peak_alpha_file['peak_alpha_freq_range']  # peak frequency range loaded earlier
+n_cycles = freqs / 2  # the length of sliding window in cycle units. 
+time_bandwidth = 2.0 
+                      
+tfr_alpha_right = mne.time_frequency.tfr_multitaper(epochs['cue_onset_right'],  
+                                                  freqs=freqs, 
+                                                  n_cycles=n_cycles,
+                                                  time_bandwidth=time_bandwidth, 
+                                                  **tfr_alpha_params,
+                                                  )                                                
+tfr_alpha_left = mne.time_frequency.tfr_multitaper(epochs['cue_onset_left'],  
+                                                  freqs=freqs, 
+                                                  n_cycles=n_cycles,
+                                                  time_bandwidth=time_bandwidth, 
+                                                  **tfr_alpha_params,
+                                                  )   
+ 
 # Compare power modulation for attention right and left (always R- L)
-tfr_slow_modulation_power= tfr_slow_left.copy()
-tfr_slow_modulation_power.data = (tfr_slow_right.data - tfr_slow_left.data) / (tfr_slow_right.data + tfr_slow_left.data)
+tfr_alpha_modulation_power= tfr_alpha_left.copy()
+tfr_alpha_modulation_power.data = (tfr_alpha_right.data - tfr_alpha_left.data) / (tfr_alpha_right.data + tfr_alpha_left.data)
 
-tfr_slow_modulation_power.plot_topo(tmin=-.5, tmax=1.0, vmin=-.6, vmax=.6, 
-                                    fig_facecolor='w', font_color='k',
-                                    title='attention right - attention left')
+tfr_alpha_modulation_power.plot_topo(tmin=-.5, tmax=1.0, 
+                                     vmin=-.6, vmax=.6, 
+                                     fig_facecolor='w', 
+                                     font_color='k',
+                                     title='attention right - attention left (PAF)')
 
-# Plot hlm on topoplot with highlighted ROI sensors
+# Plot mi on topoplot with highlighted ROI sensors
 sensors = np.concatenate((ROI_symmetric['right_sensors'].values, 
                           ROI_symmetric['left_sensors'].values), axis=0)
 
 fig, ax = plt.subplots()
-fig_hlm = tfr_slow_modulation_power.plot_topomap(tmin=.35, tmax=.75, 
-                                                 fmin=8, fmax=12, 
-                                                 vlim=(-.2,.2),
+fig_mi = tfr_alpha_modulation_power.plot_topomap(tmin=.2, tmax=1.2, 
+                                                 **fmin_fmax_params, 
+                                                 #vlim=(-.2,.2),
                                                  show=False, axes=ax)
 # Plot markers for the sensors in ROI_right_sens
 for sensor in sensors:
-    ch_idx = tfr_slow_modulation_power.info['ch_names'].index(sensor)
-    x, y = tfr_slow_modulation_power.info['chs'][ch_idx]['loc'][:2]
+    ch_idx = tfr_alpha_modulation_power.info['ch_names'].index(sensor)
+    x, y = tfr_alpha_modulation_power.info['chs'][ch_idx]['loc'][:2]
     ax.plot(x, y, 'ko', markerfacecolor='none', markersize=10)
 
-fig_hlm.suptitle('attention right - attention left (alpha)')
-plt.show()                                      
+fig_mi.suptitle('attention right - attention left (PAF range (grad))')
+plt.show()                   
+
+# Plot MI avg across ROI over time
+
+
+
+# ===================================================================================================================
 
 if summary_rprt:
-   report_root = r'Z:\Projects\mTBI-predict\results-outputs\mne-reports'  # RDS folder for reports
+   report_root = op.join(mTBI_root, r'results-outputs/mne-reports')  # RDS folder for reports
    report_folder = op.join(report_root , 'sub-' + subject, 'task-' + task)
 
    report_fname = op.join(report_folder, 
@@ -218,10 +246,10 @@ if summary_rprt:
                      tags=('tfr'),
                      section='TFR'
                      )         
-   report.add_figure(fig=fig_hlm, title='alpha modulation index on ROI',
-                     caption='Alpha modulation index on ROI (att right - att left)', 
-                     tags=('hlm'),
-                     section='HLM'
+   report.add_figure(fig=fig_mi, title='alpha modulation index on ROI',
+                     caption='Alpha modulation index on ROI (att right - att left)- PAF (grad)', 
+                     tags=('ali'),
+                     section='ali'
                      )
    report.save(report_fname, overwrite=True)
    report.save(html_report_fname, overwrite=True, open_browser=True)  # to check how the report looks
