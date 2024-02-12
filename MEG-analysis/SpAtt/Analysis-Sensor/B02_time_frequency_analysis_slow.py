@@ -34,10 +34,22 @@ right_deriv_suffix = 'right-slow_tfr'
 left_deriv_suffix = 'left-slow_tfr'
 
 summary_rprt = True  # do you want to add evokeds figures to the summary report?
+platform = 'mac'  # are you using 'bluebear', 'mac', or 'windows'?
+
+if platform == 'bluebear':
+    rds_dir = '/rds/projects/j/jenseno-avtemporal-attention'
+    camcan_dir = '/rds/projects/q/quinna-camcan/dataman/data_information'
+elif platform == 'windows':
+    rds_dir = 'Z:'
+    camcan_dir = 'X:/dataman/data_information'
+elif platform == 'mac':
+    rds_dir = '/Volumes/jenseno-avtemporal-attention'
+    camcan_dir = '/Volumes/quinna-camcan/dataman/data_information'
 
 # Specify specific file names
-data_root = r'Z:\Projects\mTBI-predict\collected-data'
-bids_root = op.join(data_root, 'BIDS', 'task_BIDS')  # RDS folder for bids formatted data
+mTBI_root = op.join(rds_dir, r'Projects/mTBI-predict')
+ROI_dir = op.join(mTBI_root, r'results-outputs/group-analysis/task-SpAtt/lateralisation-indices')
+bids_root = op.join(mTBI_root, 'collected-data', 'BIDS', 'task_BIDS')  # RDS folder for bids formatted data
 bids_path = BIDSPath(subject=subject, session=session,
                      task=task, run=run, root=bids_root, 
                      suffix=meg_suffix, extension=meg_extension)
@@ -49,14 +61,18 @@ deriv_fname_right = str(input_fname).replace(input_suffix, right_deriv_suffix)
 deriv_fname_left = str(input_fname).replace(input_suffix, left_deriv_suffix)
 
 # Read ROI to show on topomap
-ROI_dir = r'Z:\Projects\mTBI-predict\results-outputs\group-analysis\task-SpAtt\lateralisation-indices'
-ROI_fname = op.join(ROI_dir, f'sub-{subject}_ROI.csv')
+ROI_fname = op.join(ROI_dir, f'sub-{subject}_ROI_0902.csv')
 ROI_symmetric = pd.read_csv(ROI_fname)
+
+# Read peak alpha freq and range
+peak_alpha_fname = op.join(ROI_dir, f'sub-{subject}_peak_alpha.npz')  # 2 numpy arrays saved into an uncompressed file
 
 # Read epoched data
 epochs = mne.read_epochs(input_fname, verbose=True, preload=True)
 
 # Set the parameters for slow freq analysis and run for attention left and right 
+tfr_params = dict(picks=['grad','mag'], use_fft=True, return_itc=False, average=True, decim=2, n_jobs=4, verbose=True)
+
 freqs = np.arange(2,31,1)  # the frequency range over which we perform the analysis
 n_cycles = freqs / 2  # the length of sliding window in cycle units. 
 time_bandwidth = 2.0  # '(2deltaTdeltaF) number of DPSS tapers to be used + 1.'
@@ -65,39 +81,44 @@ time_bandwidth = 2.0  # '(2deltaTdeltaF) number of DPSS tapers to be used + 1.'
                       # 'the more tapers, the more smooth'->useful for high freq data
                       
 tfr_slow_right = mne.time_frequency.tfr_multitaper(epochs['cue_onset_right'],  
-                                                  freqs=freqs, n_cycles=n_cycles,
-                                                  time_bandwidth=time_bandwidth,
-                                                  picks=['grad','mag'],
-                                                  use_fft=True, return_itc=False,
-                                                  average=True, decim=2,
-                                                  n_jobs=4, verbose=True)  # 'jobs allows for parallel execution for' 
-                                                                           # 'multicore CPUs'
-                                                
+                                                  freqs=freqs, 
+                                                  n_cycles=n_cycles,
+                                                  time_bandwidth=time_bandwidth, 
+                                                  **tfr_params                                                  
+                                                  )                                                
 tfr_slow_left = mne.time_frequency.tfr_multitaper(epochs['cue_onset_left'],  
-                                                   freqs=freqs, n_cycles=n_cycles,
-                                                   time_bandwidth=time_bandwidth,
-                                                   picks=['grad','mag'],
-                                                   use_fft=True, return_itc=False,
-                                                   average=True, decim=2,
-                                                  n_jobs=4, verbose=True)
+                                                  freqs=freqs, 
+                                                  n_cycles=n_cycles,
+                                                  time_bandwidth=time_bandwidth, 
+                                                  **tfr_params                                                  
+                                                  )   
+ 
 # Save the tfrs first
-tfr_slow_right.save(deriv_fname_right)
-tfr_slow_left.save(deriv_fname_left)
+tfr_slow_right.save(deriv_fname_right, overwrite=True)
+tfr_slow_left.save(deriv_fname_left, overwrite=True)
 
 # Plot TFR on all sensors 
 """ pick which sensors to show later""" 
-tfr_slow_right.plot_topo(tmin=-.5, tmax=1.0, 
-                        baseline=[-.5,-.3], mode='percent',
-                        fig_facecolor='w', font_color='k',
-                        vmin=-1, vmax=1, 
-                        title='TFR of power < 30Hz - cue right')
-tfr_slow_left.plot_topo(tmin=-.5, tmax=1.0,
-                         baseline=[-.5,-.3], mode='percent',
-                         fig_facecolor='w', font_color='k',
-                         vmin=-1, vmax=1, 
-                         title='TFR of power < 30Hz - cue left')
+tfr_slow_right.plot_topo(
+    picks='grad',
+    tmin=-.5, tmax=1.0, 
+    baseline=[-.5,-.3],
+    mode='percent',
+    fig_facecolor='w', 
+    font_color='k',
+    vmin=-1, vmax=1,                      
+    title='TFR of power (grad) < 30Hz - cue right')
+tfr_slow_left.plot_topo(
+    picks='grad',
+    tmin=-.5, tmax=1.0,
+    baseline=[-.5,-.3], 
+    mode='percent',
+    fig_facecolor='w', 
+    font_color='k',
+    vmin=-1, vmax=1, 
+    title='TFR of power (grad) < 30Hz - cue left')
 
-# Plot TFR for representative sensors
+# Plot TFR for representative sensors - same in all participants
 fig_tfr, axis = plt.subplots(2, 2, figsize = (7, 7))
 sensors = ['MEG1733','MEG2133','MEG1943','MEG2533']
 
@@ -124,19 +145,29 @@ axis[0, 1].set_xlabel('')
 fig_tfr.set_tight_layout(True)
 plt.show()      
                       
-# Plot alpha topographically
+# Plot post cue peak alpha range topographically
+peak_alpha_file = np.load(peak_alpha_fname)
+topomap_params = dict(fmin=peak_alpha_file['peak_alpha_freq_range'][0], fmax=peak_alpha_file['peak_alpha_freq_range'][-1])
 fig_topo, axis = plt.subplots(1, 2, figsize=(7, 4))
-tfr_slow_left.plot_topomap(tmin=.35, tmax=.75, fmin=8, fmax=12,
+tfr_slow_left.plot_topomap(tmin=.35, tmax=.75, 
                            vlim=(-.5,.5),
-                           baseline=(-.5, -.3), mode='percent', axes=axis[0],
+                           baseline=(-.5, -.3), 
+                           mode='percent', 
+                           ch_type='grad',
+                           **topomap_params,
+                           axes=axis[0],
                            show=False)
-tfr_slow_right.plot_topomap(tmin=.35, tmax=.75, fmin=8, fmax=12,
+tfr_slow_right.plot_topomap(tmin=.35, tmax=.75, 
                             vlim=(-.5,.5),
-                            baseline=(-.5, -.3), mode='percent', axes=axis[1],
+                            baseline=(-.5, -.3), 
+                            mode='percent',
+                            ch_type='grad', 
+                            **topomap_params,
+                            axes=axis[1],
                             show=False)
 axis[0].title.set_text('cue left')
 axis[1].title.set_text('cue right')
-fig_topo.suptitle("8-12Hz, 0.35-0.75sec")
+fig_topo.suptitle("PAF range (grad), 0.35-0.75sec")
 fig_topo.set_tight_layout(True)
 plt.show()
 

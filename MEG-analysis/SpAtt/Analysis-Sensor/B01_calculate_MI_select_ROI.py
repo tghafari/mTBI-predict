@@ -24,21 +24,6 @@ This code will:
     10. report ALI as primary outcome
 
 
-    C. Plot MI
-    using tfrs calculate MI on ROI to plot
-
-
-
-
-
-
-    5. calculate MI for left corresponding sensros
-    6. calculate HLM (MI on right sensors \
-                      + MI on left corresponding sensors)
-    7. report HLM and MI for ROI as primary outcomes
-
-
-
 written by Tara Ghafari
 ==============================================
 questions?
@@ -96,6 +81,7 @@ MI_ALI_fname = op.join(ROI_dir, f'sub-{subject}_MI_ALI.csv')
 ROI_MI_ALI_fname = op.join(ROI_dir, f'sub-{subject}_ROI_MI_ALI.csv')
 ROI_MI_ALI_html =  op.join(ROI_dir, f'sub-{subject}_ROI_MI_ALI.html')
 
+peak_alpha_fname = op.join(ROI_dir, f'sub-{subject}_peak_alpha.npz')  # 2 numpy arrays saved into an uncompressed file
 # Read sensor layout sheet from camcan RDS
 """these variables are in correct right-and-left-corresponding-sensors order"""
 sensors_layout_sheet = op.join(camcan_dir, 'sensor_layout_name_grad_no_central.csv')
@@ -168,7 +154,7 @@ peak_freq_cue_left = tfr_slow_cue_left_post_stim.freqs[freq_idx_left]
 
 peak_alpha_freq = np.average([peak_freq_cue_right, peak_freq_cue_left])
 peak_alpha_freq_range = np.arange(peak_alpha_freq-2, peak_alpha_freq+3)  # for MI calculations
-
+np.savez(peak_alpha_fname, **{'peak_alpha_freq':peak_alpha_freq, 'peak_alpha_freq_range':peak_alpha_freq_range})
 # Plot psd and indicate the peak alpha frequency for this participant
 psd_params = dict(picks=occipital_channels, n_jobs=4, verbose=True, fmin=2, fmax=30)
 psd_slow_right_post_stim = epochs['cue_onset_right','cue_onset_left'].copy().filter(2,30).compute_psd(**psd_params)
@@ -275,7 +261,7 @@ ROI_ALI_df.to_html(ROI_MI_ALI_html)
 with open(ROI_MI_ALI_html, 'r') as f:
     html_string = f.read()
 
-# ========================================= RIGHT SENSORS =======================================
+# ========================================= RIGHT SENSORS- not complete =======================================
 # Pick alpha on right sensors for ROI-- the order of sensors is based on the list you provided
 tfr_alpha_right_cue_right_sens = tfr_slow_cue_right.copy().pick(right_sensors).crop(fmin=alpha_l_freq, fmax=alpha_h_freq)
 tfr_alpha_left_cue_right_sens = tfr_slow_cue_left.copy().pick(right_sensors).crop(fmin=alpha_l_freq, fmax=alpha_h_freq)
@@ -302,7 +288,7 @@ MI_right_sens.plot_topo(tmin=-.5, tmax=1.0,
                         fig_facecolor='w', font_color='k',
                         vmin=-1, vmax=1, 
                         title='MI of alpha - right sensors')
-
+# =================================================================================================================
 
 if summary_rprt:
     report_root = op.join(mTBI_root, r'results-outputs/mne-reports')  # RDS folder for reports
