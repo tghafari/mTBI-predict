@@ -196,7 +196,7 @@ plt.show()
 # ========================================= B. RIGHT SENSORS and ROI ============================================
 tfr_alpha_params = dict(use_fft=True, return_itc=False, average=True, decim=2, n_jobs=4, verbose=True)
 
-freqs = peak_alpha_freq_range  # peak frequency range loaded earlier
+freqs = peak_alpha_freq_range  # peak frequency range calculated earlier
 n_cycles = freqs / 2  # the length of sliding window in cycle units. 
 time_bandwidth = 2.0 
                       
@@ -214,13 +214,13 @@ tfr_left_alpha_all_sens = mne.time_frequency.tfr_multitaper(epochs['cue_onset_le
                                                   )   
 
 # Crop tfrs to post-stim alpha and right sensors
-tfr_right_post_stim_alpha_right_sens = tfr_right_alpha_all_sens.copy().pick(right_sensors).crop(tmin=0.2, tmax=1.2).data
-tfr_left_post_stim_alpha_right_sens = tfr_left_alpha_all_sens.copy().pick(right_sensors).crop(tmin=0.2, tmax=1.2).data
+tfr_right_post_stim_alpha_right_sens = tfr_right_alpha_all_sens.copy().pick(right_sensors).crop(tmin=0.2, tmax=1.2)
+tfr_left_post_stim_alpha_right_sens = tfr_left_alpha_all_sens.copy().pick(right_sensors).crop(tmin=0.2, tmax=1.2)
 
 # Calculate power modulation for attention right and left (always R- L)
-tfr_alpha_MI_right_sens = tfr_right_alpha_all_sens.copy()
-tfr_alpha_MI_right_sens.data = (tfr_right_post_stim_alpha_right_sens - tfr_left_post_stim_alpha_right_sens) \
-    / (tfr_right_post_stim_alpha_right_sens + tfr_left_post_stim_alpha_right_sens)  # shape: #sensors, #freqs, #time points
+tfr_alpha_MI_right_sens = tfr_right_post_stim_alpha_right_sens.copy()
+tfr_alpha_MI_right_sens.data = (tfr_right_post_stim_alpha_right_sens.data - tfr_left_post_stim_alpha_right_sens.data) \
+    / (tfr_right_post_stim_alpha_right_sens.data + tfr_left_post_stim_alpha_right_sens.data)  # shape: #sensors, #freqs, #time points
 
 # Average across time points and alpha frequencies
 tfr_avg_alpha_MI_right_sens_power = np.mean(tfr_alpha_MI_right_sens.data, axis=(1,2))   # the order of channels is the same as right_sensors (I double checked)
@@ -241,15 +241,23 @@ ROI_symmetric.to_csv(ROI_fname, index=False)
 
 ROI_left_sens = ROI_symmetric['left_sensors'].to_list()
 
+# Calculate MI for right ROI for later plotting
+tfr_right_post_stim_alpha_right_ROI_sens = tfr_right_alpha_all_sens.copy().pick(ROI_right_sens).crop(tmin=0.2, tmax=1.2)
+tfr_left_post_stim_alpha_right_ROI_sens = tfr_left_alpha_all_sens.copy().pick(ROI_right_sens).crop(tmin=0.2, tmax=1.2)
+
+tfr_alpha_MI_right_ROI = tfr_right_post_stim_alpha_right_ROI_sens.copy()
+tfr_alpha_MI_right_ROI.data = (tfr_right_post_stim_alpha_right_ROI_sens.data - tfr_left_post_stim_alpha_right_ROI_sens.data) \
+    / (tfr_right_post_stim_alpha_right_ROI_sens.data + tfr_right_post_stim_alpha_right_ROI_sens.data)  # shape: #sensors, #freqs, #time points
+
 # ========================================= LEFT SENSORS and ALI =======================================
 # Crop tfrs to post-stim alpha and right sensors
-tfr_right_post_stim_alpha_left_ROI_sens = tfr_right_alpha_all_sens.copy().pick(ROI_left_sens).crop(tmin=0.2, tmax=1.2).data
-tfr_left_post_stim_alpha_left_ROI_sens = tfr_left_alpha_all_sens.copy().pick(ROI_left_sens).crop(tmin=0.2, tmax=1.2).data
+tfr_right_post_stim_alpha_left_ROI_sens = tfr_right_alpha_all_sens.copy().pick(ROI_left_sens).crop(tmin=0.2, tmax=1.2)
+tfr_left_post_stim_alpha_left_ROI_sens = tfr_left_alpha_all_sens.copy().pick(ROI_left_sens).crop(tmin=0.2, tmax=1.2)
 
 # Calculate power modulation for attention right and left (always R- L)
-tfr_alpha_MI_left_ROI = tfr_right_alpha_all_sens.copy()
-tfr_alpha_MI_left_ROI.data = (tfr_right_post_stim_alpha_left_ROI_sens - tfr_left_post_stim_alpha_left_ROI_sens) \
-    / (tfr_right_post_stim_alpha_left_ROI_sens + tfr_left_post_stim_alpha_left_ROI_sens)  # shape: #sensors, #freqs, #time points
+tfr_alpha_MI_left_ROI = tfr_left_post_stim_alpha_left_ROI_sens.copy()
+tfr_alpha_MI_left_ROI.data = (tfr_right_post_stim_alpha_left_ROI_sens.data - tfr_left_post_stim_alpha_left_ROI_sens.data) \
+    / (tfr_right_post_stim_alpha_left_ROI_sens.data + tfr_left_post_stim_alpha_left_ROI_sens.data)  # shape: #sensors, #freqs, #time points
 
 # Average across time points and alpha frequencies
 tfr_avg_alpha_MI_left_ROI_power = np.mean(tfr_alpha_MI_left_ROI.data, axis=(1,2))   # the order of channels is the same as right_sensors (I double checked)
@@ -265,6 +273,42 @@ ROI_ALI_df = pd.DataFrame({'ALI_avg_ROI':[ALI]})  # scalars should be lists for 
 ROI_ALI_df.to_html(ROI_MI_ALI_html)
 with open(ROI_MI_ALI_html, 'r') as f:
     html_string = f.read()
+
+# Plot MI avg across ROI over time
+fig, axs = plt.subplots(1, 2, figsize=(12, 6))
+
+# Plot average power and std for tfr_alpha_MI_left_ROI
+axs[0].plot(tfr_alpha_MI_left_ROI.times, tfr_alpha_MI_left_ROI.data.mean(axis=(0, 1)), label='Average MI', color='red')
+axs[0].fill_between(tfr_alpha_MI_left_ROI.times,
+                    tfr_alpha_MI_left_ROI.data.mean(axis=(0, 1)) - tfr_alpha_MI_left_ROI.data.std(axis=(0, 1)),
+                    tfr_alpha_MI_left_ROI.data.mean(axis=(0, 1)) + tfr_alpha_MI_left_ROI.data.std(axis=(0, 1)),
+                    color='red', alpha=0.3, label='Standard Deviation')
+axs[0].set_title('MI on left ROI')
+axs[0].set_xlabel('Time (s)')
+axs[0].set_ylabel('Average MI (PAF)')
+axs[0].set_ylim(-.4,.25)
+axs[0].legend()
+
+# Plot average power and std for tfr_alpha_MI_right_ROI
+axs[1].plot(tfr_alpha_MI_right_ROI.times, tfr_alpha_MI_right_ROI.data.mean(axis=(0, 1)), label='Average MI', color='blue')
+axs[1].fill_between(tfr_alpha_MI_right_ROI.times,
+                    tfr_alpha_MI_right_ROI.data.mean(axis=(0, 1)) - tfr_alpha_MI_right_ROI.data.std(axis=(0, 1)),
+                    tfr_alpha_MI_right_ROI.data.mean(axis=(0, 1)) + tfr_alpha_MI_right_ROI.data.std(axis=(0, 1)),
+                    color='blue', alpha=0.3, label='Standard Deviation')
+axs[1].set_title('MI on right ROI')
+axs[1].set_xlabel('Time (s)')
+axs[1].set_ylabel('Average MI (PAF)')
+axs[1].set_ylim(-.4,.25)
+axs[1].legend()
+
+# Adjust layout
+plt.tight_layout()
+
+# Save the figure in a variable
+fig_mi_overtime = fig
+
+# Show plot (optional)
+plt.show()
 
 # =================================================================================================================
 
@@ -285,10 +329,16 @@ if summary_rprt:
                      section='TFR'  # only in ver 1.1
                      )
     report.add_html(html=html_string, 
-                   section='ALI',  # only in ver 1.1
+                   section='ALI',  
                    title='Primary Outcome',
                    tags=('ali')
                    )
+    report.add_figure(fig=fig_mi_overtime, title='MI over time',
+                     caption='MI average on ROI in PAF \
+                     range- grads', 
+                     tags=('ali'),
+                     section='ALI'  
+                     )
     report.save(report_fname, overwrite=True)
     report.save(html_report_fname, overwrite=True, open_browser=True)  # to check how the report looks
 

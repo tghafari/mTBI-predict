@@ -171,57 +171,52 @@ fig_topo.suptitle("PAF range (grad), 0.35-0.75sec")
 fig_topo.set_tight_layout(True)
 plt.show()
 
-# ================================== Calculate tfr for alpha for topoplots and MI ===========================================
+# ================================== MI topoplots and TFRs ===========================================
 tfr_alpha_params = dict(picks=['grad'], use_fft=True, return_itc=False, average=True, decim=2, n_jobs=4, verbose=True)
 
 freqs = peak_alpha_file['peak_alpha_freq_range']  # peak frequency range loaded earlier
 n_cycles = freqs / 2  # the length of sliding window in cycle units. 
 time_bandwidth = 2.0 
                       
-tfr_alpha_right = mne.time_frequency.tfr_multitaper(epochs['cue_onset_right'],  
+tfr_right_alpha_all_sens = mne.time_frequency.tfr_multitaper(epochs['cue_onset_right'],  
                                                   freqs=freqs, 
                                                   n_cycles=n_cycles,
                                                   time_bandwidth=time_bandwidth, 
                                                   **tfr_alpha_params,
                                                   )                                                
-tfr_alpha_left = mne.time_frequency.tfr_multitaper(epochs['cue_onset_left'],  
+tfr_left_alpha_all_sens = mne.time_frequency.tfr_multitaper(epochs['cue_onset_left'],  
                                                   freqs=freqs, 
                                                   n_cycles=n_cycles,
                                                   time_bandwidth=time_bandwidth, 
                                                   **tfr_alpha_params,
                                                   )   
- 
-# Compare power modulation for attention right and left (always R- L)
-tfr_alpha_modulation_power = tfr_alpha_left.copy()
-tfr_alpha_modulation_power.data = (tfr_alpha_right.data - tfr_alpha_left.data) / (tfr_alpha_right.data + tfr_alpha_left.data)
 
-tfr_alpha_modulation_power.plot_topo(tmin=.2, tmax=1.2, 
-                                     vmin=-.6, vmax=.6, 
-                                     fig_facecolor='w', 
-                                     font_color='k',
-                                     title='attention right - attention left (PAF)')
+# Crop tfrs to post-stim alpha and right sensors
+tfr_right_post_stim_alpha_all_sens = tfr_right_alpha_all_sens.copy().crop(tmin=0.2, tmax=1.2)
+tfr_left_post_stim_alpha_all_sens = tfr_left_alpha_all_sens.copy().crop(tmin=0.2, tmax=1.2)
+
+# Calculate power modulation for attention right and left (always R- L)
+tfr_alpha_MI_all_sens = tfr_left_post_stim_alpha_all_sens.copy()
+tfr_alpha_MI_all_sens.data = (tfr_right_post_stim_alpha_all_sens.data - tfr_left_post_stim_alpha_all_sens.data) \
+    / (tfr_right_post_stim_alpha_all_sens.data + tfr_left_post_stim_alpha_all_sens.data)  # shape: #sensors, #freqs, #time points
 
 # Plot mi on topoplot with highlighted ROI sensors
 sensors = np.concatenate((ROI_symmetric['right_sensors'].values, 
                           ROI_symmetric['left_sensors'].values), axis=0)
 
 fig, ax = plt.subplots()
-fig_mi = tfr_alpha_modulation_power.plot_topomap(tmin=.2, tmax=1.2, 
+fig_mi = tfr_alpha_MI_all_sens.plot_topomap(tmin=.2, tmax=1.2, 
                                                  **fmin_fmax_params, 
                                                  #vlim=(-.2,.2),
                                                  show=False, axes=ax)
 # Plot markers for the sensors in ROI_right_sens
 for sensor in sensors:
-    ch_idx = tfr_alpha_modulation_power.info['ch_names'].index(sensor)
-    x, y = tfr_alpha_modulation_power.info['chs'][ch_idx]['loc'][:2]
+    ch_idx = tfr_alpha_MI_all_sens.info['ch_names'].index(sensor)
+    x, y = tfr_alpha_MI_all_sens.info['chs'][ch_idx]['loc'][:2]
     ax.plot(x, y, 'ko', markerfacecolor='none', markersize=10)
 
 fig_mi.suptitle('attention right - attention left (PAF range (grad))')
 plt.show()                   
-
-# Plot MI avg across ROI over time
-
-
 
 # ===================================================================================================================
 
