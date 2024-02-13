@@ -141,8 +141,8 @@ occipital_picks =  [channel[-4:] for channel in occipital_picks]  # vectorview s
 occipital_channels = [channel for channel in epochs.pick(['grad']).ch_names if channel[-4:] in occipital_picks]
 
 # Crop post stim alpha
-tfr_slow_cue_right_post_stim = tfr_slow_cue_right.copy().crop(tmin=0.3,tmax=0.8,fmin=4, fmax=14).pick(occipital_channels)
-tfr_slow_cue_left_post_stim = tfr_slow_cue_left.copy().crop(tmin=0.3,tmax=0.8,fmin=4, fmax=14).pick(occipital_channels)
+tfr_slow_cue_right_post_stim = tfr_slow_cue_right.copy().crop(tmin=0.2,tmax=1.2,fmin=4, fmax=14).pick(occipital_channels)
+tfr_slow_cue_left_post_stim = tfr_slow_cue_left.copy().crop(tmin=0.2,tmax=1.2,fmin=4, fmax=14).pick(occipital_channels)
 
 # Find the frequency with the highest power by averaging over sensors and time points (data)
 freq_idx_right = np.argmax(np.mean(np.abs(tfr_slow_cue_right_post_stim.data), axis=(0,2)))
@@ -155,7 +155,8 @@ peak_freq_cue_left = tfr_slow_cue_left_post_stim.freqs[freq_idx_left]
 peak_alpha_freq = np.average([peak_freq_cue_right, peak_freq_cue_left])
 peak_alpha_freq_range = np.arange(peak_alpha_freq-2, peak_alpha_freq+3)  # for MI calculations
 np.savez(peak_alpha_fname, **{'peak_alpha_freq':peak_alpha_freq, 'peak_alpha_freq_range':peak_alpha_freq_range})
-# Plot psd and indicate the peak alpha frequency for this participant
+
+# Plot psd and show the peak alpha frequency for this participant
 psd_params = dict(picks=occipital_channels, n_jobs=4, verbose=True, fmin=2, fmax=30)
 psd_slow_right_post_stim = epochs['cue_onset_right','cue_onset_left'].copy().filter(2,30).compute_psd(**psd_params)
 
@@ -193,14 +194,18 @@ fig_peak_alpha = plt.gcf()
 plt.show()
 
 # ========================================= B. ROI ============================================
-psd_params = dict(picks=['grad'], n_jobs=4, tmin=0.2, tmax=1.2, fmin=0.1, fmax=60)  # 'remove cue presentation duration from the epoch' 
+psd_params = dict(picks=['grad'], n_jobs=4, tmin=0.2, tmax=1.2, fmin=7, fmax=12)
+                  # fmin=0.1, fmax=60)  # 'remove cue presentation duration from the epoch' 
                                                                                     # '1second = 1Hz frequency resolution for psd calculations'
 right_psd = epochs['cue_onset_right'].copy().filter(0.1,60).compute_psd(**psd_params)
 left_psd = epochs['cue_onset_left'].copy().filter(0.1,60).compute_psd(**psd_params)
 
 # Get power and frequency data from right sensors
-right_psds_right_sens, right_freqs_right_sens = right_psd.copy().pick(right_sensors).get_data(return_freqs=True)  # shape: #epochs, #sensors, #frequencies
-left_psds_right_sens, left_freqs_right_sens = left_psd.copy().pick(right_sensors).get_data(return_freqs=True)
+#right_psds_right_sens, right_freqs_right_sens = right_psd.copy().pick(right_sensors).get_data(return_freqs=True)  # shape: #epochs, #sensors, #frequencies
+#left_psds_right_sens, left_freqs_right_sens = left_psd.copy().pick(right_sensors).get_data(return_freqs=True)
+
+right_psds_right_sens, right_freqs_right_sens = right_psd.copy().get_data(return_freqs=True)  # shape: #epochs, #sensors, #frequencies
+left_psds_right_sens, left_freqs_right_sens = left_psd.copy().get_data(return_freqs=True)
 
 # Select alpha and average across epochs
 alpha_l_freq, alpha_h_freq = peak_alpha_freq_range[0], peak_alpha_freq_range[-1]
@@ -213,7 +218,7 @@ left_alpha_psds_right_sens = left_psds_right_sens[:,:,(left_freqs_right_sens >= 
 left_alpha_psds_right_sens = np.mean(left_alpha_psds_right_sens, axis=(0,2))
 
 # Calculate MI for right sensors and sort
-MI_right_sens = (right_alpha_psds_right_sens -left_alpha_psds_right_sens) \
+MI_right_sens = (right_alpha_psds_right_sens - left_alpha_psds_right_sens) \
               / (right_alpha_psds_right_sens + left_alpha_psds_right_sens)
 
 MI_right_df = pd.DataFrame({'MI_right': MI_right_sens,

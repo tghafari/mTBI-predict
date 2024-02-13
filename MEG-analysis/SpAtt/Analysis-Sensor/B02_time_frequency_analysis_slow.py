@@ -149,7 +149,7 @@ plt.show()
 peak_alpha_file = np.load(peak_alpha_fname)
 fmin_fmax_params = dict(fmin=peak_alpha_file['peak_alpha_freq_range'][0], fmax=peak_alpha_file['peak_alpha_freq_range'][-1])
 fig_topo, axis = plt.subplots(1, 2, figsize=(7, 4))
-tfr_slow_left.plot_topomap(tmin=.35, tmax=.75, 
+tfr_slow_left.plot_topomap(tmin=.2, tmax=1.2, 
                            vlim=(-.5,.5),
                            baseline=(-.5, -.3), 
                            mode='percent', 
@@ -157,7 +157,7 @@ tfr_slow_left.plot_topomap(tmin=.35, tmax=.75,
                            **fmin_fmax_params,
                            axes=axis[0],
                            show=False)
-tfr_slow_right.plot_topomap(tmin=.35, tmax=.75, 
+tfr_slow_right.plot_topomap(tmin=.2, tmax=1.2, 
                             vlim=(-.5,.5),
                             baseline=(-.5, -.3), 
                             mode='percent',
@@ -183,7 +183,7 @@ tfr_alpha_right = mne.time_frequency.tfr_multitaper(epochs['cue_onset_right'],
                                                   n_cycles=n_cycles,
                                                   time_bandwidth=time_bandwidth, 
                                                   **tfr_alpha_params,
-                                                  )                                                
+                                                  )  # shape: #sensors, #freqs, #time points                                   
 tfr_alpha_left = mne.time_frequency.tfr_multitaper(epochs['cue_onset_left'],  
                                                   freqs=freqs, 
                                                   n_cycles=n_cycles,
@@ -192,10 +192,11 @@ tfr_alpha_left = mne.time_frequency.tfr_multitaper(epochs['cue_onset_left'],
                                                   )   
  
 # Compare power modulation for attention right and left (always R- L)
-tfr_alpha_modulation_power= tfr_alpha_left.copy()
+tfr_alpha_modulation_power = tfr_alpha_left.copy()
 tfr_alpha_modulation_power.data = (tfr_alpha_right.data - tfr_alpha_left.data) / (tfr_alpha_right.data + tfr_alpha_left.data)
+sorted_test = tfr_alpha_modulation_power.data.sort()
 
-tfr_alpha_modulation_power.plot_topo(tmin=-.5, tmax=1.0, 
+tfr_alpha_modulation_power.plot_topo(tmin=-.5, tmax=1.2, 
                                      vmin=-.6, vmax=.6, 
                                      fig_facecolor='w', 
                                      font_color='k',
