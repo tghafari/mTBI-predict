@@ -12,7 +12,7 @@ This code will:
     3. find peak alpha frequency range and plot
 
     B. ROI sensors
-    4. calculate psd for right sensors 
+    4. calculate tfr for right sensors 
     5. calculate MI = (attend right - attend left) \
     / (attend right + attend left) 
     6. sort sensors based on MI
@@ -193,39 +193,44 @@ plt.grid(True)
 fig_peak_alpha = plt.gcf()
 plt.show()
 
-# ========================================= B. ROI ============================================
-psd_params = dict(picks=['grad'], n_jobs=4, tmin=0.2, tmax=1.2, fmin=7, fmax=12)
-                  # fmin=0.1, fmax=60)  # 'remove cue presentation duration from the epoch' 
-                                                                                    # '1second = 1Hz frequency resolution for psd calculations'
-right_psd = epochs['cue_onset_right'].copy().filter(0.1,60).compute_psd(**psd_params)
-left_psd = epochs['cue_onset_left'].copy().filter(0.1,60).compute_psd(**psd_params)
+# ========================================= B. RIGHT SENSORS and ROI ============================================
+tfr_alpha_params = dict(use_fft=True, return_itc=False, average=True, decim=2, n_jobs=4, verbose=True)
 
-# Get power and frequency data from right sensors
-#right_psds_right_sens, right_freqs_right_sens = right_psd.copy().pick(right_sensors).get_data(return_freqs=True)  # shape: #epochs, #sensors, #frequencies
-#left_psds_right_sens, left_freqs_right_sens = left_psd.copy().pick(right_sensors).get_data(return_freqs=True)
+freqs = peak_alpha_freq_range  # peak frequency range loaded earlier
+n_cycles = freqs / 2  # the length of sliding window in cycle units. 
+time_bandwidth = 2.0 
+                      
+tfr_right_alpha_all_sens = mne.time_frequency.tfr_multitaper(epochs['cue_onset_right'],  
+                                                  freqs=freqs, 
+                                                  n_cycles=n_cycles,
+                                                  time_bandwidth=time_bandwidth, 
+                                                  **tfr_alpha_params,
+                                                  )                                                
+tfr_left_alpha_all_sens = mne.time_frequency.tfr_multitaper(epochs['cue_onset_left'],  
+                                                  freqs=freqs, 
+                                                  n_cycles=n_cycles,
+                                                  time_bandwidth=time_bandwidth, 
+                                                  **tfr_alpha_params,
+                                                  )   
 
-right_psds_right_sens, right_freqs_right_sens = right_psd.copy().get_data(return_freqs=True)  # shape: #epochs, #sensors, #frequencies
-left_psds_right_sens, left_freqs_right_sens = left_psd.copy().get_data(return_freqs=True)
+# Crop tfrs to post-stim alpha and right sensors
+tfr_right_post_stim_alpha_right_sens = tfr_right_alpha_all_sens.copy().pick(right_sensors).crop(tmin=0.2, tmax=1.2).data
+tfr_left_post_stim_alpha_right_sens = tfr_left_alpha_all_sens.copy().pick(right_sensors).crop(tmin=0.2, tmax=1.2).data
 
-# Select alpha and average across epochs
-alpha_l_freq, alpha_h_freq = peak_alpha_freq_range[0], peak_alpha_freq_range[-1]
-right_alpha_psds_right_sens = right_psds_right_sens[:,:,(right_freqs_right_sens >= alpha_l_freq)
-                                                    & (right_freqs_right_sens <= alpha_h_freq)]
-right_alpha_psds_right_sens = np.mean(right_alpha_psds_right_sens, axis=(0,2))
+# Calculate power modulation for attention right and left (always R- L)
+tfr_alpha_MI_right_sens = tfr_right_alpha_all_sens.copy()
+tfr_alpha_MI_right_sens.data = (tfr_right_post_stim_alpha_right_sens - tfr_left_post_stim_alpha_right_sens) \
+    / (tfr_right_post_stim_alpha_right_sens + tfr_left_post_stim_alpha_right_sens)  # shape: #sensors, #freqs, #time points
 
-left_alpha_psds_right_sens = left_psds_right_sens[:,:,(left_freqs_right_sens >= alpha_l_freq) 
-                                                  & (left_freqs_right_sens <= alpha_h_freq)]
-left_alpha_psds_right_sens = np.mean(left_alpha_psds_right_sens, axis=(0,2))
+# Average across time points and alpha frequencies
+tfr_avg_alpha_MI_right_sens_power = np.mean(tfr_alpha_MI_right_sens.data, axis=(1,2))   # the order of channels is the same as right_sensors (I double checked)
 
-# Calculate MI for right sensors and sort
-MI_right_sens = (right_alpha_psds_right_sens - left_alpha_psds_right_sens) \
-              / (right_alpha_psds_right_sens + left_alpha_psds_right_sens)
-
-MI_right_df = pd.DataFrame({'MI_right': MI_right_sens,
-                            'right_sensors': right_sensors})  
+# Save to dataframe
+MI_right_sens_df = pd.DataFrame({'MI_right': tfr_avg_alpha_MI_right_sens_power,
+                                 'right_sensors': right_sensors})  
 
 # Sort the right MI DataFrame by MI value and extract the first 5 channel names and save the ROI sensors
-df_sorted = MI_right_df.sort_values(by='MI_right', ascending=False, key=abs)
+df_sorted = MI_right_sens_df.sort_values(by='MI_right', ascending=False, key=abs)
 MI_right_ROI = df_sorted.head(5) # create a df of MI right ROI sensors and their MI values
 MI_right_ROI = MI_right_ROI.sort_index()  # to ensure the order or sensor names is correct in right and left
 ROI_right_sens = MI_right_ROI['right_sensors'].tolist() 
@@ -236,29 +241,24 @@ ROI_symmetric.to_csv(ROI_fname, index=False)
 
 ROI_left_sens = ROI_symmetric['left_sensors'].to_list()
 
-# ========================================= LEFT SENSORS =======================================
-# Get power and frequency data from right sensors
-right_psds_left_ROI_sens, right_freqs_left_ROI_sens = right_psd.copy().pick(ROI_left_sens).get_data(return_freqs=True)  # shape: #epochs, #sensors, #frequencies
-left_psds_left_ROI_sens, left_freqs_left_ROI_sens = left_psd.copy().pick(ROI_left_sens).get_data(return_freqs=True)
+# ========================================= LEFT SENSORS and ALI =======================================
+# Crop tfrs to post-stim alpha and right sensors
+tfr_right_post_stim_alpha_left_ROI_sens = tfr_right_alpha_all_sens.copy().pick(ROI_left_sens).crop(tmin=0.2, tmax=1.2).data
+tfr_left_post_stim_alpha_left_ROI_sens = tfr_left_alpha_all_sens.copy().pick(ROI_left_sens).crop(tmin=0.2, tmax=1.2).data
 
-# Select alpha and average across epochs
-right_alpha_psds_left_ROI_sens = right_psds_left_ROI_sens[:,:,(right_freqs_left_ROI_sens >= alpha_l_freq)
-                                                    & (right_freqs_left_ROI_sens <= alpha_h_freq)]
-right_alpha_psds_left_ROI_sens = np.mean(right_alpha_psds_left_ROI_sens, axis=(0,2))
+# Calculate power modulation for attention right and left (always R- L)
+tfr_alpha_MI_left_ROI = tfr_right_alpha_all_sens.copy()
+tfr_alpha_MI_left_ROI.data = (tfr_right_post_stim_alpha_left_ROI_sens - tfr_left_post_stim_alpha_left_ROI_sens) \
+    / (tfr_right_post_stim_alpha_left_ROI_sens + tfr_left_post_stim_alpha_left_ROI_sens)  # shape: #sensors, #freqs, #time points
 
-left_alpha_psds_left_ROI_sens = left_psds_left_ROI_sens[:,:,(left_freqs_left_ROI_sens >= alpha_l_freq) 
-                                                  & (left_freqs_left_ROI_sens <= alpha_h_freq)]
-left_alpha_psds_left_ROI_sens = np.mean(left_alpha_psds_left_ROI_sens, axis=(0,2))
+# Average across time points and alpha frequencies
+tfr_avg_alpha_MI_left_ROI_power = np.mean(tfr_alpha_MI_left_ROI.data, axis=(1,2))   # the order of channels is the same as right_sensors (I double checked)
 
-# Calculate MI for right sensors and sort
-MI_left_ROI_sens = (right_alpha_psds_left_ROI_sens - left_alpha_psds_left_ROI_sens) \
-                 / (right_alpha_psds_left_ROI_sens + left_alpha_psds_left_ROI_sens)
+# Save to dataframe
+MI_left_ROI_df = pd.DataFrame({'MI_left': tfr_avg_alpha_MI_left_ROI_power,
+                               'left_sensors': ROI_left_sens})  
 
-MI_left_ROI = pd.DataFrame({'MI_left':MI_left_ROI_sens,
-                            'left_sensors':ROI_left_sens})  
-
-# ========================================= ALI =======================================
-ALI = np.mean(MI_right_ROI['MI_right']) - np.mean(MI_left_ROI['MI_left'])
+ALI = np.mean(MI_right_ROI['MI_right']) - np.mean(MI_left_ROI_df['MI_left'])
 ROI_ALI_df = pd.DataFrame({'ALI_avg_ROI':[ALI]})  # scalars should be lists for dataframe conversion
 
 # Save and read the dataframe as html for the report
@@ -266,33 +266,6 @@ ROI_ALI_df.to_html(ROI_MI_ALI_html)
 with open(ROI_MI_ALI_html, 'r') as f:
     html_string = f.read()
 
-# ========================================= RIGHT SENSORS- not complete =======================================
-# Pick alpha on right sensors for ROI-- the order of sensors is based on the list you provided
-tfr_alpha_right_cue_right_sens = tfr_slow_cue_right.copy().pick(right_sensors).crop(fmin=alpha_l_freq, fmax=alpha_h_freq)
-tfr_alpha_left_cue_right_sens = tfr_slow_cue_left.copy().pick(right_sensors).crop(fmin=alpha_l_freq, fmax=alpha_h_freq)
-
-# Plot and check
-tfr_alpha_right_cue_right_sens.plot_topo(tmin=-.5, tmax=1.0, 
-                                        baseline=[-.5,-.3], mode='percent',
-                                        fig_facecolor='w', font_color='k',
-                                        vmin=-1, vmax=1, 
-                                        title='TFR of power of alpha - cue right')
-tfr_alpha_left_cue_right_sens.plot_topo(tmin=-.5, tmax=1.0,
-                                        baseline=[-.5,-.3], mode='percent',
-                                        fig_facecolor='w', font_color='k',
-                                        vmin=-1, vmax=1, 
-                                        title='TFR of power of alpha - cue left')
-
-# Calculate MI using power data
-MI_right_sens = tfr_alpha_right_cue_right_sens.copy()
-MI_right_sens.data = (tfr_alpha_right_cue_right_sens.data - tfr_alpha_left_cue_right_sens.data) \
-                   / (tfr_alpha_right_cue_right_sens.data + tfr_alpha_left_cue_right_sens.data)
-
-MI_right_sens.plot_topo(tmin=-.5, tmax=1.0,
-                        baseline=[-.5,-.3], mode='percent',
-                        fig_facecolor='w', font_color='k',
-                        vmin=-1, vmax=1, 
-                        title='MI of alpha - right sensors')
 # =================================================================================================================
 
 if summary_rprt:

@@ -183,7 +183,7 @@ tfr_alpha_right = mne.time_frequency.tfr_multitaper(epochs['cue_onset_right'],
                                                   n_cycles=n_cycles,
                                                   time_bandwidth=time_bandwidth, 
                                                   **tfr_alpha_params,
-                                                  )  # shape: #sensors, #freqs, #time points                                   
+                                                  )                                                
 tfr_alpha_left = mne.time_frequency.tfr_multitaper(epochs['cue_onset_left'],  
                                                   freqs=freqs, 
                                                   n_cycles=n_cycles,
@@ -194,9 +194,8 @@ tfr_alpha_left = mne.time_frequency.tfr_multitaper(epochs['cue_onset_left'],
 # Compare power modulation for attention right and left (always R- L)
 tfr_alpha_modulation_power = tfr_alpha_left.copy()
 tfr_alpha_modulation_power.data = (tfr_alpha_right.data - tfr_alpha_left.data) / (tfr_alpha_right.data + tfr_alpha_left.data)
-sorted_test = tfr_alpha_modulation_power.data.sort()
 
-tfr_alpha_modulation_power.plot_topo(tmin=-.5, tmax=1.2, 
+tfr_alpha_modulation_power.plot_topo(tmin=.2, tmax=1.2, 
                                      vmin=-.6, vmax=.6, 
                                      fig_facecolor='w', 
                                      font_color='k',
