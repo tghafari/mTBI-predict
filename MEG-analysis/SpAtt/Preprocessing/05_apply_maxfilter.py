@@ -23,6 +23,7 @@ Questions:
 import os
 import os.path as op
 import matplotlib.pyplot as plt
+import numpy as np
 
 import mne
 from mne_bids import BIDSPath, read_raw_bids
@@ -33,19 +34,30 @@ site = 'Birmingham'
 subject = '2001'  # subject code in mTBI project
 session = '02B'  # data collection session within each run
 run = '01'  # data collection run for each participant
-meg_suffix = 'meg'
-task = 'rest'
+task = 'SpAtt'
 meg_suffix = 'meg'
 meg_extension = '.fif'
 deriv_suffix = 'raw_sss'
 head_pos_suffix = 'head_pos'  # name for headposition file
 
-sss = False
-rprt = True
+cHPI = True  # sss or tsss?
+summary_rprt = True  # do you want to add evokeds figures to the summary report?
+platform = 'mac'  # are you using 'bluebear', 'mac', or 'windows'?
 
-# specify specific file names
-data_root = r'Z:\Projects\mTBI-predict\collected-data'
-bids_root = op.join(data_root, 'BIDS', 'task_BIDS')  # RDS folder for bids formatted data
+if platform == 'bluebear':
+    rds_dir = '/rds/projects/j/jenseno-avtemporal-attention'
+    camcan_dir = '/rds/projects/q/quinna-camcan/dataman/data_information'
+elif platform == 'windows':
+    rds_dir = 'Z:'
+    camcan_dir = 'X:/dataman/data_information'
+elif platform == 'mac':
+    rds_dir = '/Volumes/jenseno-avtemporal-attention'
+    camcan_dir = '/Volumes/quinna-camcan/dataman/data_information'
+
+
+# Specify specific file names
+mTBI_root = op.join(rds_dir, r'Projects/mTBI-predict')
+bids_root = op.join(mTBI_root, 'collected-data', 'BIDS', 'task_BIDS')  # RDS folder for bids formatted data
 bids_path = BIDSPath(subject=subject, session=session,
                      task=task, run=run, root=bids_root, datatype='meg',
                      suffix=meg_suffix, extension=meg_extension)
@@ -104,13 +116,13 @@ len(raw.info['bads'])
 # to ensure compatibility across systems
 raw.fix_mag_coil_types()
 
-if sss:  # which maxwell filtering to use? sss or tsss
+if ~cHPI:  # which maxwell filtering to use? sss or tsss
     # Apply the Maxfilter with fine calibration and cross-talk reduction (SSS)
     raw_sss = preproc.maxwell_filter(raw, cross_talk=crosstalk_file,
                                      calibration=calibration_file, verbose=True)
     raw_sss.save(deriv_fname, overwrite=True)
     
-else:  # tsss
+elif cHPI:  # tsss
     # Apply Spatiotemporal SSS by passing st_duration to maxwell_filter
     raw_tsss = preproc.maxwell_filter(raw, cross_talk=crosstalk_file, st_duration=20,
                                      calibration=calibration_file, verbose=True)
@@ -146,28 +158,55 @@ mark segments as bad that deviate too much from the average head position.
 head_pos = mne.chpi.compute_head_pos(raw.info, chpi_locs, verbose=True)
 mne.chpi.write_head_pos(head_pos_fname, head_pos)
 
-fig_head_pos = mne.viz.plot_head_positions(head_pos, mode="traces")
+# Calculate one output for head position
+""" 
+Average across all timepoints for x, y, and z
+which are head_pos[:,4:7]. then calculate the combined
+movement in three axes and average and std
+"""
+head_pos_avg_three_planes = np.mean(head_pos[:,4:7],axis=0)
+head_pos_std_three_planes = np.std(head_pos[:,4:7],axis=0)
+head_pos_avg_cmbnd_three_planes = np.sqrt(np.sum(head_pos_avg_three_planes**2))
+head_pos_std_cmbnd_three_planes = np.sqrt(np.sum(head_pos_std_three_planes**2))
 
-# Filter data for the report
-if rprt:
-   report_root = r'Z:\Projects\mTBI-predict\results-outputs\mne-reports'  # RDS folder for reports
-   if not op.exists(op.join(report_root , 'sub-' + subject, 'task-' + task)):
-       os.makedirs(op.join(report_root , 'sub-' + subject, 'task-' + task))
-   report_folder = op.join(report_root , 'sub-' + subject, 'task-' + task)
-   report_fname = op.join(report_folder, f'mneReport_sub-{subject}_{task}.hdf5')    # it is in .hdf5 for later adding images
-   html_report_fname = op.join(report_folder, f'report_preproc_{task}.html')
+
+fig, axs = plt.subplots(figsize=(10, 6))
+mne.viz.plot_head_positions(head_pos, mode="traces", show=False)
+# Plot average_movement as an annotation
+plt.annotate(f'Average movement: {head_pos_avg_cmbnd_three_planes:.2f}', xy=(0.1, 0.2), xycoords='axes fraction')
+
+# Plot std_dev_movement as an annotation
+plt.annotate(f'Std deviation of movement: {head_pos_std_cmbnd_three_planes:.2f}', xy=(0.1, 0.05), xycoords='axes fraction')
+
+fig_head_pos = plt.gcf()
+# Show the plot
+plt.show()
+
+if summary_rprt:
+    report_root = op.join(mTBI_root, r'results-outputs/mne-reports')  # RDS folder for reports
    
-   raw_tsss.filter(0,60)
-   raw.filter(0,60)
-   report = mne.Report(title=f'Subject n.{subject}- {task}')
-   report.add_raw(raw=raw, title='Raw <60Hz', 
-                  psd=True, butterfly=False, tags=('raw'))
-   report.add_raw(raw=raw_tsss, title='Max filter (tsss) <60Hz', 
-                  psd=True, butterfly=False, tags=('MaxFilter'))
-   report.add_figure(fig_head_pos, title="head position over time",
-                     tags=('cHPI'), image_format="PNG")
-   report.save(report_fname, overwrite=True)
-   report.save(html_report_fname, overwrite=True, open_browser=True)  # to check how the report looks
+    if not op.exists(op.join(report_root , 'sub-' + subject, 'task-' + task)):
+        os.makedirs(op.join(report_root , 'sub-' + subject, 'task-' + task))
+    report_folder = op.join(report_root , 'sub-' + subject, 'task-' + task)
+
+    report_fname = op.join(report_folder, 
+                        f'mneReport_sub-{subject}_{task}.hdf5')    # it is in .hdf5 for later adding images
+    html_report_fname = op.join(report_folder, f'report_preproc_{task}.html')
+    
+    # Filter data for the report
+    raw_tsss.filter(0,60)
+    raw.filter(0,60)
+
+    # Create the report for the first time
+    report = mne.Report(title=f'Subject n.{subject}- {task}')
+    report.add_raw(raw=raw, title='Raw <60Hz', 
+                    psd=True, butterfly=False, tags=('raw'))
+    report.add_raw(raw=raw_tsss, title='Max filter (tsss) <60Hz', 
+                    psd=True, butterfly=False, tags=('MaxFilter'))
+    report.add_figure(fig_head_pos, title="head position over time",
+                        tags=('cHPI'), image_format="PNG")
+    report.save(report_fname, overwrite=True)
+    report.save(html_report_fname, overwrite=True, open_browser=True)  # to check how the report looks
 
 
 
