@@ -24,12 +24,22 @@ subject = '2001'  # subject code in mTBI project
 session = '02B'  # data collection session within each run
 run = '01'  # data collection run for each participant
 meg_suffix = 'meg'
-task = 'rest'
+task = 'SpAtt'
 
-rprt = True
+summary_rprt = True
 
-# specify specific file names
-data_root = r'Z:\Projects\mTBI-predict\collected-data'
+platform = 'mac'  # are you using 'bluebear', 'mac', or 'windows'?
+
+if platform == 'bluebear':
+    rds_dir = '/rds/projects/j/jenseno-avtemporal-attention'
+elif platform == 'windows':
+    rds_dir = 'Z:'
+elif platform == 'mac':
+    rds_dir = '/Volumes/jenseno-avtemporal-attention'
+
+# Specify specific file names
+mTBI_root = op.join(rds_dir, r'Projects/mTBI-predict')
+data_root = op.join(mTBI_root, 'collected-data')
 bids_root = op.join(data_root, 'BIDS', 'task_BIDS')  # RDS folder for bids formatted data
 bids_path = BIDSPath(subject=subject, session=session, datatype ='meg',
                      suffix=meg_suffix, task=task, run=run, root=bids_root)
@@ -48,15 +58,17 @@ mne.viz.plot_raw_psd(raw, fmin=.5, fmax=40, n_fft=None, picks=None)
 raw.copy().crop(tmax=180).pick(["meg", "stim"]).filter(l_freq=0.1, h_freq=150).plot(title="raw")  # should be filtered bcz of cHPI high freq noise
 
 # Raw file report with all chanels
-if rprt:
-    report_root = r'Z:\Projects\mTBI-predict\results-outputs\mne-reports'  # RDS folder for reports
+if summary_rprt:
+    report_root = op.join(mTBI_root, r'results-outputs/mne-reports')  # RDS folder for reports
     if not op.exists(op.join(report_root , 'sub-' + subject, 'task-' + task)):
         os.makedirs(op.join(report_root , 'sub-' + subject, 'task-' + task))
     report_folder = op.join(report_root , 'sub-' + subject, 'task-' + task)
+    report_fname = op.join(report_folder, 
+                            f'mneReport_sub-{subject}_{task}_2.hdf5')    # it is in .hdf5 for later adding images
+    html_report_fname = op.join(report_folder, f'report_preproc_{task}_2.html')
 
-    report_fname = op.join(report_folder, 'report_raw.html')
     raw.pick(["meg", "stim", "eog", "ecg"]).filter(l_freq=0.1, h_freq=150).load_data()
- 
-    report = mne.Report(title='Raw data')
+
+    report = mne.Report(title=f'sub-{subject}_{task}')
     report.add_raw(raw=raw, title='Raw', psd=True)
     report.save(report_fname, overwrite=True, open_browser=True)
