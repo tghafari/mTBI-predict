@@ -135,9 +135,8 @@ topos_times = np.arange(50,450,30)*0.001
 fig_mag = evoked.copy().pick('mag').plot_joint(times=topos_times)
 
 # Plot and combine gradiometers for summary report
-fig_grad = evoked.copy().pick('grad').plot_joint(
-    times=topos_times, 
-    topomap_args={'vlim':(0,140)})
+fig_grad = evoked.copy().pick('grad').plot_joint(times=topos_times, 
+                                                topomap_args={'vlim':(0,140)})
 
 if summary_rprt:
     report_root = op.join(mTBI_root, r'results-outputs/mne-reports')  # RDS folder for reports
