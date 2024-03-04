@@ -16,6 +16,7 @@ Questions:
 """
 
 import os.path as op
+import os
 import numpy as np
 
 import mne
@@ -32,11 +33,23 @@ meg_suffix = 'meg'
 input_suffix = 'epo'
 deriv_suffix = 'evo'
 
-summary_rprt = True  # do you want to add evokeds figures to the summary report?s
+summary_rprt = True  # do you want to add evokeds figures to the summary report?
+platform = 'mac'  # are you using 'bluebear', 'mac', or 'windows'?
+
+if platform == 'bluebear':
+    rds_dir = '/rds/projects/j/jenseno-avtemporal-attention'
+    camcan_dir = '/rds/projects/q/quinna-camcan/dataman/data_information'
+elif platform == 'windows':
+    rds_dir = 'Z:'
+    camcan_dir = 'X:/dataman/data_information'
+elif platform == 'mac':
+    rds_dir = '/Volumes/jenseno-avtemporal-attention'
+    camcan_dir = '/Volumes/quinna-camcan/dataman/data_information'
+
 
 # Specify specific file names
-data_root = r'Z:\Projects\mTBI-predict\collected-data'
-bids_root = op.join(data_root, 'BIDS', 'task_BIDS')  # RDS folder for bids formatted data
+mTBI_root = op.join(rds_dir, r'Projects/mTBI-predict')
+bids_root = op.join(mTBI_root, 'collected-data', 'BIDS', 'task_BIDS')  # RDS folder for bids formatted data
 bids_path = BIDSPath(subject=subject, session=session,
                      task=task, run=run, root=bids_root, 
                      suffix=meg_suffix, extension=meg_extension)
@@ -46,9 +59,6 @@ deriv_folder = op.join(bids_root, 'derivatives', 'sub-' + subject,
 bids_fname = bids_path.basename.replace(meg_suffix, input_suffix)  # only used for suffices that are not recognizable to bids 
 input_fname = op.join(deriv_folder, bids_fname)
 deriv_fname = str(input_fname).replace(input_suffix, deriv_suffix)
-
-report_root = r'Z:\Projects\mTBI-predict\results-outputs\mne-reports'  # RDS folder for reports
-report_folder = op.join(report_root , 'sub-' + subject, 'task-' + task)
 
 # Read epoched data
 epochs = mne.read_epochs(input_fname, verbose=True, preload=True)
@@ -90,20 +100,20 @@ fig_left_grad = evoked_left.copy().pick('grad').plot_joint(
     times=[0.150,0.255,0.395],
     topomap_args={'vlim':(0,140)})
 
-# Generate report
-html_report_evkd_fname = op.join(report_folder, f'report_preproc_{task}-evokeds.html')
+## Generate report for evoked separately
+#html_report_evkd_fname = op.join(report_folder, f'report_preproc_{task}-evokeds.html')
 
-report = mne.Report(title='Evoked data')
-report.add_evokeds(evokeds=evokeds, 
-                   titles=['cue right',
-                           'cue left'],
-                   n_time_points=10)
-report.save(html_report_evkd_fname, overwrite=True, open_browser=True)  # to check how the report looks
+#report = mne.Report(title='Evoked data')
+#report.add_evokeds(evokeds=evokeds, 
+#                   titles=['cue right',
+#                           'cue left'],
+#                   n_time_points=10)
+#ßreport.save(html_report_evkd_fname, overwrite=True, open_browser=True)  # to check how the report looks
 
 # ==================================== RIGHT LEFT TOGETHER ==============================================
 # Make evoked data for conditions of interest and save
 evoked = epochs['cue_onset_right','cue_onset_left'].copy().average(
-                                                    method='mean').filter(0.0,60).crop(-.2,.8)  # the cues are fliped for P103
+                                                    method='mean').filter(0.0,60).crop(-.2,.8)  
 mne.write_evokeds(deriv_fname, evoked, verbose=True)
 
 # Plot evoked data
@@ -130,21 +140,27 @@ fig_grad = evoked.copy().pick('grad').plot_joint(
     topomap_args={'vlim':(0,140)})
 
 if summary_rprt:
-   report_fname = op.join(report_folder, 
-                          f'mneReport_sub-{subject}_{task}.hdf5')    # it is in .hdf5 for later adding images
-   html_report_fname = op.join(report_folder, f'report_preproc_{task}.html')
+    report_root = op.join(mTBI_root, r'results-outputs/mne-reports')  # RDS folder for reports
    
-   report = mne.open_report(report_fname)
-   report.add_figure(fig=fig_mag, title='evoked magnetometer',
-                     caption='evoked response for cue = 0-200ms', 
-                     tags=('evo'),
-                     section='evokeds'
-                     )
-   report.add_figure(fig=fig_grad, title='evoked gradiometer',
-                     caption='evoked response for cue = 0-200ms', 
-                     tags=('evo'),
-                     section='evokeds'
-                     )
-   report.save(report_fname, overwrite=True)
-   report.save(html_report_fname, overwrite=True, open_browser=True)  # to check how the report looks
+    if not op.exists(op.join(report_root , 'sub-' + subject, 'task-' + task)):
+        os.makedirs(op.join(report_root , 'sub-' + subject, 'task-' + task))
+    report_folder = op.join(report_root , 'sub-' + subject, 'task-' + task)
+
+    report_fname = op.join(report_folder, 
+                        f'mneReport_sub-{subject}_{task}_2.hdf5')    # it is in .hdf5 for later adding images
+    html_report_fname = op.join(report_folder, f'report_preproc_{task}_2.html')
+   
+    report = mne.open_report(report_fname)
+    report.add_figure(fig=fig_mag, title='evoked magnetometer',
+                        caption='evoked response for cue = 0-200ms', 
+                        tags=('evo'),
+                        section='evokeds'
+                        )
+    report.add_figure(fig=fig_grad, title='evoked gradiometer',
+                        caption='evoked response for cue = 0-200ms', 
+                        tags=('evo'),
+                        section='evokeds'
+                        )
+    report.save(report_fname, overwrite=True)
+    report.save(html_report_fname, overwrite=True, open_browser=True)  # to check how the report looks
 
