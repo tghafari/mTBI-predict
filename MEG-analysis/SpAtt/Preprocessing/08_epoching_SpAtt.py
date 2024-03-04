@@ -22,6 +22,7 @@ Questions:
 """
 
 import os.path as op
+import os
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
@@ -137,6 +138,9 @@ epochs = mne.Epochs(raw_ica, events, events_id,   # select events_picks and even
 conds_we_care_about = ["cue_onset_right", "cue_onset_left", "stim_onset", "response_press_onset"] # TODO:discuss with Ole
 epochs.equalize_event_counts(conds_we_care_about)  # this operates in-place
 
+# Save the epoched data 
+epochs.save(deriv_fname, overwrite=True)
+
 ############################### Check-up plots ################################
 # Plotting to check the raw epoch
 epochs['cue_onset_left'].plot(events=events, event_id=events_id, n_epochs=10)  # shows all the events in the epoched data that's based on 'cue_onset_left'
@@ -164,27 +168,28 @@ fig_right = epochs['cue_onset_right'].copy().filter(0.0,30).crop(-.1,1.2).plot_i
 fig_left = epochs['cue_onset_left'].copy().filter(0.0,30).crop(-.1,1.2).plot_image(
     picks=['MEG2522'],vmin=-100,vmax=100)  # event related field image
 
-# Save the epoched data and generate report
-epochs.save(deriv_fname, overwrite=True)
+if summary_rprt:
+    report_root = op.join(mTBI_root, r'results-outputs/mne-reports')  # RDS folder for reports
+    
+    if not op.exists(op.join(report_root , 'sub-' + subject, 'task-' + task)):
+        os.makedirs(op.join(report_root , 'sub-' + subject, 'task-' + task))
+    report_folder = op.join(report_root , 'sub-' + subject, 'task-' + task)
 
-if rprt:
-   report_root = r'Z:\Projects\mTBI-predict\results-outputs\mne-reports'  # RDS folder for reports
-   report_folder = op.join(report_root , 'sub-' + subject, 'task-' + task)
-   report_fname = op.join(report_folder, 
-                          f'mneReport_sub-{subject}_{task}.hdf5')    # it is in .hdf5 for later adding images
-   html_report_fname = op.join(report_folder, f'report_preproc_{task}.html')
-   
-   report = mne.open_report(report_fname)
-  
-   report.add_figure(fig=fig_right, title='cue right',
-                     caption='evoked response on one left sensor (MEG1943)', 
-                     tags=('epo'),
-                     section='epocheds'
-                     )
-   report.add_figure(fig=fig_left, title='cue left',
-                     caption='evoked response on one right sensor (MEG2522)', 
-                     tags=('epo'),
-                     section='epocheds' 
-                     )   
-   report.save(report_fname, overwrite=True, open_browser=True)
-   report.save(html_report_fname, overwrite=True, open_browser=True)  # to check how the report looks
+    report_fname = op.join(report_folder, 
+        f'mneReport_sub-{subject}_{task}_2.hdf5')    # it is in .hdf5 for later adding images
+    html_report_fname = op.join(report_folder, f'report_preproc_{task}_2.html')
+
+    report = mne.open_report(report_fname)
+
+    report.add_figure(fig=fig_right, title='cue right',
+                    caption='evoked response on one left sensor (MEG1943)', 
+                    tags=('epo'),
+                    section='epocheds'
+                    )
+    report.add_figure(fig=fig_left, title='cue left',
+                    caption='evoked response on one right sensor (MEG2522)', 
+                    tags=('epo'),
+                    section='epocheds' 
+                    )   
+    report.save(report_fname, overwrite=True, open_browser=True)
+    report.save(html_report_fname, overwrite=True, open_browser=True)  # to check how the report looks

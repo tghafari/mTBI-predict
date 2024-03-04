@@ -24,6 +24,8 @@ Questions:
 """
 
 import os.path as op
+import os
+import numpy as np
 
 import mne
 from mne.preprocessing import ICA
@@ -34,7 +36,7 @@ site = 'Birmingham'
 subject = '2001'  # subject code in mTBI project
 session = '02B'  # data collection session within each run
 run = '01'  # data collection run for each participant
-task = 'rest'
+task = 'SpAtt'
 meg_extension = '.fif'
 meg_suffix = 'meg'
 input_suffix = 'ann'
@@ -89,17 +91,17 @@ ica.plot_components()
 scores = ica.score_sources(raw_resmpld, target='EOG002', score_func='pearsonr')  # helps finding the saccade component
 ica.plot_scores(scores)
 
-ICA_rej_dic = {f'sub-{subject}_ses-{session}':[10,14,24]} # manually selected bad ICs or from sub config file 
+ICA_rej_dic = {f'sub-{subject}_ses-{session}':[3,13]} # manually selected bad ICs or from sub config file 
 artifact_ICs = ICA_rej_dic[f'sub-{subject}_ses-{session}']
 
 
 # Double check the manually selected artifactual ICs
 """ Plot original data against reconstructed 
   signal excluding artifact ICs + Ic properties"""
+
+for exc in np.arange(len(artifact_ICs)):
+    ica.plot_overlay(raw_resmpld, exclude=[artifact_ICs[exc]], picks='mag')  
   
-ica.plot_overlay(raw_resmpld, exclude=[artifact_ICs[0]], picks='mag')  
-ica.plot_overlay(raw_resmpld, exclude=[artifact_ICs[1]], picks='mag') 
-ica.plot_overlay(raw_resmpld, exclude=[artifact_ICs[2]], picks='mag')  
 ica.plot_overlay(raw_resmpld, exclude=artifact_ICs, picks='mag')  # all
 ica.plot_properties(raw_resmpld, picks=artifact_ICs)
 
@@ -108,25 +110,29 @@ ica.exclude = artifact_ICs
 raw_ica = raw_ann.copy()
 ica.apply(raw_ica)
 
+# Save the ICA cleaned data
+raw_ica.save(deriv_fname, overwrite=True)
+
 # plot a few frontal channels before and after ICA
 chs = ['MEG0311', 'MEG0121', 'MEG1211', 'MEG1411', 'MEG0342', 'MEG1432']
 ch_idx = [raw_ann.ch_names.index(ch) for ch in chs]
 raw_ann.plot(order=ch_idx, duration=5, title='before')
 raw_ica.plot(order=ch_idx, duration=5, title='after')
 
-# Save the ICA cleaned data
-raw_ica.save(deriv_fname, overwrite=True)
-
 # only add excluded components to the report
 fig_ica = ica.plot_components(picks=artifact_ICs, title='removed components')
 
 # Filter data for the report
 if summary_rprt:
-    report_root = r'Z:\Projects\mTBI-predict\results-outputs\mne-reports'  # RDS folder for reports
+    report_root = op.join(mTBI_root, r'results-outputs/mne-reports')  # RDS folder for reports
+   
+    if not op.exists(op.join(report_root , 'sub-' + subject, 'task-' + task)):
+        os.makedirs(op.join(report_root , 'sub-' + subject, 'task-' + task))
     report_folder = op.join(report_root , 'sub-' + subject, 'task-' + task)
+
     report_fname = op.join(report_folder, 
-                           f'mneReport_sub-{subject}_{task}.hdf5')    # it is in .hdf5 for later adding images
-    html_report_fname = op.join(report_folder, f'report_preproc_{task}.html')
+                        f'mneReport_sub-{subject}_{task}_2.hdf5')    # it is in .hdf5 for later adding images
+    html_report_fname = op.join(report_folder, f'report_preproc_{task}_2.html')
     
     report = mne.open_report(report_fname)
     report.add_figure(fig_ica, title="removed ICA components (eog, ecg)",
