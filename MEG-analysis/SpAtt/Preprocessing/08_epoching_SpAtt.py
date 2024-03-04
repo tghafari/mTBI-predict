@@ -41,12 +41,23 @@ input_suffix = 'ica'
 deriv_suffix = 'epo'
 
 using_events_csv = False  # for when we are not using events_from_annotation. default is False
+summary_rprt = True  # do you want to add evokeds figures to the summary report?
+platform = 'mac'  # are you using 'bluebear', 'mac', or 'windows'?
 
-rprt = True  # do you want to generate mne report?
+if platform == 'bluebear':
+    rds_dir = '/rds/projects/j/jenseno-avtemporal-attention'
+    camcan_dir = '/rds/projects/q/quinna-camcan/dataman/data_information'
+elif platform == 'windows':
+    rds_dir = 'Z:'
+    camcan_dir = 'X:/dataman/data_information'
+elif platform == 'mac':
+    rds_dir = '/Volumes/jenseno-avtemporal-attention'
+    camcan_dir = '/Volumes/quinna-camcan/dataman/data_information'
+
 
 # Specify specific file names
-data_root = r'Z:\Projects\mTBI-predict\collected-data'
-bids_root = op.join(data_root, 'BIDS', 'task_BIDS')  # RDS folder for bids formatted data
+mTBI_root = op.join(rds_dir, r'Projects/mTBI-predict')
+bids_root = op.join(mTBI_root, 'collected-data', 'BIDS', 'task_BIDS')  # RDS folder for bids formatted data
 bids_path = BIDSPath(subject=subject, session=session,
                      task=task, run=run, root=bids_root, 
                      suffix=meg_suffix, extension=meg_extension)

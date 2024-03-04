@@ -40,11 +40,23 @@ meg_suffix = 'meg'
 input_suffix = 'ann'
 deriv_suffix = 'ica'
 
-rprt = True
+summary_rprt = True  # do you want to add evokeds figures to the summary report?
+platform = 'mac'  # are you using 'bluebear', 'mac', or 'windows'?
+
+if platform == 'bluebear':
+    rds_dir = '/rds/projects/j/jenseno-avtemporal-attention'
+    camcan_dir = '/rds/projects/q/quinna-camcan/dataman/data_information'
+elif platform == 'windows':
+    rds_dir = 'Z:'
+    camcan_dir = 'X:/dataman/data_information'
+elif platform == 'mac':
+    rds_dir = '/Volumes/jenseno-avtemporal-attention'
+    camcan_dir = '/Volumes/quinna-camcan/dataman/data_information'
+
 
 # Specify specific file names
-data_root = r'Z:\Projects\mTBI-predict\collected-data'
-bids_root = op.join(data_root, 'BIDS', 'task_BIDS')  # RDS folder for bids formatted data
+mTBI_root = op.join(rds_dir, r'Projects/mTBI-predict')
+bids_root = op.join(mTBI_root, 'collected-data', 'BIDS', 'task_BIDS')  # RDS folder for bids formatted data
 bids_path = BIDSPath(subject=subject, session=session,
                      task=task, run=run, root=bids_root, 
                      suffix=meg_suffix, extension=meg_extension)
@@ -109,7 +121,7 @@ raw_ica.save(deriv_fname, overwrite=True)
 fig_ica = ica.plot_components(picks=artifact_ICs, title='removed components')
 
 # Filter data for the report
-if rprt:
+if summary_rprt:
     report_root = r'Z:\Projects\mTBI-predict\results-outputs\mne-reports'  # RDS folder for reports
     report_folder = op.join(report_root , 'sub-' + subject, 'task-' + task)
     report_fname = op.join(report_folder, 
