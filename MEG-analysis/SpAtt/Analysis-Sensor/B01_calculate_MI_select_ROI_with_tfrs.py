@@ -247,7 +247,8 @@ fig_topo.set_tight_layout(True)
 plt.show()
 
 # ========================================= B. RIGHT SENSORS and ROI ============================================
-tfr_alpha_params = dict(use_fft=True, return_itc=False, average=True, decim=2, n_jobs=4, verbose=True)
+tfr_alpha_params = dict(picks='grad', use_fft=True, return_itc=False, average=True, decim=2, n_jobs=4, verbose=True)
+tfr_params = dict(picks=['grad'], use_fft=True, return_itc=False, average=True, decim=2, n_jobs=4, verbose=True)
 
 freqs = peak_alpha_freq_range  # peak frequency range calculated earlier
 n_cycles = freqs / 2  # the length of sliding window in cycle units. 
@@ -257,13 +258,13 @@ tfr_right_alpha_all_sens = mne.time_frequency.tfr_multitaper(epochs['cue_onset_r
                                                   freqs=freqs, 
                                                   n_cycles=n_cycles,
                                                   time_bandwidth=time_bandwidth, 
-                                                  **tfr_alpha_params,
+                                                  **tfr_params,
                                                   )                                                
 tfr_left_alpha_all_sens = mne.time_frequency.tfr_multitaper(epochs['cue_onset_left'],  
                                                   freqs=freqs, 
                                                   n_cycles=n_cycles,
                                                   time_bandwidth=time_bandwidth, 
-                                                  **tfr_alpha_params,
+                                                  **tfr_params,
                                                   )   
 
 # Crop tfrs to post-stim alpha and right sensors
@@ -302,7 +303,7 @@ tfr_alpha_MI_right_ROI = tfr_right_post_stim_alpha_right_ROI_sens.copy()
 tfr_alpha_MI_right_ROI.data = (tfr_right_post_stim_alpha_right_ROI_sens.data - tfr_left_post_stim_alpha_right_ROI_sens.data) \
     / (tfr_right_post_stim_alpha_right_ROI_sens.data + tfr_right_post_stim_alpha_right_ROI_sens.data)  # shape: #sensors, #freqs, #time points
 
-# ========================================= LEFT SENSORS and ALI =======================================
+# ========================================= LEFT SENSORS and ROI ON TOPOMAP (FIFTH PLOT) =======================================
 # Crop tfrs to post-stim alpha and right sensors
 tfr_right_post_stim_alpha_left_ROI_sens = tfr_right_alpha_all_sens.copy().pick(ROI_left_sens).crop(tmin=0.2, tmax=1.0)
 tfr_left_post_stim_alpha_left_ROI_sens = tfr_left_alpha_all_sens.copy().pick(ROI_left_sens).crop(tmin=0.2, tmax=1.0)
@@ -319,14 +320,30 @@ tfr_avg_alpha_MI_left_ROI_power = np.mean(tfr_alpha_MI_left_ROI.data, axis=(1,2)
 MI_left_ROI_df = pd.DataFrame({'MI_left': tfr_avg_alpha_MI_left_ROI_power,
                                'left_sensors': ROI_left_sens})  
 
-ALI = np.mean(MI_right_ROI['MI_right']) - np.mean(MI_left_ROI_df['MI_left'])
-ROI_ALI_df = pd.DataFrame({'ALI_avg_ROI':[ALI]})  # scalars should be lists for dataframe conversion
+# Plot MI on topoplot with highlighted ROI sensors
+tfr_alpha_modulation_power= tfr_right_alpha_all_sens.copy()
+tfr_alpha_modulation_power.data = (tfr_right_alpha_all_sens.data - tfr_left_alpha_all_sens.data) \
+                                / (tfr_right_alpha_all_sens.data + tfr_left_alpha_all_sens.data)
 
-# Save and read the dataframe as html for the report
-ROI_ALI_df.to_html(ROI_MI_ALI_html)
-with open(ROI_MI_ALI_html, 'r') as f:
-    html_string = f.read()
+sensors = np.concatenate((ROI_symmetric['right_sensors'].values, 
+                          ROI_symmetric['left_sensors'].values), axis=0)
 
+fig, ax = plt.subplots()
+fig_mi = tfr_alpha_modulation_power.plot_topomap(tmin=.2, tmax=1.0, 
+                                                 fmin=peak_alpha_freq_range[0],
+                                                 fmax=peak_alpha_freq_range[1],
+                                                 vlim=(-.2,.2),
+                                                 show=False, axes=ax)
+# Plot markers for the sensors in ROI_right_sens
+for sensor in sensors:
+    ch_idx = tfr_alpha_modulation_power.info['ch_names'].index(sensor)
+    x, y = tfr_alpha_modulation_power.info['chs'][ch_idx]['loc'][:2]
+    ax.plot(x, y, 'ko', markerfacecolor='none', markersize=10)
+                                 
+fig_mi.suptitle('attention right - attention left (PAF range on gradiometers)')
+plt.show()  
+
+# ========================================= MI OVER TIME AND SIXTH PLOT =======================================
 # Plot MI avg across ROI over time
 fig, axs = plt.subplots(1, 2, figsize=(12, 6))
 
@@ -363,6 +380,16 @@ fig_mi_overtime = fig
 # Show plot (optional)
 plt.show()
 
+
+# ========================================= ALI AND PRIMARY OUTCOME (LAST OUTPUT) =======================================
+ALI = np.mean(MI_right_ROI['MI_right']) - np.mean(MI_left_ROI_df['MI_left'])
+ROI_ALI_df = pd.DataFrame({'ALI_avg_ROI':[ALI]})  # scalars should be lists for dataframe conversion
+
+# Save and read the dataframe as html for the report
+ROI_ALI_df.to_html(ROI_MI_ALI_html)
+with open(ROI_MI_ALI_html, 'r') as f:
+    html_string = f.read()
+
 # =================================================================================================================
 
 if summary_rprt:
@@ -370,8 +397,8 @@ if summary_rprt:
     report_folder = op.join(report_root , 'sub-' + subject, 'task-' + task)
 
     report_fname = op.join(report_folder, 
-                        f'mneReport_sub-{subject}_{task}.hdf5')    # it is in .hdf5 for later adding images
-    html_report_fname = op.join(report_folder, f'report_preproc_{task}.html')
+                        f'mneReport_sub-{subject}_{task}_2.hdf5')    # it is in .hdf5 for later adding images
+    html_report_fname = op.join(report_folder, f'report_preproc_{task}_2.html')
 
     report = mne.open_report(report_fname)
     report.add_figure(fig=fig_plot_topo_right, title='TFR of power < 30Hz - cue right',
@@ -394,7 +421,7 @@ if summary_rprt:
                     )
     report.add_figure(fig=fig_peak_alpha, title='PSD and PAF',
                      caption='range of peak alpha frequency on \
-                     occipital gradiometers', 
+                        occipital gradiometers', 
                      tags=('tfr'),
                      section='TFR'  # only in ver 1.1
                      )
@@ -403,17 +430,23 @@ if summary_rprt:
                         baseline corrected', 
                      tags=('tfr'),
                      section='TFR'  # only in ver 1.1
-                     )     
-    report.add_html(html=html_string, 
-                   section='ALI',  
-                   title='Primary Outcome',
-                   tags=('ali')
-                   )
+                     )   
+    report.add_figure(fig=fig_mi, title='MI and ROI',
+                     caption='MI on PAF range and \
+                        ROI sensors (grads - 0.2 to 1.0 sec)', 
+                     tags=('ali'),
+                     section='ALI'  
+                     )  
     report.add_figure(fig=fig_mi_overtime, title='MI over time',
                      caption='MI average on ROI in PAF \
                      range- grads', 
                      tags=('ali'),
                      section='ALI'  
+                     )
+    report.add_html(html=html_string, 
+                     section='ALI',  
+                     title='Primary Outcome',
+                     tags=('ali')
                      )
     report.save(report_fname, overwrite=True)
     report.save(html_report_fname, overwrite=True, open_browser=True)  # to check how the report looks
