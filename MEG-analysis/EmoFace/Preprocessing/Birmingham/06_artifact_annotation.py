@@ -45,7 +45,7 @@ subject = '2001'  # subject code in mTBI project
 session = '02B'  # data collection session within each run
 run = '01'  # data collection run for each participant
 pilot = 'P' # is the data collected 'P'ilot or 'T'ask?
-task = 'rest'
+task = 'EmoFace'
 meg_suffix = 'meg'
 meg_extension = '.fif'
 input_suffix = 'raw_sss'
@@ -83,7 +83,6 @@ raw_sss = mne.io.read_raw_fif(input_fname, preload=True)  # read_raw_bids doesn'
 
 # Remove power line noise
 if remove_line_noise:
-# meg_picks = mne.pick_types(raw_sss.info, meg=True)
     power_freqs = (50, 100, 150)
     raw_sss.notch_filter(freqs=power_freqs)
 

@@ -36,7 +36,7 @@ site = 'Birmingham'
 subject = '2001'  # subject code in mTBI project
 session = '02B'  # data collection session within each run
 run = '01'  # data collection run for each participant
-task = 'SpAtt'
+task = 'EmoFace'
 meg_extension = '.fif'
 meg_suffix = 'meg'
 input_suffix = 'ann'
@@ -91,7 +91,7 @@ ica.plot_components()
 scores = ica.score_sources(raw_resmpld, target='EOG002', score_func='pearsonr')  # helps finding the saccade component
 ica.plot_scores(scores)
 
-ICA_rej_dic = {f'sub-{subject}_ses-{session}':[3,13]} # manually selected bad ICs or from sub config file 
+ICA_rej_dic = {f'sub-{subject}_ses-{session}':[2,17]} # manually selected bad ICs or from sub config file 
 artifact_ICs = ICA_rej_dic[f'sub-{subject}_ses-{session}']
 
 
@@ -100,9 +100,9 @@ artifact_ICs = ICA_rej_dic[f'sub-{subject}_ses-{session}']
   signal excluding artifact ICs + Ic properties"""
 
 for exc in np.arange(len(artifact_ICs)):
-    ica.plot_overlay(raw_resmpld, exclude=[artifact_ICs[exc]], picks='mag')  
+    ica.plot_overlay(raw_resmpld, exclude=[artifact_ICs[exc]], picks='meg')  
   
-ica.plot_overlay(raw_resmpld, exclude=artifact_ICs, picks='mag')  # all
+ica.plot_overlay(raw_resmpld, exclude=artifact_ICs, picks='meg')  # all
 ica.plot_properties(raw_resmpld, picks=artifact_ICs)
 
 # Exclude ICA components
@@ -131,8 +131,8 @@ if summary_rprt:
     report_folder = op.join(report_root , 'sub-' + subject, 'task-' + task)
 
     report_fname = op.join(report_folder, 
-                        f'mneReport_sub-{subject}_{task}_2.hdf5')    # it is in .hdf5 for later adding images
-    html_report_fname = op.join(report_folder, f'report_preproc_{task}_2.html')
+                        f'mneReport_sub-{subject}_{task}_1.hdf5')    # it is in .hdf5 for later adding images
+    html_report_fname = op.join(report_folder, f'report_preproc_{task}_1.html')
     
     report = mne.open_report(report_fname)
     report.add_figure(fig_ica, title="removed ICA components (eog, ecg)",

@@ -35,7 +35,7 @@ site = 'Birmingham'
 subject = '2001'  # subject code in mTBI project
 session = '02B'  # data collection session within each run
 run = '01'  # data collection run for each participant
-task = 'SpAtt'
+task = 'EmoFace'
 meg_extension = '.fif'
 meg_suffix = 'meg'
 input_suffix = 'ica'
@@ -76,42 +76,7 @@ deriv_fname = str(input_fname).replace(input_suffix, deriv_suffix)
 # read raw and events file
 raw_ica = mne.io.read_raw_fif(input_fname, allow_maxshield=True,
                               verbose=True, preload=True)
-
-if using_events_csv:
-    event_fname = op.join(bids_path.directory, 'meg',
-                          bids_path.basename.replace('meg.fif', 'events.tsv'))
-    events_file = pd.read_csv(event_fname, sep='\t')
-    
-    # Some variable preparation in case we are using bids events file instead of mne
-    events = events_file[['sample','duration','value']].to_numpy(dtype=int)
-    events[:,0] = events[:,0] + raw_ica.first_samp  # begin from the first sample
-    event_to_series = events_file.copy().drop_duplicates(subset='trial_type')[['value','trial_type']]
-    events_id = pd.Series(event_to_series['value'].values, index=event_to_series['trial_type']).to_dict()
-    events_color = {'cue_onset_right':'red', 'cue_onset_left':'blue'}
-    
-    # creates a variable like mne.pick_events
-    events_picks = np.vstack(((events[events[:,2]==102]), (events[events[:,2]==101])))
-    events_picks[events_picks[:,0].argsort()]
-    events_picks_id = {k:v for k, v in events_id.items() if k.startswith('cue onset')}  # select only epochs you are interested in
-    
-    # Take a quick look at the events file
-    plt.figure()
-    plt.stem(events_file['onset'], events_file['trial_type'])
-    plt.xlim(0,200)  # only show first 200 seconds
-    plt.xlabel('time (sec)')
-    plt.ylabel('event type')
-    plt.show()
-
-else:
-    events, events_id = mne.events_from_annotations(raw, event_id='auto')
-
-# just for oscar's
-# raw_list = list()
-# events_list = list()
-# events_list.append(events)
-# raw_ica, events = mne.concatenate_raws(raw_list, preload=True,
-#                                         events_list=events_list)
-# end of oscar's
+all_events, all_events_id = mne.events_from_annotations(raw, event_id='auto')
 
 # Set the peak-peak amplitude threshold for trial rejection.
 """ subject to change based on data quality"""
@@ -120,42 +85,49 @@ reject = dict(grad=5000e-13,  # T/m (gradiometers)
               #eog=150e-6      # V (EOG channels)
               )
 
-# Make epochs (2 seconds centered on stim onset)
-metadata, _, _ = mne.epochs.make_metadata(
-                events=events, event_id=events_id, 
-                tmin=-1.5, tmax=1, 
-                sfreq=raw_ica.info['sfreq'])
+# Make epochs (2 seconds centered on face offset): we are only epoching based on events we care about
+event_ids_we_care_about = {'face_offset':116, "face_onset_angry":117, "face_onset_happy":118, 
+                           "face_onset_neutral":119, "response_female_onset":121, "response_male_onset":122}
 
-epochs = mne.Epochs(raw_ica, events, events_id,   # select events_picks and events_picks_id                   
-                    metadata=metadata,            # if only interested in specific events (not all)
-                    tmin=-0.8, tmax=1.2,
-                    baseline=None, proj=True, picks='all', 
-                    detrend=1, event_repeated='drop',
-                    reject=reject, reject_by_annotation=True,
-                    preload=True, verbose=True)
+metadata, events, event_ids = mne.epochs.make_metadata(events=all_events, 
+                                                event_id=event_ids_we_care_about, 
+                                                tmin=-1.0, 
+                                                tmax=1.0, 
+                                                sfreq=raw_ica.info['sfreq'])
 
-# Defie epochs we care about
-conds_we_care_about = ["cue_onset_right", "cue_onset_left", "stim_onset", "response_press_onset"] # TODO:discuss with Ole
-epochs.equalize_event_counts(conds_we_care_about)  # this operates in-place
+epochs = mne.Epochs(raw_ica, 
+                events=events, 
+                event_id=events_ids,                  
+                metadata=metadata,  # if only interested in specific events (not all)
+                tmin=-0.65,  # face duration=750-1000ms ISI duration=750-1000ms
+                tmax=0.65,
+                baseline=None, 
+                proj=True, picks='all', 
+                detrend=1, 
+                event_repeated='drop',
+                reject=reject, 
+                reject_by_annotation=True,
+                preload=True, 
+                verbose=True)
+
+# Which epochs were dropped?
+fig_bads = epochs.plot_drop_log()  # rejected epochs
 
 # Save the epoched data 
 epochs.save(deriv_fname, overwrite=True)
 
 ############################### Check-up plots ################################
 # Plotting to check the raw epoch
-epochs['cue_onset_left'].plot(events=events, event_id=events_id, n_epochs=10)  # shows all the events in the epoched data that's based on 'cue_onset_left'
-epochs['cue_onset_right'].plot(events=events, event_id=events_id, n_epochs=10) 
+epochs['face_offset'].plot(events=events, event_id=event_ids, n_epochs=10)  # shows all the events in the epoched data that's based on 'cue_onset_left'
 
 # plot amplitude on heads
 times_to_topomap = [-.1, .1, .8, 1.1]
 epochs['cue_onset_left'].average(picks=['meg']).plot_topomap(times_to_topomap)  # title='cue onset left (0 sec)'
-epochs['cue_onset_right'].average(picks=['meg']).plot_topomap(times_to_topomap)  # title='cue onset right (0 sec)'
 
 # Topo plot evoked responses
 evoked_obj_topo_plot = [epochs['cue_onset_left'].average(picks=['grad']), epochs['cue_onset_right'].average(picks=['grad'])]
 mne.viz.plot_evoked_topo(evoked_obj_topo_plot, show=True)
 
-fig_bads = epochs.plot_drop_log()  # rejected epochs
 ###############################################################################
 
 # Plots the average of one epoch type - pick best sensors for report
