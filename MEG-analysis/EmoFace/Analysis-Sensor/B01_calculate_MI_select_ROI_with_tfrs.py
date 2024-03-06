@@ -43,7 +43,7 @@ site = 'Birmingham'
 subject = '2001'  # subject code in mTBI project
 session = '02B'  # data collection session within each run
 run = '01'  # data collection run for each participant
-task = 'SpAtt'
+task = 'EmoFace'
 meg_extension = '.fif'
 meg_suffix = 'meg'
 input_suffix = 'epo'
@@ -76,12 +76,11 @@ bids_fname = bids_path.basename.replace(meg_suffix, input_suffix)  # only used f
 input_fname = op.join(deriv_folder, bids_fname)
 deriv_fname = str(input_fname).replace(input_suffix, deriv_suffix)
 
-ROI_fname = op.join(ROI_dir, f'sub-{subject}_ROI_1202.csv')
-MI_ALI_fname = op.join(ROI_dir, f'sub-{subject}_MI_ALI.csv')
-ROI_MI_ALI_fname = op.join(ROI_dir, f'sub-{subject}_ROI_MI_ALI.csv')
-ROI_MI_ALI_html =  op.join(ROI_dir, f'sub-{subject}_ROI_MI_ALI.html')
+ROI_fname = op.join(ROI_dir, f'sub-{subject}_ROI.csv')
+LIG_fname = op.join(ROI_dir, f'sub-{subject}_LIG.csv')  # lateralised induced gamma
+ROI_LIG_fname = op.join(ROI_dir, f'sub-{subject}_ROI_LIG.csv')
+ROI_LIG_html =  op.join(ROI_dir, f'sub-{subject}_ROI_LIG.html')
 
-peak_alpha_fname = op.join(ROI_dir, f'sub-{subject}_peak_alpha.npz')  # 2 numpy arrays saved into an uncompressed file
 # Read sensor layout sheet from camcan RDS
 """these variables are in correct right-and-left-corresponding-sensors order"""
 sensors_layout_sheet = op.join(camcan_dir, 'sensor_layout_name_grad_no_central.csv')
@@ -99,151 +98,104 @@ epochs = mne.read_epochs(input_fname, verbose=True, preload=True)  # epochs are 
 # Calculate tfr for post cue alpha
 tfr_params = dict(picks=['grad'], use_fft=True, return_itc=False, average=True, decim=2, n_jobs=4, verbose=True)
 
-freqs = np.arange(2,31,1)  # the frequency range over which we perform the analysis
-n_cycles = freqs / 2  # the length of sliding window in cycle units. 
-time_bandwidth = 2.0  # '(2deltaTdeltaF) number of DPSS tapers to be used + 1.'
+freqs = np.arange(30,101, 2)  # the frequency range over which we perform the analysis
+n_cycles = freqs / 4  # the length of sliding window in cycle units. 
+time_bandwidth = 4.0  # '(2deltaTdeltaF) number of DPSS tapers to be used + 1.'
                       # 'it relates to the temporal (deltaT) and spectral (deltaF)' 
                       # 'smoothing'
                       # 'the more tapers, the more smooth'->useful for high freq data
-                      
-tfr_slow_cue_right = mne.time_frequency.tfr_multitaper(epochs['cue_onset_right'],  
+                       
+tfr_fast_face_offset = mne.time_frequency.tfr_multitaper(epochs['face_offset'],  
                                                   freqs=freqs, 
                                                   n_cycles=n_cycles,
                                                   time_bandwidth=time_bandwidth, 
                                                   **tfr_params                                                  
                                                   )
-                                                
-tfr_slow_cue_left = mne.time_frequency.tfr_multitaper(epochs['cue_onset_left'],  
+"""    
+# the two below are useless before re-epoching the raw data to contain post-stim signal data as well                          
+tfr_fast_angry_face = mne.time_frequency.tfr_multitaper(epochs['face_onset_angry'],  
                                                   freqs=freqs, 
                                                   n_cycles=n_cycles,
                                                   time_bandwidth=time_bandwidth, 
                                                   **tfr_params                                                  
                                                   )
 
+tfr_fast_happy_face = mne.time_frequency.tfr_multitaper(epochs['face_onset_happy'],  
+                                                  freqs=freqs, 
+                                                  n_cycles=n_cycles,
+                                                  time_bandwidth=time_bandwidth, 
+                                                  **tfr_params                                                  
+                                                  )
+"""
 # Plot TFR on all sensors and check
-fig_plot_topo_right = tfr_slow_cue_right.plot_topo(tmin=-.5, tmax=1.0, 
-                        baseline=[-.5,-.3], mode='percent',
-                        fig_facecolor='w', font_color='k',
-                        vmin=-1, vmax=1, 
-                        title='TFR of power < 30Hz - cue right')
-fig_plot_topo_left = tfr_slow_cue_left.plot_topo(tmin=-.5, tmax=1.0,
-                         baseline=[-.5,-.3], mode='percent',
-                         fig_facecolor='w', font_color='k',
-                         vmin=-1, vmax=1, 
-                         title='TFR of power < 30Hz - cue left')
+fig_plot_topo_face_offset = tfr_fast_face_offset.plot_topo(tmin=-.65, tmax=.65, 
+                        baseline=[-.5,-.3], 
+                        mode='percent',
+                        fig_facecolor='w', 
+                        font_color='k',
+                        vmin=-.5, 
+                        vmax=.5, 
+                        title='TFR of power > 30Hz - face offset')
+
+"""    
+# the two below are useless before re-epoching the raw data to contain post-stim signal data as well    
+fig_plot_topo_angry = tfr_fast_angry_face.plot_topo(tmin=-.65, tmax=.65, 
+                        baseline=[-.5,-.3], 
+                        mode='percent',
+                        fig_facecolor='w', 
+                        font_color='k',
+                        vmin=-1, 
+                        vmax=1, 
+                        title='TFR of power > 30Hz - angry face onset')
+fig_plot_topo_happy = tfr_fast_happy_face.plot_topo(tmin=-.65, tmax=.65,
+                         baseline=[-.5,-.3], 
+                         mode='percent',
+                         fig_facecolor='w', 
+                         font_color='k',
+                         vmin=-1, 
+                         vmax=1, 
+                         title='TFR of power > 30Hz - happy face onset')
+"""       
 
 # ========================================= SECOND PLOT (REPRESENTATIVE SENSROS) ====================================
 # Plot TFR for representative sensors - same in all participants
 fig_tfr, axis = plt.subplots(2, 2, figsize = (7, 7))
-sensors = ['MEG1733','MEG2133','MEG1943','MEG2533']
+sensors = ['MEG1923','MEG1913','MEG2343','MEG2313']
+axis_idx = [(0,0),(1,0),(0,1),(1,1)]
 
-for idx, sensor in enumerate(sensors):
-    if idx < len(sensors)/2:
-        tfr_slow_cue_left.plot(picks=sensor, baseline=[-.5,-.2],
-                                mode='percent', tmin=-.5, tmax=1.0,
-                                vmin=-.75, vmax=.75,
-                                axes=axis[idx-2,1], show=False)
-        axis[idx, 0].set_title(f'cue left-{sensor}')        
-    else:   
-        tfr_slow_cue_right.plot(picks=sensor, baseline=[-.5,-.2],
-                                mode='percent', tmin=-.5, tmax=1.0,
-                                vmin=-.75, vmax=.75, 
-                                axes=axis[idx-2,0], show=False)
-        axis[idx-2, 1].set_title(f'cue right-{sensor}') 
-        
-axis[0, 0].set_ylabel('left sensors')  
-axis[1, 0].set_ylabel('right sensors')  
-axis[0, 0].set_xlabel('')  # Remove x-axis label for top plots
-axis[0, 1].set_xlabel('')
-
+for idx, sensor in enumerate(sensors):   
+    tfr_fast_face_offset.plot(picks=sensor, 
+                                baseline=[-.65,-.2],
+                                mode='percent',
+                                tmin=-.65, 
+                                tmax=.65,
+                                vmin=-.5, 
+                                vmax=.5,
+                                axes=axis[axis_idx[idx]],
+                                show=False)
+    axis[axis_idx[idx]].set_title(f'{sensor}')        
 
 fig_tfr.set_tight_layout(True)
 plt.show()      
 
-# ========================================= PEAK ALPHA FREQUENCY (PAF) AND THIRD PLOT ====================================
-# Select occipital sensors
-occipital_picks = mne.read_vectorview_selection("occipital")  # contains both mag and grad
-occipital_picks =  [channel[-4:] for channel in occipital_picks]  # vectorview selection adds a space in the name of channels!
 
-# Create a list of channel names from epochs.ch_names that have the same last four characters as occipital picks and pick only grads
-occipital_channels = [channel for channel in epochs.pick(['grad']).ch_names if channel[-4:] in occipital_picks]
-
-# Crop post stim alpha
-tfr_slow_cue_right_post_stim = tfr_slow_cue_right.copy().crop(tmin=0.2,tmax=1.0,fmin=4, fmax=14).pick(occipital_channels)
-tfr_slow_cue_left_post_stim = tfr_slow_cue_left.copy().crop(tmin=0.2,tmax=1.0,fmin=4, fmax=14).pick(occipital_channels)
-
-# Find the frequency with the highest power by averaging over sensors and time points (data)
-freq_idx_right = np.argmax(np.mean(np.abs(tfr_slow_cue_right_post_stim.data), axis=(0,2)))
-freq_idx_left = np.argmax(np.mean(np.abs(tfr_slow_cue_left_post_stim.data), axis=(0,2)))
-
-# Get the corresponding frequencies
-peak_freq_cue_right = tfr_slow_cue_right_post_stim.freqs[freq_idx_right]
-peak_freq_cue_left = tfr_slow_cue_left_post_stim.freqs[freq_idx_left]
-
-peak_alpha_freq = np.average([peak_freq_cue_right, peak_freq_cue_left])
-peak_alpha_freq_range = np.arange(peak_alpha_freq-2, peak_alpha_freq+3)  # for MI calculations
-np.savez(peak_alpha_fname, **{'peak_alpha_freq':peak_alpha_freq, 'peak_alpha_freq_range':peak_alpha_freq_range})
-
-# Plot psd and show the peak alpha frequency for this participant
-n_fft = 2000
-psd_params = dict(picks=occipital_channels, method="welch", fmin=1, fmax=60, n_jobs=4, verbose=True, n_fft=n_fft, n_overlap=int(n_fft/2))
-psd_slow_right_post_stim = epochs['cue_onset_right','cue_onset_left'].copy().compute_psd(**psd_params)
-
-# Average across epochs and get data
-psd_slow_right_post_stim_avg = psd_slow_right_post_stim.average()
-psds, freqs = psd_slow_right_post_stim_avg.get_data(return_freqs=True)
-psds_mean = psds.mean(axis=0)
-
-# Plot
-fig, ax = plt.subplots(figsize=(10, 6))
-ax.plot(freqs[0:int(len(freqs)/2)], psds_mean[0:int(len(freqs)/2)], color='black')  # remove frequencies higher than 30Hz for plotting
-ymin, ymax = ax.get_ylim()
-# Indicate peak_alpha_freq_range with a gray shadow
-ax.axvline(x=peak_alpha_freq_range[0], 
-            color='gray', 
-            linestyle='--', 
-            linewidth=2)
-ax.axvline(x=peak_alpha_freq_range[-1], 
-            color='gray', 
-            linestyle='--', 
-            linewidth=2)
-ax.fill_betweenx([ymin, ymax],
-                  peak_alpha_freq_range[0], 
-                  peak_alpha_freq_range[-1], 
-                  color='lightgray', 
-                  alpha=0.5)
-ax.text(np.max(freqs)-5, np.min(psds_mean)*3, f'PAF = {peak_alpha_freq} Hz', 
-         color='black', ha='right', va='bottom')
-plt.xlabel('Frequency (Hz)')
-plt.ylabel('Power (T/m)^2/Hz')
-plt.title('PSDs- Welch method (n_fft=2000)')
-
-plt.grid(True)
-fig_peak_alpha = plt.gcf()
-plt.show()
-
-# ========================================= TOPOGRAPHIC MAPS AND FOURTH PLOT ============================================
+# ========================================= TOPOGRAPHIC MAPS AND THIRD PLOT ============================================
 # Plot post cue peak alpha range topographically
-topomap_params = dict(fmin=peak_alpha_freq_range[0], 
-                      fmax=peak_alpha_freq_range[-1],
-                      tmin=0.2,
-                      tmax=1.0,
-                      vlim=(-.5,.5),
+topomap_params = dict(fmin=freqs[0], 
+                      fmax=freqs[-1],
+                      tmin=0,
+                      tmax=.4,
+                      vlim=(-.05,.05),
                       baseline=(-.5, -.3), 
                       mode='percent', 
                       ch_type='grad',)
 
-fig_topo, axis = plt.subplots(1, 2, figsize=(7, 4))
-tfr_slow_cue_left.plot_topomap(**topomap_params,
-                           axes=axis[0],
+fig_topo, axis = plt.subplots(figsize=(7, 4))
+tfr_fast_face_offset.plot_topomap(**topomap_params,
                            show=False)
-tfr_slow_cue_right.plot_topomap(**topomap_params,
-                            axes=axis[1],
-                            show=False)
-axis[0].title.set_text('cue left')
-axis[1].title.set_text('cue right')
-fig_topo.suptitle("Post stim alpha (PAF)")
-fig_topo.set_tight_layout(True)
+fig_topo = plt.gcf()
+fig_topo.suptitle("Post stim gamma (30-100Hz)")
+#fig_topo.set_tight_layout(True)
 plt.show()
 
 # ========================================= B. RIGHT SENSORS and ROI ============================================
@@ -397,13 +349,13 @@ if summary_rprt:
     report_folder = op.join(report_root , 'sub-' + subject, 'task-' + task)
 
     report_fname = op.join(report_folder, 
-                        f'mneReport_sub-{subject}_{task}_2.hdf5')    # it is in .hdf5 for later adding images
-    html_report_fname = op.join(report_folder, f'report_preproc_{task}_2.html')
+                        f'mneReport_sub-{subject}_{task}_1.hdf5')    # it is in .hdf5 for later adding images
+    html_report_fname = op.join(report_folder, f'report_preproc_{task}_1.html')
 
     report = mne.open_report(report_fname)
-    report.add_figure(fig=fig_plot_topo_right, title='TFR of power < 30Hz - cue right',
+    report.add_figure(fig=fig_plot_topo_face_offset, title='TFR of power > 30Hz - face offset',
                     caption='Time Frequency Representation for \
-                    cue right', 
+                    face offset (face onset = -0.65s)', 
                     tags=('tfr'),
                     section='TFR'  # only in ver 1.1
                     )
@@ -425,8 +377,8 @@ if summary_rprt:
                      tags=('tfr'),
                      section='TFR'  # only in ver 1.1
                      )
-    report.add_figure(fig=fig_topo, title='post stim alpha',
-                     caption='PAF range (grad), 0.2-1.0sec, \
+    report.add_figure(fig=fig_topo, title='post stim gamma',
+                     caption='30-100Hz, 0-.4sec, \
                         baseline corrected', 
                      tags=('tfr'),
                      section='TFR'  # only in ver 1.1

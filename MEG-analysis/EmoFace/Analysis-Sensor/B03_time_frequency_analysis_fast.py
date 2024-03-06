@@ -102,12 +102,12 @@ tfr_fast_right.plot_topomap(tmin=0.0, tmax=.6,
                             title='attention right')
 
 # Compare power modulation for attention right and left (always R- L)
-tfr_slow_lateralization_power= tfr_fast_left.copy()
-tfr_slow_lateralization_power.data = (tfr_fast_right.data - tfr_fast_left.data) / (tfr_fast_right.data + tfr_fast_left.data)
-tfr_slow_lateralization_power.plot_topo(tmin=-.5, tmax=0.0,
+tfr_fast_lateralization_power= tfr_fast_left.copy()
+tfr_fast_lateralization_power.data = (tfr_fast_right.data - tfr_fast_left.data) / (tfr_fast_right.data + tfr_fast_left.data)
+tfr_fast_lateralization_power.plot_topo(tmin=-.5, tmax=0.0,
                                         fig_facecolor='w', font_color='k',
                                         title='attention right - attention left')
-tfr_slow_lateralization_power.plot_topomap(tmin=0.0, tmax=.6, fmin=60, fmax=90)
+tfr_fast_lateralization_power.plot_topomap(tmin=0.0, tmax=.6, fmin=60, fmax=90)
 
 
 
