@@ -97,7 +97,7 @@ metadata, events, event_ids = mne.epochs.make_metadata(events=all_events,
 
 epochs = mne.Epochs(raw_ica, 
                 events=events, 
-                event_id=events_ids,                  
+                event_id=event_ids,                  
                 metadata=metadata,  # if only interested in specific events (not all)
                 tmin=-0.65,  # face duration=750-1000ms ISI duration=750-1000ms
                 tmax=0.65,
@@ -121,24 +121,19 @@ epochs.save(deriv_fname, overwrite=True)
 epochs['face_offset'].plot(events=events, event_id=event_ids, n_epochs=10)  # shows all the events in the epoched data that's based on 'cue_onset_left'
 
 # plot amplitude on heads
-times_to_topomap = [-.1, .1, .8, 1.1]
-epochs['cue_onset_left'].average(picks=['meg']).plot_topomap(times_to_topomap)  # title='cue onset left (0 sec)'
+times_to_topomap = [-.55, 0, .1, .55]
+epochs['face_offset'].average(picks=['meg']).plot_topomap(times_to_topomap) 
 
 # Topo plot evoked responses
-evoked_obj_topo_plot = [epochs['cue_onset_left'].average(picks=['grad']), epochs['cue_onset_right'].average(picks=['grad'])]
-mne.viz.plot_evoked_topo(evoked_obj_topo_plot, show=True)
+evoked_obj_topo_plot = [epochs['face_offset'].average(picks=['grad'])]
+mne.viz.plot_evoked_topo(evoked_obj_topo_plot, show=True)  # decide which sensors to show for the next section
+epochs['face_offset'].copy().average(picks=['grad']).plot() 
 
-###############################################################################
-
-# Plots the average of one epoch type - pick best sensors for report
-epochs['cue_onset_left'].average(picks=['meg']).plot(title='cue onset left (0 sec)') 
-epochs['cue_onset_right'].average(picks=['meg']).plot(title='cue onset right (0 sec)')
-
-# Plots to save
-fig_right = epochs['cue_onset_right'].copy().filter(0.0,30).crop(-.1,1.2).plot_image(
-    picks=['MEG1943'],vmin=-100,vmax=100)  # event related field image
-fig_left = epochs['cue_onset_left'].copy().filter(0.0,30).crop(-.1,1.2).plot_image(
-    picks=['MEG2522'],vmin=-100,vmax=100)  # event related field image
+############################# Plots to save #####################################
+fig_right = epochs['face_offset'].copy().filter(0.0,30).plot_image(
+    picks=['MEG2343'],vmin=-100,vmax=100)  # event related field image
+fig_left = epochs['face_offset'].copy().filter(0.0,30).plot_image(
+    picks=['MEG1923'],vmin=-100,vmax=100)  # event related field image
 
 if summary_rprt:
     report_root = op.join(mTBI_root, r'results-outputs/mne-reports')  # RDS folder for reports
@@ -148,18 +143,18 @@ if summary_rprt:
     report_folder = op.join(report_root , 'sub-' + subject, 'task-' + task)
 
     report_fname = op.join(report_folder, 
-        f'mneReport_sub-{subject}_{task}_2.hdf5')    # it is in .hdf5 for later adding images
-    html_report_fname = op.join(report_folder, f'report_preproc_{task}_2.html')
+        f'mneReport_sub-{subject}_{task}_1.hdf5')    # it is in .hdf5 for later adding images
+    html_report_fname = op.join(report_folder, f'report_preproc_{task}_1.html')
 
     report = mne.open_report(report_fname)
 
-    report.add_figure(fig=fig_right, title='cue right',
-                    caption='evoked response on one left sensor (MEG1943)', 
+    report.add_figure(fig=fig_right, title='face offset (0sec)',
+                    caption='evoked response on one left sensor (MEG1923)', 
                     tags=('epo'),
                     section='epocheds'
                     )
-    report.add_figure(fig=fig_left, title='cue left',
-                    caption='evoked response on one right sensor (MEG2522)', 
+    report.add_figure(fig=fig_left, title='face offset (0sec)',
+                    caption='evoked response on one right sensor (MEG2343)', 
                     tags=('epo'),
                     section='epocheds' 
                     )   
