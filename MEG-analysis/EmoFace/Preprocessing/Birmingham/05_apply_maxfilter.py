@@ -34,7 +34,7 @@ site = 'Birmingham'
 subject = '2001'  # subject code in mTBI project
 session = '02B'  # data collection session within each run
 run = '01'  # data collection run for each participant
-task = 'SpAtt'
+task = 'EmoFace'
 meg_suffix = 'meg'
 meg_extension = '.fif'
 deriv_suffix = 'raw_sss'
@@ -77,21 +77,8 @@ calibration_file = op.join(bids_path.directory, 'sub-' + subject +'_ses-' + sess
                            '_acq-calibration_meg.dat')  
 
 # read and raw data 
-"""only do the if run==2 for this part (as an example) for other sections
- do it manually, unless you have many 2-run subjects"""
-if run == '02':
-    bids_path2 = bids_path.copy().update(run='02')
-    if op.exists(bids_path2):    
-       raw1 = read_raw_bids(bids_path=bids_path, extra_params={'preload':True},
-                               verbose=True)  #'fif files will be read with'
-                                              #'allow_maxshield=True by default'                          
-       raw2 = read_raw_bids(bids_path=bids_path2, extra_params={'preload':True},
-                        verbose=True)
-       raw2.info['dev_head_t'] = raw1.info['dev_head_t']  # to solve the error about head position not being aligned
-       raw = mne.io.concatenate_raws([raw1, raw2])
-else:
-   raw = read_raw_bids(bids_path=bids_path, extra_params={'preload':True},
-                           verbose=True)
+raw = read_raw_bids(bids_path=bids_path, extra_params={'preload':True},
+                    verbose=True)
    
 # Identify and show faulty sensors using max filtering 
 """to identify bad channels it is best to use concatenated files (in case of
@@ -190,8 +177,8 @@ if summary_rprt:
     report_folder = op.join(report_root , 'sub-' + subject, 'task-' + task)
 
     report_fname = op.join(report_folder, 
-                        f'mneReport_sub-{subject}_{task}_2.hdf5')    # it is in .hdf5 for later adding images
-    html_report_fname = op.join(report_folder, f'report_preproc_{task}_2.html')
+                        f'mneReport_sub-{subject}_{task}_1.hdf5')    # it is in .hdf5 for later adding images
+    html_report_fname = op.join(report_folder, f'report_preproc_{task}_1.html')
     
     # Filter data for the report
     raw_tsss.filter(0,60)
