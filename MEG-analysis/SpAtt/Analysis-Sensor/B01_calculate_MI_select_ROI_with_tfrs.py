@@ -40,8 +40,8 @@ import mne
 from mne_bids import BIDSPath
 
 site = 'Birmingham'
-subject = '2002'  # subject code in mTBI project
-session = '04B'  # data collection session within each run
+subject = '2001'  # subject code in mTBI project
+session = '02B'  # data collection session within each run
 run = '01'  # data collection run for each participant
 task = 'SpAtt'
 meg_extension = '.fif'
@@ -142,17 +142,19 @@ for idx, sensor in enumerate(sensors):
         tfr_slow_cue_left.plot(picks=sensor, baseline=[-.5,-.2],
                                 mode='percent', tmin=-.5, tmax=1.0,
                                 vmin=-.75, vmax=.75,
-                                axes=axis[idx-2,1], show=False)
+                                axes=axis[idx,0], show=False)
         axis[idx, 0].set_title(f'cue left-{sensor}')        
     else:   
         tfr_slow_cue_right.plot(picks=sensor, baseline=[-.5,-.2],
                                 mode='percent', tmin=-.5, tmax=1.0,
                                 vmin=-.75, vmax=.75, 
-                                axes=axis[idx-2,0], show=False)
+                                axes=axis[idx-2,1], show=False)
         axis[idx-2, 1].set_title(f'cue right-{sensor}') 
         
 axis[0, 0].set_ylabel('left sensors')  
 axis[1, 0].set_ylabel('right sensors')  
+axis[0, 1].set_ylabel('left sensors')  
+axis[1, 1].set_ylabel('right sensors')
 axis[0, 0].set_xlabel('')  # Remove x-axis label for top plots
 axis[0, 1].set_xlabel('')
 
