@@ -41,11 +41,11 @@ from mne_bids import BIDSPath
 
 # fill these out
 site = 'Birmingham'
-subject = '2001'  # subject code in mTBI project
-session = '02B'  # data collection session within each run
+subject = '2002'  # subject code in mTBI project
+session = '04B'  # data collection session within each run
 run = '01'  # data collection run for each participant
 pilot = 'P' # is the data collected 'P'ilot or 'T'ask?
-task = 'rest'
+task = 'SpAtt'
 meg_suffix = 'meg'
 meg_extension = '.fif'
 input_suffix = 'raw_sss'
