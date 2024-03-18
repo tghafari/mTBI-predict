@@ -51,6 +51,7 @@ deriv_suffix = 'psd'
 
 summary_rprt = True  # do you want to add evokeds figures to the summary report?
 platform = 'mac'  # are you using 'bluebear', 'mac', or 'windows'?
+test_plot = False  # do you want to plot the data to test (True) or just generate report (False)?
 
 if platform == 'bluebear':
     rds_dir = '/rds/projects/j/jenseno-avtemporal-attention'
@@ -64,8 +65,8 @@ elif platform == 'mac':
 
 
 # Specify specific file names
-mTBI_root = op.join(rds_dir, r'Projects/mTBI-predict')
-ROI_dir = op.join(mTBI_root, r'results-outputs/group-analysis/task-SpAtt/lateralisation-indices')
+mTBI_root = op.join(rds_dir, 'Projects/mTBI-predict')
+ROI_dir = op.join(mTBI_root, 'results-outputs/group-analysis/task-SpAtt/lateralisation-indices')
 bids_root = op.join(mTBI_root, 'collected-data', 'BIDS', 'task_BIDS')  # RDS folder for bids formatted data
 bids_path = BIDSPath(subject=subject, session=session,
                      task=task, run=run, root=bids_root, 
@@ -76,7 +77,7 @@ bids_fname = bids_path.basename.replace(meg_suffix, input_suffix)  # only used f
 input_fname = op.join(deriv_folder, bids_fname)
 deriv_fname = str(input_fname).replace(input_suffix, deriv_suffix)
 
-ROI_fname = op.join(ROI_dir, f'sub-{subject}_ROI_1202.csv')
+ROI_fname = op.join(ROI_dir, f'sub-{subject}_ROI.csv')
 MI_ALI_fname = op.join(ROI_dir, f'sub-{subject}_MI_ALI.csv')
 ROI_MI_ALI_fname = op.join(ROI_dir, f'sub-{subject}_ROI_MI_ALI.csv')
 ROI_MI_ALI_html =  op.join(ROI_dir, f'sub-{subject}_ROI_MI_ALI.html')
@@ -395,12 +396,12 @@ with open(ROI_MI_ALI_html, 'r') as f:
 # =================================================================================================================
 
 if summary_rprt:
-    report_root = op.join(mTBI_root, r'results-outputs/mne-reports')  # RDS folder for reports
+    report_root = op.join(mTBI_root, 'results-outputs/mne-reports')  # RDS folder for reports
     report_folder = op.join(report_root , 'sub-' + subject, 'task-' + task)
 
     report_fname = op.join(report_folder, 
-                        f'mneReport_sub-{subject}_{task}_2.hdf5')    # it is in .hdf5 for later adding images
-    html_report_fname = op.join(report_folder, f'report_preproc_{task}_2.html')
+                        f'mneReport_sub-{subject}_{task}_1.hdf5')    # it is in .hdf5 for later adding images
+    html_report_fname = op.join(report_folder, f'report_preproc_{task}_1.html')
 
     report = mne.open_report(report_fname)
     report.add_figure(fig=fig_plot_topo_right, title='TFR of power < 30Hz - cue right',

@@ -40,9 +40,10 @@ meg_extension = '.fif'
 deriv_suffix = 'raw_sss'
 head_pos_suffix = 'head_pos'  # name for headposition file
 
-cHPI = True  # sss or tsss?
+tsss = False  # sss or tsss?
 summary_rprt = True  # do you want to add evokeds figures to the summary report?
 platform = 'mac'  # are you using 'bluebear', 'mac', or 'windows'?
+test_plot = False  # do you want to plot the data to test (True) or just generate report (False)?
 
 if platform == 'bluebear':
     rds_dir = '/rds/projects/j/jenseno-avtemporal-attention'
@@ -116,28 +117,29 @@ len(raw.info['bads'])
 # to ensure compatibility across systems
 raw.fix_mag_coil_types()
 
-if not cHPI:  # which maxwell filtering to use? sss or tsss
+if not tsss:  # which maxwell filtering to use? sss or tsss
     # Apply the Maxfilter with fine calibration and cross-talk reduction (SSS)
     raw_sss = preproc.maxwell_filter(raw, cross_talk=crosstalk_file,
                                      calibration=calibration_file, verbose=True)
     raw_sss.save(deriv_fname, overwrite=True)
     
-elif cHPI:  # tsss
+elif tsss:  
     # Apply Spatiotemporal SSS by passing st_duration to maxwell_filter
-    raw_tsss = preproc.maxwell_filter(raw, cross_talk=crosstalk_file, st_duration=20,
+    raw_sss = preproc.maxwell_filter(raw, cross_talk=crosstalk_file, st_duration=20,
                                      calibration=calibration_file, verbose=True)
-    raw_tsss.save(deriv_fname, overwrite=True)
+    raw_sss.save(deriv_fname, overwrite=True)
 
-# Plot power spectra of raw data and after maxwell filterting for comparison
-fig, ax = plt.subplots(2,2)
+if test_plot:
+    # Plot power spectra of raw data and after maxwell filterting for comparison
+    fig, ax = plt.subplots(2,2)
 
-fig = raw.compute_psd(fmax=60, n_fft=1000).plot(axes=ax[:,0], show=False)
-fig = raw_tsss.compute_psd(fmax=60, n_fft=1000).plot(axes=ax[:,1], show=False)
+    fig = raw.compute_psd(fmax=60, n_fft=1000).plot(axes=ax[:,0], show=False)
+    fig = raw_sss.compute_psd(fmax=60, n_fft=1000).plot(axes=ax[:,1], show=False)
 
-ax[1,0].set_xlabel(' \nPSD before filtering')
-ax[1,1].set_xlabel(' \nPSD after filtering')
-fig.set_tight_layout(True)
-plt.show()
+    ax[1,0].set_xlabel(' \nPSD before filtering')
+    ax[1,1].set_xlabel(' \nPSD after filtering')
+    fig.set_tight_layout(True)
+    plt.show()
 
 # Plotting head position during each run using cHPI info
 chpi_freqs, ch_idx, chpi_codes = mne.chpi.get_chpi_info(info=raw.info)
@@ -183,25 +185,25 @@ fig_head_pos = plt.gcf()
 plt.show()
 
 if summary_rprt:
-    report_root = op.join(mTBI_root, r'results-outputs/mne-reports')  # RDS folder for reports
+    report_root = op.join(mTBI_root, 'results-outputs/mne-reports')  # RDS folder for reports
    
     if not op.exists(op.join(report_root , 'sub-' + subject, 'task-' + task)):
         os.makedirs(op.join(report_root , 'sub-' + subject, 'task-' + task))
     report_folder = op.join(report_root , 'sub-' + subject, 'task-' + task)
 
     report_fname = op.join(report_folder, 
-                        f'mneReport_sub-{subject}_{task}_1.hdf5')    # it is in .hdf5 for later adding images
-    html_report_fname = op.join(report_folder, f'report_preproc_{task}_1.html')
+                        f'mneReport_sub-{subject}_{task}.hdf5')    # it is in .hdf5 for later adding images
+    html_report_fname = op.join(report_folder, f'report_preproc_{task}.html')
     
     # Filter data for the report
-    raw_tsss.filter(0,60)
+    raw_sss.filter(0,60)
     raw.filter(0,60)
 
     # Create the report for the first time
     report = mne.Report(title=f'Subject n.{subject}- {task}')
     report.add_raw(raw=raw, title='Raw <60Hz', 
                     psd=True, butterfly=False, tags=('raw'))
-    report.add_raw(raw=raw_tsss, title='Max filter (tsss) <60Hz', 
+    report.add_raw(raw=raw_sss, title='Max filter (sss) <60Hz', 
                     psd=True, butterfly=False, tags=('MaxFilter'))
     report.add_figure(fig_head_pos, title="head position over time",
                         tags=('cHPI'), image_format="PNG")

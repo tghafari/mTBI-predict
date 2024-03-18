@@ -44,6 +44,7 @@ deriv_suffix = 'ica'
 
 summary_rprt = True  # do you want to add evokeds figures to the summary report?
 platform = 'mac'  # are you using 'bluebear', 'mac', or 'windows'?
+test_plot = False  # do you want to plot the data to test (True) or just generate report (False)?
 
 if platform == 'bluebear':
     rds_dir = '/rds/projects/j/jenseno-avtemporal-attention'
@@ -57,7 +58,7 @@ elif platform == 'mac':
 
 
 # Specify specific file names
-mTBI_root = op.join(rds_dir, r'Projects/mTBI-predict')
+mTBI_root = op.join(rds_dir, 'Projects/mTBI-predict')
 bids_root = op.join(mTBI_root, 'collected-data', 'BIDS', 'task_BIDS')  # RDS folder for bids formatted data
 bids_path = BIDSPath(subject=subject, session=session,
                      task=task, run=run, root=bids_root, 
@@ -88,22 +89,24 @@ ica.fit(raw_resmpld, verbose=True)
 ica.plot_sources(raw_resmpld, title='ICA')
 ica.plot_components()
 
-scores = ica.score_sources(raw_resmpld, target='EOG002', score_func='pearsonr')  # helps finding the saccade component
-ica.plot_scores(scores)
+#scores = ica.score_sources(raw_resmpld, target='EOG002', score_func='pearsonr')  # helps finding the saccade component
+#ica.plot_scores(scores)
 
-ICA_rej_dic = {f'sub-{subject}_ses-{session}':[0,10]} # manually selected bad ICs or from sub config file 
+ICA_rej_dic = {f'sub-{subject}_ses-{session}':[1,11]} # manually selected bad ICs or from sub config file 
+"""200102B: [3, 13]
+200204B [1,11]:"""
 artifact_ICs = ICA_rej_dic[f'sub-{subject}_ses-{session}']
 
+if test_plot:
+    # Double check the manually selected artifactual ICs
+    """ Plot original data against reconstructed 
+    signal excluding artifact ICs + Ic properties"""
 
-# Double check the manually selected artifactual ICs
-""" Plot original data against reconstructed 
-  signal excluding artifact ICs + Ic properties"""
-
-for exc in np.arange(len(artifact_ICs)):
-    ica.plot_overlay(raw_resmpld, exclude=[artifact_ICs[exc]], picks='mag')  
-  
-ica.plot_overlay(raw_resmpld, exclude=artifact_ICs, picks='mag')  # all
-ica.plot_properties(raw_resmpld, picks=artifact_ICs)
+    for exc in np.arange(len(artifact_ICs)):
+        ica.plot_overlay(raw_resmpld, exclude=[artifact_ICs[exc]], picks='mag')  
+    
+    ica.plot_overlay(raw_resmpld, exclude=artifact_ICs, picks='mag')  # all
+    ica.plot_properties(raw_resmpld, picks=artifact_ICs)
 
 # Exclude ICA components
 ica.exclude = artifact_ICs
@@ -113,18 +116,19 @@ ica.apply(raw_ica)
 # Save the ICA cleaned data
 raw_ica.save(deriv_fname, overwrite=True)
 
-# plot a few frontal channels before and after ICA
-chs = ['MEG0311', 'MEG0121', 'MEG1211', 'MEG1411', 'MEG0342', 'MEG1432']
-ch_idx = [raw_ann.ch_names.index(ch) for ch in chs]
-raw_ann.plot(order=ch_idx, duration=5, title='before')
-raw_ica.plot(order=ch_idx, duration=5, title='after')
+if test_plot:
+    # plot a few frontal channels before and after ICA
+    chs = ['MEG0311', 'MEG0121', 'MEG1211', 'MEG1411', 'MEG0342', 'MEG1432']
+    ch_idx = [raw_ann.ch_names.index(ch) for ch in chs]
+    raw_ann.plot(order=ch_idx, duration=5, title='before')
+    raw_ica.plot(order=ch_idx, duration=5, title='after')
 
 # only add excluded components to the report
 fig_ica = ica.plot_components(picks=artifact_ICs, title='removed components')
 
 # Filter data for the report
 if summary_rprt:
-    report_root = op.join(mTBI_root, r'results-outputs/mne-reports')  # RDS folder for reports
+    report_root = op.join(mTBI_root, 'results-outputs/mne-reports')  # RDS folder for reports
    
     if not op.exists(op.join(report_root , 'sub-' + subject, 'task-' + task)):
         os.makedirs(op.join(report_root , 'sub-' + subject, 'task-' + task))

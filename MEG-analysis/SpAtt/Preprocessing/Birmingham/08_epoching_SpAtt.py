@@ -44,6 +44,7 @@ deriv_suffix = 'epo'
 using_events_csv = False  # for when we are not using events_from_annotation. default is False
 summary_rprt = True  # do you want to add evokeds figures to the summary report?
 platform = 'mac'  # are you using 'bluebear', 'mac', or 'windows'?
+test_plot = False  # do you want to plot the data to test (True) or just generate report (False)?
 
 if platform == 'bluebear':
     rds_dir = '/rds/projects/j/jenseno-avtemporal-attention'
@@ -105,14 +106,6 @@ if using_events_csv:
 else:
     events, events_id = mne.events_from_annotations(raw, event_id='auto')
 
-# just for oscar's
-# raw_list = list()
-# events_list = list()
-# events_list.append(events)
-# raw_ica, events = mne.concatenate_raws(raw_list, preload=True,
-#                                         events_list=events_list)
-# end of oscar's
-
 # Set the peak-peak amplitude threshold for trial rejection.
 """ subject to change based on data quality"""
 reject = dict(grad=5000e-13,  # T/m (gradiometers)
@@ -128,48 +121,49 @@ metadata, _, _ = mne.epochs.make_metadata(
 
 epochs = mne.Epochs(raw_ica, events, events_id,   # select events_picks and events_picks_id                   
                     metadata=metadata,            # if only interested in specific events (not all)
-                    tmin=-0.8, tmax=1.2,
+                    tmin=-0.5, tmax=1.2,
                     baseline=None, proj=True, picks='all', 
                     detrend=1, event_repeated='drop',
                     reject=reject, reject_by_annotation=True,
                     preload=True, verbose=True)
 
 # Defie epochs we care about
-conds_we_care_about = ["cue_onset_right", "cue_onset_left", "stim_onset", "response_press_onset"] # TODO:discuss with Ole
-epochs.equalize_event_counts(conds_we_care_about)  # this operates in-place
+#conds_we_care_about = ["cue_onset_right", "cue_onset_left", "stim_onset", "response_press_onset"] # TODO:discuss with Ole
+#epochs.equalize_event_counts(conds_we_care_about)  # this operates in-place
 
 # Save the epoched data 
+fig_bads = epochs.plot_drop_log()  # rejected epochs
 epochs.save(deriv_fname, overwrite=True)
 
-############################### Check-up plots ################################
-# Plotting to check the raw epoch
-epochs['cue_onset_left'].plot(events=events, event_id=events_id, n_epochs=10)  # shows all the events in the epoched data that's based on 'cue_onset_left'
-epochs['cue_onset_right'].plot(events=events, event_id=events_id, n_epochs=10) 
+if test_plot:
+    ############################### Check-up plots ################################
+    # Plotting to check the raw epoch
+    epochs['cue_onset_left'].plot(events=events, event_id=events_id, n_epochs=10)  # shows all the events in the epoched data that's based on 'cue_onset_left'
+    epochs['cue_onset_right'].plot(events=events, event_id=events_id, n_epochs=10) 
 
-# plot amplitude on heads
-times_to_topomap = [-.1, .1, .8, 1.1]
-epochs['cue_onset_left'].average(picks=['meg']).plot_topomap(times_to_topomap)  # title='cue onset left (0 sec)'
-epochs['cue_onset_right'].average(picks=['meg']).plot_topomap(times_to_topomap)  # title='cue onset right (0 sec)'
+    # plot amplitude on heads
+    times_to_topomap = [-.1, .1, .8, 1.1]
+    epochs['cue_onset_left'].average(picks=['meg']).plot_topomap(times_to_topomap)  # title='cue onset left (0 sec)'
+    epochs['cue_onset_right'].average(picks=['meg']).plot_topomap(times_to_topomap)  # title='cue onset right (0 sec)'
 
-# Topo plot evoked responses
-evoked_obj_topo_plot = [epochs['cue_onset_left'].average(picks=['grad']), epochs['cue_onset_right'].average(picks=['grad'])]
-mne.viz.plot_evoked_topo(evoked_obj_topo_plot, show=True)
+    # Topo plot evoked responses
+    evoked_obj_topo_plot = [epochs['cue_onset_left'].average(picks=['grad']), epochs['cue_onset_right'].average(picks=['grad'])]
+    mne.viz.plot_evoked_topo(evoked_obj_topo_plot, show=True)
 
-fig_bads = epochs.plot_drop_log()  # rejected epochs
-###############################################################################
+    ###############################################################################
 
-# Plots the average of one epoch type - pick best sensors for report
-epochs['cue_onset_left'].average(picks=['meg']).copy().filter(1,60).plot()
-epochs['cue_onset_right'].average(picks=['meg']).copy().filter(1,60).plot()
+    # Plots the average of one epoch type - pick best sensors for report
+    epochs['cue_onset_left'].average(picks=['meg']).copy().filter(1,60).plot()
+    epochs['cue_onset_right'].average(picks=['meg']).copy().filter(1,60).plot()
 
 # Plots to save
-fig_right = epochs['cue_onset_right'].copy().filter(0.0,30).crop(-.1,1.2).plot_image(
-    picks=['MEG1932'],vmin=-100,vmax=100)  # event related field image
-fig_left = epochs['cue_onset_left'].copy().filter(0.0,30).crop(-.1,1.2).plot_image(
-    picks=['MEG2332'],vmin=-100,vmax=100)  # event related field image
+fig_right = epochs['cue_onset_right'].copy().filter(0.0,30).crop(-.8,1.2).plot_image(
+    picks=['MEG1943'],vmin=-100,vmax=100)  # event related field image
+fig_left = epochs['cue_onset_left'].copy().filter(0.0,30).crop(-.8,1.2).plot_image(
+    picks=['MEG2322'],vmin=-100,vmax=100)  # event related field image
 
 if summary_rprt:
-    report_root = op.join(mTBI_root, r'results-outputs/mne-reports')  # RDS folder for reports
+    report_root = op.join(mTBI_root, 'results-outputs/mne-reports')  # RDS folder for reports
     
     if not op.exists(op.join(report_root , 'sub-' + subject, 'task-' + task)):
         os.makedirs(op.join(report_root , 'sub-' + subject, 'task-' + task))
