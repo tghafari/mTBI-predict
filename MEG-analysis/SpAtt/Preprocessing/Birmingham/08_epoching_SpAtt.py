@@ -26,6 +26,7 @@ import os
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+from auto_reject import get_rejection_threshold
 
 import mne
 from mne_bids import BIDSPath, read_raw_bids
@@ -106,26 +107,31 @@ if using_events_csv:
 else:
     events, events_id = mne.events_from_annotations(raw, event_id='auto')
 
+epochs = mne.Epochs(raw_ica, 
+                    events, 
+                    events_id,   # select events_picks and events_picks_id                   
+                    tmin=-0.5, 
+                    tmax=1.2,
+                    baseline=None, 
+                    proj=True, 
+                    picks='all', 
+                    detrend=1, 
+                    event_repeated='merge',
+                    reject=None,  # we'll reject after calculating the threshold
+                    reject_by_annotation=True,
+                    preload=True, 
+                    verbose=True)
+
 # Set the peak-peak amplitude threshold for trial rejection.
-""" subject to change based on data quality"""
-reject = dict(grad=5000e-13,  # T/m (gradiometers)
-              mag=5e-12,      # T (magnetometers)
-              #eog=150e-6      # V (EOG channels)
-              )
-
-# Make epochs (2 seconds centered on stim onset)
-metadata, _, _ = mne.epochs.make_metadata(
-                events=events, event_id=events_id, 
-                tmin=-1.5, tmax=1, 
-                sfreq=raw_ica.info['sfreq'])
-
-epochs = mne.Epochs(raw_ica, events, events_id,   # select events_picks and events_picks_id                   
-                    metadata=metadata,            # if only interested in specific events (not all)
-                    tmin=-0.5, tmax=1.2,
-                    baseline=None, proj=True, picks='all', 
-                    detrend=1, event_repeated='drop',
-                    reject=reject, reject_by_annotation=True,
-                    preload=True, verbose=True)
+""" subject to change based on data quality
+can be automatically detected: second option"""
+#reject = dict(grad=5000e-13,  # T/m (gradiometers)
+#              mag=5e-12,      # T (magnetometers)
+#              #eog=150e-6      # V (EOG channels)
+#              )
+reject = get_rejection_threshold(epochs, 
+                                 ch_types=['mag', 'grad'],
+                                 decim=10)
 
 # Defie epochs we care about
 #conds_we_care_about = ["cue_onset_right", "cue_onset_left", "stim_onset", "response_press_onset"] # TODO:discuss with Ole
