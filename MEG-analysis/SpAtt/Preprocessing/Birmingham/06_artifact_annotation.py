@@ -28,7 +28,6 @@ Contributions to community:
     
 Questions:
     1) why blink_onsets has -0.25?
-    2) what exactly is raw.first_time?
 
 """
 

@@ -122,16 +122,24 @@ tfr_slow_cue_left = mne.time_frequency.tfr_multitaper(epochs['cue_onset_left'],
                                                   )
 
 # Plot TFR on all sensors and check
-fig_plot_topo_right = tfr_slow_cue_right.plot_topo(tmin=-.5, tmax=1.0, 
-                        baseline=[-.5,-.3], mode='percent',
-                        fig_facecolor='w', font_color='k',
-                        vmin=-1, vmax=1, 
-                        title='TFR of power < 30Hz - cue right')
-fig_plot_topo_left = tfr_slow_cue_left.plot_topo(tmin=-.5, tmax=1.0,
-                         baseline=[-.5,-.3], mode='percent',
-                         fig_facecolor='w', font_color='k',
-                         vmin=-1, vmax=1, 
-                         title='TFR of power < 30Hz - cue left')
+fig_plot_topo_right = tfr_slow_cue_right.plot_topo(tmin=-.5, 
+                                                   tmax=.8, 
+                                                   baseline=[-.5,0], 
+                                                   mode='percent',
+                                                   fig_facecolor='w', 
+                                                   font_color='k',
+                                                   vmin=-1, 
+                                                   vmax=1, 
+                                                   title='TFR of power < 30Hz - cue right')
+fig_plot_topo_left = tfr_slow_cue_left.plot_topo(tmin=-.5, 
+                                                 tmax=.8,
+                                                 baseline=[-.5,0], 
+                                                 mode='percent',
+                                                 fig_facecolor='w', 
+                                                 font_color='k',
+                                                 vmin=-1, 
+                                                 vmax=1, 
+                                                 title='TFR of power < 30Hz - cue left')
 
 # ========================================= SECOND PLOT (REPRESENTATIVE SENSROS) ====================================
 # Plot TFR for representative sensors - same in all participants
@@ -140,16 +148,26 @@ sensors = ['MEG1733','MEG2133','MEG1943','MEG2533']
 
 for idx, sensor in enumerate(sensors):
     if idx < len(sensors)/2:
-        tfr_slow_cue_left.plot(picks=sensor, baseline=[-.5,-.2],
-                                mode='percent', tmin=-.5, tmax=1.0,
-                                vmin=-.75, vmax=.75,
-                                axes=axis[idx,0], show=False)
+        tfr_slow_cue_left.plot(picks=sensor, 
+                               baseline=[-.5,0],
+                               mode='percent', 
+                               tmin=-.5, 
+                               tmax=1.0,
+                               vmin=-.75, 
+                               vmax=.75,
+                               axes=axis[idx,0], 
+                               show=False)
         axis[idx, 0].set_title(f'cue left-{sensor}')        
     else:   
-        tfr_slow_cue_right.plot(picks=sensor, baseline=[-.5,-.2],
-                                mode='percent', tmin=-.5, tmax=1.0,
-                                vmin=-.75, vmax=.75, 
-                                axes=axis[idx-2,1], show=False)
+        tfr_slow_cue_right.plot(picks=sensor,
+                                baseline=[-.5,0],
+                                mode='percent', 
+                                tmin=-.5, 
+                                tmax=1.0,
+                                vmin=-.75, 
+                                vmax=.75, 
+                                axes=axis[idx-2,1], 
+                                show=False)
         axis[idx-2, 1].set_title(f'cue right-{sensor}') 
         
 axis[0, 0].set_ylabel('left sensors')  
@@ -172,8 +190,8 @@ occipital_picks =  [channel[-4:] for channel in occipital_picks]  # vectorview s
 occipital_channels = [channel for channel in epochs.pick(['grad']).ch_names if channel[-4:] in occipital_picks]
 
 # Crop post stim alpha
-tfr_slow_cue_right_post_stim = tfr_slow_cue_right.copy().crop(tmin=0.2,tmax=1.0,fmin=4, fmax=14).pick(occipital_channels)
-tfr_slow_cue_left_post_stim = tfr_slow_cue_left.copy().crop(tmin=0.2,tmax=1.0,fmin=4, fmax=14).pick(occipital_channels)
+tfr_slow_cue_right_post_stim = tfr_slow_cue_right.copy().crop(tmin=.2,tmax=.8,fmin=4, fmax=14).pick(occipital_channels)
+tfr_slow_cue_left_post_stim = tfr_slow_cue_left.copy().crop(tmin=.2,tmax=.8,fmin=4, fmax=14).pick(occipital_channels)
 
 # Find the frequency with the highest power by averaging over sensors and time points (data)
 freq_idx_right = np.argmax(np.mean(np.abs(tfr_slow_cue_right_post_stim.data), axis=(0,2)))
@@ -188,7 +206,7 @@ peak_alpha_freq_range = np.arange(peak_alpha_freq-2, peak_alpha_freq+3)  # for M
 np.savez(peak_alpha_fname, **{'peak_alpha_freq':peak_alpha_freq, 'peak_alpha_freq_range':peak_alpha_freq_range})
 
 # Plot psd and show the peak alpha frequency for this participant
-n_fft = 2000
+n_fft = int((epochs.tmax - epochs.tmin)*1000)
 psd_params = dict(picks=occipital_channels, method="welch", fmin=1, fmax=60, n_jobs=4, verbose=True, n_fft=n_fft, n_overlap=int(n_fft/2))
 psd_slow_right_post_stim = epochs['cue_onset_right','cue_onset_left'].copy().compute_psd(**psd_params)
 
@@ -215,11 +233,15 @@ ax.fill_betweenx([ymin, ymax],
                   peak_alpha_freq_range[-1], 
                   color='lightgray', 
                   alpha=0.5)
-ax.text(np.max(freqs)-5, np.min(psds_mean)*3, f'PAF = {peak_alpha_freq} Hz', 
-         color='black', ha='right', va='bottom')
+ax.text(np.max(freqs)-5, 
+        np.min(psds_mean)*3, 
+        f'PAF = {peak_alpha_freq} Hz', 
+        color='black', 
+        ha='right', 
+        va='bottom')
 plt.xlabel('Frequency (Hz)')
 plt.ylabel('Power (T/m)^2/Hz')
-plt.title('PSDs- Welch method (n_fft=2000)')
+plt.title(f'PSDs- PAF = {peak_alpha_freq} Hz')
 
 plt.grid(True)
 fig_peak_alpha = plt.gcf()
@@ -229,8 +251,8 @@ plt.show()
 # Plot post cue peak alpha range topographically
 topomap_params = dict(fmin=peak_alpha_freq_range[0], 
                       fmax=peak_alpha_freq_range[-1],
-                      tmin=0.2,
-                      tmax=1.0,
+                      tmin=.2,
+                      tmax=.8,
                       vlim=(-.5,.5),
                       baseline=(-.5, -.3), 
                       mode='percent', 
@@ -271,8 +293,8 @@ tfr_left_alpha_all_sens = mne.time_frequency.tfr_multitaper(epochs['cue_onset_le
                                                   )   
 
 # Crop tfrs to post-stim alpha and right sensors
-tfr_right_post_stim_alpha_right_sens = tfr_right_alpha_all_sens.copy().pick(right_sensors).crop(tmin=0.2, tmax=1.0)
-tfr_left_post_stim_alpha_right_sens = tfr_left_alpha_all_sens.copy().pick(right_sensors).crop(tmin=0.2, tmax=1.0)
+tfr_right_post_stim_alpha_right_sens = tfr_right_alpha_all_sens.copy().pick(right_sensors).crop(tmin=.2, tmax=.8)
+tfr_left_post_stim_alpha_right_sens = tfr_left_alpha_all_sens.copy().pick(right_sensors).crop(tmin=.2, tmax=.8)
 
 # Calculate power modulation for attention right and left (always R- L)
 tfr_alpha_MI_right_sens = tfr_right_post_stim_alpha_right_sens.copy()
@@ -299,8 +321,8 @@ ROI_symmetric.to_csv(ROI_fname, index=False)
 ROI_left_sens = ROI_symmetric['left_sensors'].to_list()
 
 # Calculate MI for right ROI for later plotting
-tfr_right_post_stim_alpha_right_ROI_sens = tfr_right_alpha_all_sens.copy().pick(ROI_right_sens).crop(tmin=0.2, tmax=1.0)
-tfr_left_post_stim_alpha_right_ROI_sens = tfr_left_alpha_all_sens.copy().pick(ROI_right_sens).crop(tmin=0.2, tmax=1.0)
+tfr_right_post_stim_alpha_right_ROI_sens = tfr_right_alpha_all_sens.copy().pick(ROI_right_sens).crop(tmin=0.2, tmax=.8)
+tfr_left_post_stim_alpha_right_ROI_sens = tfr_left_alpha_all_sens.copy().pick(ROI_right_sens).crop(tmin=0.2, tmax=.8)
 
 tfr_alpha_MI_right_ROI = tfr_right_post_stim_alpha_right_ROI_sens.copy()
 tfr_alpha_MI_right_ROI.data = (tfr_right_post_stim_alpha_right_ROI_sens.data - tfr_left_post_stim_alpha_right_ROI_sens.data) \
@@ -308,8 +330,8 @@ tfr_alpha_MI_right_ROI.data = (tfr_right_post_stim_alpha_right_ROI_sens.data - t
 
 # ========================================= LEFT SENSORS and ROI ON TOPOMAP (FIFTH PLOT) =======================================
 # Crop tfrs to post-stim alpha and right sensors
-tfr_right_post_stim_alpha_left_ROI_sens = tfr_right_alpha_all_sens.copy().pick(ROI_left_sens).crop(tmin=0.2, tmax=1.0)
-tfr_left_post_stim_alpha_left_ROI_sens = tfr_left_alpha_all_sens.copy().pick(ROI_left_sens).crop(tmin=0.2, tmax=1.0)
+tfr_right_post_stim_alpha_left_ROI_sens = tfr_right_alpha_all_sens.copy().pick(ROI_left_sens).crop(tmin=0.2, tmax=.8)
+tfr_left_post_stim_alpha_left_ROI_sens = tfr_left_alpha_all_sens.copy().pick(ROI_left_sens).crop(tmin=0.2, tmax=.8)
 
 # Calculate power modulation for attention right and left (always R- L)
 tfr_alpha_MI_left_ROI = tfr_left_post_stim_alpha_left_ROI_sens.copy()
@@ -332,7 +354,8 @@ sensors = np.concatenate((ROI_symmetric['right_sensors'].values,
                           ROI_symmetric['left_sensors'].values), axis=0)
 
 fig, ax = plt.subplots()
-fig_mi = tfr_alpha_modulation_power.plot_topomap(tmin=.2, tmax=1.0, 
+fig_mi = tfr_alpha_modulation_power.plot_topomap(tmin=.2, 
+                                                 tmax=.8, 
                                                  fmin=peak_alpha_freq_range[0],
                                                  fmax=peak_alpha_freq_range[1],
                                                  vlim=(-.2,.2),
@@ -400,19 +423,19 @@ if summary_rprt:
     report_folder = op.join(report_root , 'sub-' + subject, 'task-' + task)
 
     report_fname = op.join(report_folder, 
-                        f'mneReport_sub-{subject}_{task}_1.hdf5')    # it is in .hdf5 for later adding images
-    html_report_fname = op.join(report_folder, f'report_preproc_{task}_1.html')
+                        f'mneReport_sub-{subject}_{task}.hdf5')    # it is in .hdf5 for later adding images
+    html_report_fname = op.join(report_folder, f'report_preproc_{task}.html')
 
     report = mne.open_report(report_fname)
     report.add_figure(fig=fig_plot_topo_right, title='TFR of power < 30Hz - cue right',
                     caption='Time Frequency Representation for \
-                    cue right', 
+                    cue right- -0.5 to 0.8- baseline corrected', 
                     tags=('tfr'),
                     section='TFR'  # only in ver 1.1
                     )
     report.add_figure(fig=fig_plot_topo_left, title='TFR of power < 30Hz - cue left',
                     caption='Time Frequency Representation for \
-                        cue left', 
+                        cue left- -0.5 to 0.8- baseline corrected', 
                     tags=('tfr'),
                     section='TFR'  # only in ver 1.1
                     )
@@ -429,14 +452,14 @@ if summary_rprt:
                      section='TFR'  # only in ver 1.1
                      )
     report.add_figure(fig=fig_topo, title='post stim alpha',
-                     caption='PAF range (grad), 0.2-1.0sec, \
+                     caption='PAF range (grad), 0.2-0.8sec, \
                         baseline corrected', 
                      tags=('tfr'),
                      section='TFR'  # only in ver 1.1
                      )   
     report.add_figure(fig=fig_mi, title='MI and ROI',
                      caption='MI on PAF range and \
-                        ROI sensors (grads - 0.2 to 1.0 sec)', 
+                        ROI sensors (grads - 0.2 to 0.8 sec)', 
                      tags=('ali'),
                      section='ALI'  
                      )  

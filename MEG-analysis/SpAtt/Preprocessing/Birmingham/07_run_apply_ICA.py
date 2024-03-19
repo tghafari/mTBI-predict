@@ -81,8 +81,6 @@ raw_resmpld = raw_ann.copy().pick(["meg", "eog", "ecg"])
 raw_resmpld.resample(200)
 raw_resmpld.filter(1, 40)
 
-# raw_resmpld = mne.io.concatenate_raws([raw1_resmpld, raw2_resmpld])  # for data that are saved into two files
-
 # Apply ICA and identify artifact components
 ica = ICA(method='fastica', random_state=97, n_components=30, verbose=True)
 ica.fit(raw_resmpld, verbose=True)

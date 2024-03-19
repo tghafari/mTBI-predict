@@ -69,12 +69,12 @@ epochs = mne.read_epochs(input_fname, verbose=True, preload=True)
 if test_plot:
     # ==================================== RIGHT LEFT SEPARATELY ==============================================
     # Make evoked data for conditions of interest and save
-    evoked_right = epochs['cue_onset_right'].copy().average(method='mean').filter(0.0,50).crop(-.2,.8)  # the cues are fliped for P103
-    evoked_left = epochs['cue_onset_left'].copy().average(method='mean').filter(0.0,50).crop(-.2,.8)
+    evoked_right = epochs['cue_onset_right'].copy().average(method='mean').filter(0.0,60).crop(-.2,.8)  # the cues are fliped for P103
+    evoked_left = epochs['cue_onset_left'].copy().average(method='mean').filter(0.0,60).crop(-.2,.8)
     evokeds = [evoked_right, evoked_left]
 
     # Plot evoked data
-    epochs['cue_onset_right'].copy().filter(0.0,30).crop(-.2,.5).plot_image(picks=['MEG1932'],
+    epochs['cue_onset_right'].copy().filter(0.0,30).crop(-.2,.8).plot_image(picks=['MEG1932'],
                                                                             vmin=-200, vmax=200)
     evoked_right.copy().apply_baseline(baseline=(-.2,0))
     evoked_right.copy().pick('mag').plot_topo(title='Magnetometers')

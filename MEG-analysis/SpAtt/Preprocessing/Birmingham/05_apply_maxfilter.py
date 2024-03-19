@@ -57,7 +57,7 @@ elif platform == 'mac':
 
 
 # Specify specific file names
-mTBI_root = op.join(rds_dir, r'Projects/mTBI-predict')
+mTBI_root = op.join(rds_dir, 'Projects/mTBI-predict')
 bids_root = op.join(mTBI_root, 'collected-data', 'BIDS', 'task_BIDS')  # RDS folder for bids formatted data
 bids_path = BIDSPath(subject=subject, session=session,
                      task=task, run=run, root=bids_root, datatype='meg',
@@ -121,13 +121,11 @@ if not tsss:  # which maxwell filtering to use? sss or tsss
     # Apply the Maxfilter with fine calibration and cross-talk reduction (SSS)
     raw_sss = preproc.maxwell_filter(raw, cross_talk=crosstalk_file,
                                      calibration=calibration_file, verbose=True)
-    raw_sss.save(deriv_fname, overwrite=True)
     
 elif tsss:  
     # Apply Spatiotemporal SSS by passing st_duration to maxwell_filter
     raw_sss = preproc.maxwell_filter(raw, cross_talk=crosstalk_file, st_duration=20,
                                      calibration=calibration_file, verbose=True)
-    raw_sss.save(deriv_fname, overwrite=True)
 
 if test_plot:
     # Plot power spectra of raw data and after maxwell filterting for comparison
@@ -183,6 +181,10 @@ plt.annotate(f'Std deviation of movement: {head_pos_std_cmbnd_three_planes:.2f}'
 fig_head_pos = plt.gcf()
 # Show the plot
 plt.show()
+
+# Remove cHPI frequencies and save sss/tsss file
+raw_sss_filtered = mne.chpi.filter_chpi(raw_sss, include_line=False)
+raw_sss_filtered.save(deriv_fname, overwrite=True)
 
 if summary_rprt:
     report_root = op.join(mTBI_root, 'results-outputs/mne-reports')  # RDS folder for reports

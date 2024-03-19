@@ -21,7 +21,7 @@ from mne_bids import BIDSPath, read_raw_bids
 # fill these out
 site = 'Birmingham'
 subject = '2002'  # subject code in mTBI project
-session = '01B'  # data collection session within each run
+session = '04B'  # data collection session within each run
 run = '01'  # data collection run for each participant
 meg_suffix = 'meg'
 task = 'SpAtt'
@@ -59,7 +59,7 @@ raw.copy().crop(tmax=180).pick(["meg", "stim"]).filter(l_freq=0.1, h_freq=80).pl
 
 # Raw file report with all chanels
 if summary_rprt:
-    report_root = op.join(mTBI_root, r'results-outputs/mne-reports')  # RDS folder for reports
+    report_root = op.join(mTBI_root, 'results-outputs/mne-reports')  # RDS folder for reports
     if not op.exists(op.join(report_root , 'sub-' + subject, 'task-' + task)):
         os.makedirs(op.join(report_root , 'sub-' + subject, 'task-' + task))
     report_folder = op.join(report_root , 'sub-' + subject, 'task-' + task)

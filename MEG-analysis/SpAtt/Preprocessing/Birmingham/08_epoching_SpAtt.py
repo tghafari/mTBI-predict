@@ -26,7 +26,7 @@ import os
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-from auto_reject import get_rejection_threshold
+from autoreject import get_rejection_threshold
 
 import mne
 from mne_bids import BIDSPath, read_raw_bids
@@ -45,7 +45,7 @@ deriv_suffix = 'epo'
 using_events_csv = False  # for when we are not using events_from_annotation. default is False
 summary_rprt = True  # do you want to add evokeds figures to the summary report?
 platform = 'mac'  # are you using 'bluebear', 'mac', or 'windows'?
-test_plot = False  # do you want to plot the data to test (True) or just generate report (False)?
+test_plot = True  # do you want to plot the data to test (True) or just generate report (False)?
 
 if platform == 'bluebear':
     rds_dir = '/rds/projects/j/jenseno-avtemporal-attention'
@@ -59,7 +59,7 @@ elif platform == 'mac':
 
 
 # Specify specific file names
-mTBI_root = op.join(rds_dir, r'Projects/mTBI-predict')
+mTBI_root = op.join(rds_dir, 'Projects/mTBI-predict')
 bids_root = op.join(mTBI_root, 'collected-data', 'BIDS', 'task_BIDS')  # RDS folder for bids formatted data
 bids_path = BIDSPath(subject=subject, session=session,
                      task=task, run=run, root=bids_root, 
@@ -67,7 +67,6 @@ bids_path = BIDSPath(subject=subject, session=session,
 
 raw = read_raw_bids(bids_path=bids_path, verbose=False, 
                      extra_params={'preload':True})  # read raw for events and event ids only
-
 deriv_folder = op.join(bids_root, 'derivatives', 'sub-' + subject, 
                        'task-' + task)  # RDS folder for results
 bids_fname = bids_path.basename.replace(meg_suffix, input_suffix)  # only used for suffices that are not recognizable to bids 
@@ -132,6 +131,11 @@ can be automatically detected: second option"""
 reject = get_rejection_threshold(epochs, 
                                  ch_types=['mag', 'grad'],
                                  decim=10)
+
+# Drop bad epochs based on peak-to-peak magnitude
+print(f"\n\n Numer of epochs BEFORE rejection: {len(epochs.events)} \n\n")
+epochs.drop_bad(reject=reject)
+print(f"\n\n Numer of epochs AFTER rejection: {len(epochs.events)} \n\n")
 
 # Defie epochs we care about
 #conds_we_care_about = ["cue_onset_right", "cue_onset_left", "stim_onset", "response_press_onset"] # TODO:discuss with Ole
