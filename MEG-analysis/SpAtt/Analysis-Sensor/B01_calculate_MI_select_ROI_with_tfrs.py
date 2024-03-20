@@ -40,8 +40,8 @@ import mne
 from mne_bids import BIDSPath
 
 site = 'Birmingham'
-subject = '2004'  # subject code in mTBI project
-session = '01B'  # data collection session within each run
+subject = '2005'  # subject code in mTBI project
+session = '04B'  # data collection session within each run
 run = '01'  # data collection run for each participant
 task = 'SpAtt'
 meg_extension = '.fif'
@@ -85,7 +85,7 @@ ROI_MI_ALI_html =  op.join(ROI_dir, f'sub-{subject}_ROI_MI_ALI.html')
 peak_alpha_fname = op.join(ROI_dir, f'sub-{subject}_peak_alpha.npz')  # 2 numpy arrays saved into an uncompressed file
 # Read sensor layout sheet from camcan RDS
 """these variables are in correct right-and-left-corresponding-sensors order"""
-sensors_layout_sheet = op.join(camcan_dir, 'sensor_layout_name_grad_no_central.csv')
+sensors_layout_sheet = op.join(mTBI_root, 'results-outputs/sensor_layout_name_grad_no_central.csv')
 sensors_layout_names_df = pd.read_csv(sensors_layout_sheet)
 
 right_sensors = [ch[1:8] for ch in sensors_layout_names_df['right_sensors']]
@@ -382,7 +382,8 @@ axs[0].fill_between(tfr_alpha_MI_left_ROI.times,
 axs[0].set_title('MI on left ROI')
 axs[0].set_xlabel('Time (s)')
 axs[0].set_ylabel('Average MI (PAF)')
-axs[0].set_ylim(-.4,.25)
+axs[0].set_ylim(min(tfr_alpha_MI_left_ROI.data.mean(axis=(0, 1))) - 0.3, 
+                    max(tfr_alpha_MI_left_ROI.data.mean(axis=(0, 1))) + 0.3)
 axs[0].legend()
 
 # Plot average power and std for tfr_alpha_MI_right_ROI
@@ -394,7 +395,8 @@ axs[1].fill_between(tfr_alpha_MI_right_ROI.times,
 axs[1].set_title('MI on right ROI')
 axs[1].set_xlabel('Time (s)')
 axs[1].set_ylabel('Average MI (PAF)')
-axs[1].set_ylim(-.4,.25)
+axs[0].set_ylim(min(tfr_alpha_MI_right_ROI.data.mean(axis=(0, 1))) - 0.3, 
+                    max(tfr_alpha_MI_right_ROI.data.mean(axis=(0, 1))) + 0.3)
 axs[1].legend()
 
 # Adjust layout

@@ -33,8 +33,8 @@ from mne_bids import BIDSPath, read_raw_bids
 
 # fill these out
 site = 'Birmingham'
-subject = '2004'  # subject code in mTBI project
-session = '03B'  # data collection session within each run
+subject = '2005'  # subject code in mTBI project
+session = '04B'  # data collection session within each run
 run = '01'  # data collection run for each participant
 task = 'SpAtt'
 meg_extension = '.fif'

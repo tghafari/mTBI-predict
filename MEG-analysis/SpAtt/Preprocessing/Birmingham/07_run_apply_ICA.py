@@ -33,8 +33,8 @@ from mne_bids import BIDSPath
 
 # fill these out
 site = 'Birmingham'
-subject = '2004'  # subject code in mTBI project
-session = '03B'  # data collection session within each run
+subject = '2005'  # subject code in mTBI project
+session = '04B'  # data collection session within each run
 run = '01'  # data collection run for each participant
 task = 'SpAtt'
 meg_extension = '.fif'
@@ -90,12 +90,14 @@ ica.plot_components()
 #scores = ica.score_sources(raw_resmpld, target='EOG002', score_func='pearsonr')  # helps finding the saccade component
 #ica.plot_scores(scores)
 
-ICA_rej_dic = {f'sub-{subject}_ses-{session}':[0, 1, 2, 3]} # manually selected bad ICs or from sub config file 
+ICA_rej_dic = {f'sub-{subject}_ses-{session}':[0, 2]} # manually selected bad ICs or from sub config file 
 """200102B: [3, 13]
 200204B: [1,11]
 200302B: [7,9]
 200401B: [1]
-200403B: [0, 1, 2, 3]"""
+200403B: [0, 1, 2, 3]
+200404B: [0]
+200504B: [0, 2]"""
 artifact_ICs = ICA_rej_dic[f'sub-{subject}_ses-{session}']
 
 if test_plot:
@@ -125,7 +127,7 @@ if test_plot:
     raw_ica.plot(order=ch_idx, duration=5, title='after')
 
 # only add excluded components to the report
-fig_ica = ica.plot_components(picks=artifact_ICs, title='removed components')
+fig_ica = ica.plot_components(picks=artifact_ICs, title='removed components', show=False)
 
 # Filter data for the report
 if summary_rprt:
@@ -140,13 +142,12 @@ if summary_rprt:
     html_report_fname = op.join(report_folder, f'report_preproc_{session}_{task}_1.html')
     
     report = mne.open_report(report_fname)
-    report.add_figure(fig_ica, title="removed ICA components (eog only)",
+    report.add_figure(fig_ica, title="removed ICA components (eog, ecg)",
                       tags=('ica'), image_format="PNG")
     report.add_raw(raw=raw_ica.filter(0, 60), title='raw after ICA', 
                    psd=True, butterfly=False, tags=('ica'))
     report.save(report_fname, overwrite=True)
     report.save(html_report_fname, overwrite=True, open_browser=True)  # to check how the report looks
-
 
 
 

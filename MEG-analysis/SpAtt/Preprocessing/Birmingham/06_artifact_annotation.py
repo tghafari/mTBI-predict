@@ -40,8 +40,8 @@ from mne_bids import BIDSPath
 
 # fill these out
 site = 'Birmingham'
-subject = '2004'  # subject code in mTBI project
-session = '03B'  # data collection session within each run
+subject = '2005'  # subject code in mTBI project
+session = '04B'  # data collection session within each run
 run = '01'  # data collection run for each participant
 pilot = 'P' # is the data collected 'P'ilot or 'T'ask?
 task = 'SpAtt'
@@ -51,7 +51,7 @@ input_suffix = 'raw_sss'
 deriv_suffix = 'ann'
 
 remove_line_noise = False
-platform = 'mac'  # are you using 'bluebear', 'mac', or 'windows'?
+platform = 'bluebear'  # are you using 'bluebear', 'mac', or 'windows'?
 
 if platform == 'bluebear':
     rds_dir = '/rds/projects/j/jenseno-avtemporal-attention'
