@@ -40,8 +40,8 @@ import mne
 from mne_bids import BIDSPath
 
 site = 'Birmingham'
-subject = '2001'  # subject code in mTBI project
-session = '02B'  # data collection session within each run
+subject = '2004'  # subject code in mTBI project
+session = '01B'  # data collection session within each run
 run = '01'  # data collection run for each participant
 task = 'SpAtt'
 meg_extension = '.fif'
@@ -420,11 +420,13 @@ with open(ROI_MI_ALI_html, 'r') as f:
 
 if summary_rprt:
     report_root = op.join(mTBI_root, 'results-outputs/mne-reports')  # RDS folder for reports
-    report_folder = op.join(report_root , 'sub-' + subject, 'task-' + task)
+    if not op.exists(op.join(report_root , 'sub-' + subject, 'ses-' + session, 'task-' + task)):
+        os.makedirs(op.join(report_root , 'sub-' + subject, 'ses-' + session, 'task-' + task))
+    report_folder = op.join(report_root , 'sub-' + subject, 'ses-' + session, 'task-' + task)
 
     report_fname = op.join(report_folder, 
-                        f'mneReport_sub-{subject}_{task}.hdf5')    # it is in .hdf5 for later adding images
-    html_report_fname = op.join(report_folder, f'report_preproc_{task}.html')
+                        f'mneReport_sub-{subject}_{session}_{task}_1.hdf5')    # it is in .hdf5 for later adding images
+    html_report_fname = op.join(report_folder, f'report_preproc_{session}_{task}_1.html')
 
     report = mne.open_report(report_fname)
     report.add_figure(fig=fig_plot_topo_right, title='TFR of power < 30Hz - cue right',

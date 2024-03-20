@@ -31,7 +31,7 @@ import mne.preprocessing as preproc
 
 # fill these out
 site = 'Birmingham'
-subject = '2002'  # subject code in mTBI project
+subject = '2005'  # subject code in mTBI project
 session = '04B'  # data collection session within each run
 run = '01'  # data collection run for each participant
 task = 'SpAtt'
@@ -93,7 +93,7 @@ if run == '02':
 else:
    raw = read_raw_bids(bids_path=bids_path, extra_params={'preload':True},
                            verbose=True)
-   
+
 # Identify and show faulty sensors using max filtering 
 """to identify bad channels it is best to use concatenated files (in case of
 multiple meg files) and then run the maxfilter for files separately (works
@@ -183,29 +183,28 @@ fig_head_pos = plt.gcf()
 plt.show()
 
 # Remove cHPI frequencies and save sss/tsss file
-raw_sss_filtered = mne.chpi.filter_chpi(raw_sss, include_line=False)
+raw_sss_filtered = raw_sss.copy().filter(0.3,100)  
 raw_sss_filtered.save(deriv_fname, overwrite=True)
 
 if summary_rprt:
     report_root = op.join(mTBI_root, 'results-outputs/mne-reports')  # RDS folder for reports
    
-    if not op.exists(op.join(report_root , 'sub-' + subject, 'task-' + task)):
-        os.makedirs(op.join(report_root , 'sub-' + subject, 'task-' + task))
-    report_folder = op.join(report_root , 'sub-' + subject, 'task-' + task)
+    if not op.exists(op.join(report_root , 'sub-' + subject, 'ses-' + session, 'task-' + task)):
+        os.makedirs(op.join(report_root , 'sub-' + subject, 'ses-' + session, 'task-' + task))
+    report_folder = op.join(report_root , 'sub-' + subject, 'ses-' + session, 'task-' + task)
 
     report_fname = op.join(report_folder, 
-                        f'mneReport_sub-{subject}_{task}.hdf5')    # it is in .hdf5 for later adding images
-    html_report_fname = op.join(report_folder, f'report_preproc_{task}.html')
+                        f'mneReport_sub-{subject}_{session}_{task}_1.hdf5')    # it is in .hdf5 for later adding images
+    html_report_fname = op.join(report_folder, f'report_preproc_{session}_{task}_1.html')
     
-    # Filter data for the report
-    raw_sss.filter(0,60)
-    raw.filter(0,60)
+    # Filter raw data to become similar to sss for the report
+    raw.filter(0.3,100)
 
     # Create the report for the first time
     report = mne.Report(title=f'Subject n.{subject}- {task}')
     report.add_raw(raw=raw, title='Raw <60Hz', 
                     psd=True, butterfly=False, tags=('raw'))
-    report.add_raw(raw=raw_sss, title='Max filter (sss) <60Hz', 
+    report.add_raw(raw=raw_sss_filtered, title='Max filter (sss) <60Hz', 
                     psd=True, butterfly=False, tags=('MaxFilter'))
     report.add_figure(fig_head_pos, title="head position over time",
                         tags=('cHPI'), image_format="PNG")

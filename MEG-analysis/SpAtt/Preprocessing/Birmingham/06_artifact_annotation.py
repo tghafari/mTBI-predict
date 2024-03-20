@@ -40,8 +40,8 @@ from mne_bids import BIDSPath
 
 # fill these out
 site = 'Birmingham'
-subject = '2002'  # subject code in mTBI project
-session = '04B'  # data collection session within each run
+subject = '2004'  # subject code in mTBI project
+session = '03B'  # data collection session within each run
 run = '01'  # data collection run for each participant
 pilot = 'P' # is the data collected 'P'ilot or 'T'ask?
 task = 'SpAtt'
@@ -65,7 +65,7 @@ elif platform == 'mac':
 
 
 # Specify specific file names
-mTBI_root = op.join(rds_dir, r'Projects/mTBI-predict')
+mTBI_root = op.join(rds_dir, 'Projects/mTBI-predict')
 bids_root = op.join(mTBI_root, 'collected-data', 'BIDS', 'task_BIDS')  # RDS folder for bids formatted data
 bids_path = BIDSPath(subject=subject, session=session,
                      task=task, run=run, root=bids_root, 
@@ -78,13 +78,6 @@ deriv_fname = str(input_fname).replace(input_suffix, deriv_suffix)
 
 # Read max filtered data 
 raw_sss = mne.io.read_raw_fif(input_fname, preload=True)  # read_raw_bids doesn't work on derivatives
-# raw_sss.crop(1,6)  # crop several minutes for faster processing (for code development only)
-
-# Remove power line noise
-if remove_line_noise:
-# meg_picks = mne.pick_types(raw_sss.info, meg=True)
-    power_freqs = (50, 100, 150)
-    raw_sss.notch_filter(freqs=power_freqs)
 
 # Identifying and annotating eye blinks using vEOG (EOG001)
 raw_sss.copy().pick_channels(ch_names=['EOG001','EOG002'   # vEOG, hEOG, EKG

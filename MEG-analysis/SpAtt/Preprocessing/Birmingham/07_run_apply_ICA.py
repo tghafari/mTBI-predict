@@ -33,8 +33,8 @@ from mne_bids import BIDSPath
 
 # fill these out
 site = 'Birmingham'
-subject = '2002'  # subject code in mTBI project
-session = '04B'  # data collection session within each run
+subject = '2004'  # subject code in mTBI project
+session = '03B'  # data collection session within each run
 run = '01'  # data collection run for each participant
 task = 'SpAtt'
 meg_extension = '.fif'
@@ -90,9 +90,12 @@ ica.plot_components()
 #scores = ica.score_sources(raw_resmpld, target='EOG002', score_func='pearsonr')  # helps finding the saccade component
 #ica.plot_scores(scores)
 
-ICA_rej_dic = {f'sub-{subject}_ses-{session}':[1,11]} # manually selected bad ICs or from sub config file 
+ICA_rej_dic = {f'sub-{subject}_ses-{session}':[0, 1, 2, 3]} # manually selected bad ICs or from sub config file 
 """200102B: [3, 13]
-200204B [1,11]:"""
+200204B: [1,11]
+200302B: [7,9]
+200401B: [1]
+200403B: [0, 1, 2, 3]"""
 artifact_ICs = ICA_rej_dic[f'sub-{subject}_ses-{session}']
 
 if test_plot:
@@ -128,16 +131,16 @@ fig_ica = ica.plot_components(picks=artifact_ICs, title='removed components')
 if summary_rprt:
     report_root = op.join(mTBI_root, 'results-outputs/mne-reports')  # RDS folder for reports
    
-    if not op.exists(op.join(report_root , 'sub-' + subject, 'task-' + task)):
-        os.makedirs(op.join(report_root , 'sub-' + subject, 'task-' + task))
-    report_folder = op.join(report_root , 'sub-' + subject, 'task-' + task)
+    if not op.exists(op.join(report_root , 'sub-' + subject, 'ses-' + session, 'task-' + task)):
+        os.makedirs(op.join(report_root , 'sub-' + subject, 'ses-' + session, 'task-' + task))
+    report_folder = op.join(report_root , 'sub-' + subject, 'ses-' + session, 'task-' + task)
 
     report_fname = op.join(report_folder, 
-                        f'mneReport_sub-{subject}_{task}_1.hdf5')    # it is in .hdf5 for later adding images
-    html_report_fname = op.join(report_folder, f'report_preproc_{task}_1.html')
+                        f'mneReport_sub-{subject}_{session}_{task}_1.hdf5')    # it is in .hdf5 for later adding images
+    html_report_fname = op.join(report_folder, f'report_preproc_{session}_{task}_1.html')
     
     report = mne.open_report(report_fname)
-    report.add_figure(fig_ica, title="removed ICA components (eog, ecg)",
+    report.add_figure(fig_ica, title="removed ICA components (eog only)",
                       tags=('ica'), image_format="PNG")
     report.add_raw(raw=raw_ica.filter(0, 60), title='raw after ICA', 
                    psd=True, butterfly=False, tags=('ica'))

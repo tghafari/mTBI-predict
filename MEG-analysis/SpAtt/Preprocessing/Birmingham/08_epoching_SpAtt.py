@@ -33,8 +33,8 @@ from mne_bids import BIDSPath, read_raw_bids
 
 # fill these out
 site = 'Birmingham'
-subject = '2002'  # subject code in mTBI project
-session = '04B'  # data collection session within each run
+subject = '2004'  # subject code in mTBI project
+session = '03B'  # data collection session within each run
 run = '01'  # data collection run for each participant
 task = 'SpAtt'
 meg_extension = '.fif'
@@ -45,7 +45,7 @@ deriv_suffix = 'epo'
 using_events_csv = False  # for when we are not using events_from_annotation. default is False
 summary_rprt = True  # do you want to add evokeds figures to the summary report?
 platform = 'mac'  # are you using 'bluebear', 'mac', or 'windows'?
-test_plot = True  # do you want to plot the data to test (True) or just generate report (False)?
+test_plot = False  # do you want to plot the data to test (True) or just generate report (False)?
 
 if platform == 'bluebear':
     rds_dir = '/rds/projects/j/jenseno-avtemporal-attention'
@@ -175,13 +175,13 @@ fig_left = epochs['cue_onset_left'].copy().filter(0.0,30).crop(-.8,1.2).plot_ima
 if summary_rprt:
     report_root = op.join(mTBI_root, 'results-outputs/mne-reports')  # RDS folder for reports
     
-    if not op.exists(op.join(report_root , 'sub-' + subject, 'task-' + task)):
-        os.makedirs(op.join(report_root , 'sub-' + subject, 'task-' + task))
-    report_folder = op.join(report_root , 'sub-' + subject, 'task-' + task)
+    if not op.exists(op.join(report_root , 'sub-' + subject, 'ses-' + session, 'task-' + task)):
+        os.makedirs(op.join(report_root , 'sub-' + subject, 'ses-' + session, 'task-' + task))
+    report_folder = op.join(report_root , 'sub-' + subject, 'ses-' + session, 'task-' + task)
 
     report_fname = op.join(report_folder, 
-        f'mneReport_sub-{subject}_{task}_1.hdf5')    # it is in .hdf5 for later adding images
-    html_report_fname = op.join(report_folder, f'report_preproc_{task}_1.html')
+                        f'mneReport_sub-{subject}_{session}_{task}_1.hdf5')    # it is in .hdf5 for later adding images
+    html_report_fname = op.join(report_folder, f'report_preproc_{session}_{task}_1.html')
 
     report = mne.open_report(report_fname)
 
