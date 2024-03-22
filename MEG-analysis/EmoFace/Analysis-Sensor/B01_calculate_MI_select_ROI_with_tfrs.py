@@ -109,14 +109,14 @@ time_bandwidth = 4.0  # '(2deltaTdeltaF) number of DPSS tapers to be used + 1.'
                       # 'it relates to the temporal (deltaT) and spectral (deltaF)' 
                       # 'smoothing'
                       # 'the more tapers, the more smooth'->useful for high freq data
-                    
+"""not needed for not                    
 tfr_fast_face_offset = mne.time_frequency.tfr_multitaper(epochs['face_onset'],  
                                                   freqs=freqs, 
                                                   n_cycles=n_cycles,
                                                   time_bandwidth=time_bandwidth, 
                                                   **tfr_params                                                  
                                                   )
-  
+"""
 # the two below are useless before re-epoching the raw data to contain post-stim signal data as well                          
 tfr_fast_emotional_face = mne.time_frequency.tfr_multitaper(face_epochs['face_emotional'],  
                                                   freqs=freqs, 
@@ -131,9 +131,9 @@ tfr_fast_neutral_face = mne.time_frequency.tfr_multitaper(face_epochs['face_neut
                                                   time_bandwidth=time_bandwidth, 
                                                   **tfr_params                                                  
                                                   )
-
+"""not needed for now
 # Plot TFR on all sensors and check
-fig_plot_topo_face_offset = tfr_fast_face_offset.plot_topo(tmin=-.65, tmax=.65, 
+fig_plot_topo_face_offset = tfr_fast_face_offset.plot_topo(tmin=-.3, tmax=.75, 
                         baseline=[-.5,-.3], 
                         mode='percent',
                         fig_facecolor='w', 
@@ -141,33 +141,32 @@ fig_plot_topo_face_offset = tfr_fast_face_offset.plot_topo(tmin=-.65, tmax=.65,
                         vmin=-.5, 
                         vmax=.5, 
                         title='TFR of power > 30Hz - face offset')
-
-   
+"""   
 # the two below are useless before re-epoching the raw data to contain post-stim signal data as well    
-fig_plot_topo_emotional = tfr_fast_emotional_face.plot_topo(tmin=-.65, tmax=.65, 
-                            baseline=[-.5,-.3], 
+fig_plot_topo_emotional = tfr_fast_emotional_face.plot_topo(tmin=-.3, tmax=.75, 
+                            baseline=[-.3,0], 
                             mode='percent',
                             fig_facecolor='w', 
                             font_color='k',
-                            vmin=-1, 
-                            vmax=1, 
+                            vmin=-.5, 
+                            vmax=.5, 
                             title='TFR of power > 30Hz - emotional face onset')
-fig_plot_topo_neutral = tfr_fast_neutral_face.plot_topo(tmin=-.65, tmax=.65,
-                            baseline=[-.5,-.3], 
+fig_plot_topo_neutral = tfr_fast_neutral_face.plot_topo(tmin=-.3, tmax=.75,
+                            baseline=[-.3,0], 
                             mode='percent',
                             fig_facecolor='w', 
                             font_color='k',
-                            vmin=-1, 
-                            vmax=1, 
+                            vmin=-.5, 
+                            vmax=.5, 
                             title='TFR of power > 30Hz - neutral face onset')
    
 
 # ========================================= SECOND PLOT (REPRESENTATIVE SENSROS) ====================================
 # Plot TFR for representative sensors - same in all participants
 fig_tfr, axis = plt.subplots(2, 2, figsize = (7, 7))
-sensors = ['MEG1923','MEG1913','MEG2343','MEG2313']
+sensors = ['MEG1913','MEG2313', 'MEG1913','MEG2313']
 axis_idx = [(0,0),(1,0),(0,1),(1,1)]
-
+"""not needed for now
 for idx, sensor in enumerate(sensors):   
     tfr_fast_face_offset.plot(picks=sensor, 
                                 baseline=[-.65,-.2],
@@ -182,7 +181,42 @@ for idx, sensor in enumerate(sensors):
 
 fig_tfr.set_tight_layout(True)
 plt.show()      
+"""
 
+for idx, sensor in enumerate(sensors):
+    if idx < len(sensors)/2:
+        tfr_fast_neutral_face.plot(picks=sensor, 
+                               baseline=[-.3,0],
+                               mode='percent', 
+                               tmin=-.3, 
+                               tmax=.75,
+                               vmin=-.5, 
+                               vmax=.5,
+                               axes=axis[idx,0], 
+                               show=False)
+        axis[0, idx].set_title(f'neutral-{sensor}')        
+    else:   
+        tfr_fast_emotional_face.plot(picks=sensor,
+                                baseline=[-.5,0],
+                                mode='percent', 
+                                tmin=-.3, 
+                                tmax=.75,
+                                vmin=-.5, 
+                                vmax=.5, 
+                                axes=axis[idx-2,1], 
+                                show=False)
+        axis[1, idx-2].set_title(f'emotional-{sensor}') 
+        
+axis[0, 0].set_ylabel('left sensors')  
+axis[1, 0].set_ylabel('right sensors')  
+axis[0, 1].set_ylabel('left sensors')  
+axis[1, 1].set_ylabel('right sensors')
+axis[0, 0].set_xlabel('')  # Remove x-axis label for top plots
+axis[0, 1].set_xlabel('')
+
+
+fig_tfr.set_tight_layout(True)
+plt.show()      
 
 # ========================================= TOPOGRAPHIC MAPS AND THIRD PLOT ============================================
 # Plot post cue peak alpha range topographically
@@ -190,16 +224,22 @@ topomap_params = dict(fmin=freqs[0],
                       fmax=freqs[-1],
                       tmin=0,
                       tmax=.4,
-                      vlim=(-.05,.05),
-                      baseline=(-.5, -.3), 
+                      #vlim=(-.05,.05),
+                      baseline=(-.3, 0), 
                       mode='percent', 
                       ch_type='grad',)
 
 fig_topo, axis = plt.subplots(figsize=(7, 4))
-tfr_fast_face_offset.plot_topomap(**topomap_params,
+tfr_fast_emotional_face.plot_topomap(**topomap_params,
                            show=False)
 fig_topo = plt.gcf()
-fig_topo.suptitle("Post stim gamma (30-100Hz)")
+fig_topo.suptitle("Post stim gamma (30-100Hz)-emotional")
+
+fig_topo, axis = plt.subplots(figsize=(7, 4))
+tfr_fast_neutral_face.plot_topomap(**topomap_params,
+                           show=False)
+fig_topo = plt.gcf()
+fig_topo.suptitle("Post stim gamma (30-100Hz)-neutral")
 #fig_topo.set_tight_layout(True)
 plt.show()
 
