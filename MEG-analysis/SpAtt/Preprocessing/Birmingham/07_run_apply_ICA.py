@@ -33,8 +33,8 @@ from mne_bids import BIDSPath
 
 # fill these out
 site = 'Birmingham'
-subject = '2005'  # subject code in mTBI project
-session = '04B'  # data collection session within each run
+subject = '2010'  # subject code in mTBI project
+session = '05B'  # data collection session within each run
 run = '01'  # data collection run for each participant
 task = 'SpAtt'
 meg_extension = '.fif'
@@ -90,14 +90,18 @@ ica.plot_components()
 #scores = ica.score_sources(raw_resmpld, target='EOG002', score_func='pearsonr')  # helps finding the saccade component
 #ica.plot_scores(scores)
 
-ICA_rej_dic = {f'sub-{subject}_ses-{session}':[0, 2]} # manually selected bad ICs or from sub config file 
+ICA_rej_dic = {f'sub-{subject}_ses-{session}':[1, 2]} # manually selected bad ICs or from sub config file 
 """200102B: [3, 13]
-200204B: [1,11]
-200302B: [7,9]
+200204B: [1, 11]
+200302B: [7, 9]
 200401B: [1]
 200403B: [0, 1, 2, 3]
 200404B: [0]
-200504B: [0, 2]"""
+200504B: [0, 2]
+200605B: [1, 5]
+200705B: [0, 9]
+200802B: [0, 1]
+201005B: [1, 2]"""
 artifact_ICs = ICA_rej_dic[f'sub-{subject}_ses-{session}']
 
 if test_plot:

@@ -35,6 +35,7 @@ deriv_suffix = 'evo'
 
 summary_rprt = True  # do you want to add evokeds figures to the summary report?
 platform = 'mac'  # are you using 'bluebear', 'mac', or 'windows'?
+test_plot = False  # do you want to plot the data to test (True) or just generate report (False)?
 
 if platform == 'bluebear':
     rds_dir = '/rds/projects/j/jenseno-avtemporal-attention'
@@ -48,7 +49,7 @@ elif platform == 'mac':
 
 
 # Specify specific file names
-mTBI_root = op.join(rds_dir, r'Projects/mTBI-predict')
+mTBI_root = op.join(rds_dir, 'Projects/mTBI-predict')
 bids_root = op.join(mTBI_root, 'collected-data', 'BIDS', 'task_BIDS')  # RDS folder for bids formatted data
 bids_path = BIDSPath(subject=subject, session=session,
                      task=task, run=run, root=bids_root, 
@@ -62,26 +63,43 @@ deriv_fname = str(input_fname).replace(input_suffix, deriv_suffix)
 
 # Read epoched data
 epochs = mne.read_epochs(input_fname, verbose=True, preload=True)
-# epochs['face_offset'].apply_baseline(baseline=(-.6,-.2))  # apply baseline if need be
+
+# Create a dictionary of epoch objects on face_onset_emotional vs face_onset_neutral
+face_epochs = {}
+face_epochs['face_emotional'] = epochs['event_name.str.endswith("y")'] 
+face_epochs['face_neutral'] = epochs['face_onset_neutral']
 
 # ==================================== Create evokeds for later and plots to save ==============================================
 # Make evoked data for conditions of interest and save
-evoked = epochs['face_offset'].average(method='mean')
-evoked.plot()  # just to take a look at evoked response before saving
-mne.write_evokeds(deriv_fname, evoked, verbose=True)
-evoked_summary = True
+evoked = epochs['face_onset_happy','face_onset_angry','face_onset_neutral'].copy().average(method='mean').filter(0.0,60)
+mne.write_evokeds(deriv_fname, evoked, verbose=True, overwrite=True)
+
+if test_plot:
+    # Plot evoked data
+    evoked.copy().apply_baseline(baseline=(-.3,0))
+    evoked.copy().pick('mag').plot_topo(title='Magnetometers')
+    evoked.copy().pick('mag').plot_topomap(.1, time_unit='s')
+
+    evoked.copy().pick('grad').plot_topo(title='Gradiometers', merge_grads=True)
+    evoked.copy().pick('grad').plot_topomap(.1, time_unit='s')
+
+    # Explore the epoched dataset
+    resampled_epochs = epochs.copy().resample(500)
+    resampled_epochs.compute_psd().plot(spatial_colors=True)  # explore the frequency content of the epochs
+    resampled_epochs.compute_psd().plot_topomap(ch_type='grad', 
+                                    normalize=False)  # spatial distribution of the PSD
 
 # Plot magnetometers for summary report
 topos_times = np.arange(-50,450,30)*0.001
-fig_mag = evoked.copy().pick('mag').plot_joint(times=topos_times, title='face onset -0.65s \n face offset 0s',
+fig_mag = evoked.copy().pick('mag').plot_joint(times=topos_times, title='face onset 0s',
                                                topomap_args={'vlim':(-400,400)})
 
 # Plot and combine gradiometers for summary report
-fig_grad = evoked.copy().pick('grad').plot_joint(times=topos_times, title='face onset -0.65s \n face offset 0s',
+fig_grad = evoked.copy().pick('grad').plot_joint(times=topos_times, title='face onset 0s',
                                                 topomap_args={'vlim':(0,100)})
 
 if summary_rprt:
-    report_root = op.join(mTBI_root, r'results-outputs/mne-reports')  # RDS folder for reports
+    report_root = op.join(mTBI_root, 'results-outputs/mne-reports')  # RDS folder for reports
    
     if not op.exists(op.join(report_root , 'sub-' + subject, 'task-' + task)):
         os.makedirs(op.join(report_root , 'sub-' + subject, 'task-' + task))
@@ -104,13 +122,3 @@ if summary_rprt:
                         )
     report.save(report_fname, overwrite=True)
     report.save(html_report_fname, overwrite=True, open_browser=True)  # to check how the report looks
-
-    ## Generate report for evoked separately
-    if evoked_summary:
-        html_report_evkd_fname = op.join(report_folder, f'report_preproc_{task}-evokeds.html')
-
-        report = mne.Report(title='Evoked data')
-        report.add_evokeds(evokeds=evoked, 
-                        titles=['face offset'],
-                        n_time_points=10)
-        report.save(html_report_evkd_fname, overwrite=True, open_browser=True)  # to check how the report looks

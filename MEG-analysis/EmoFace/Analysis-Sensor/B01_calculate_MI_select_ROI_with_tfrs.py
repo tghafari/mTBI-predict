@@ -64,8 +64,8 @@ elif platform == 'mac':
 
 
 # Specify specific file names
-mTBI_root = op.join(rds_dir, r'Projects/mTBI-predict')
-ROI_dir = op.join(mTBI_root, r'results-outputs/group-analysis/task-SpAtt/lateralisation-indices')
+mTBI_root = op.join(rds_dir, 'Projects/mTBI-predict')
+ROI_dir = op.join(mTBI_root, 'results-outputs/group-analysis/task-SpAtt/lateralisation-indices')
 bids_root = op.join(mTBI_root, 'collected-data', 'BIDS', 'task_BIDS')  # RDS folder for bids formatted data
 bids_path = BIDSPath(subject=subject, session=session,
                      task=task, run=run, root=bids_root, 
@@ -83,7 +83,7 @@ ROI_LIG_html =  op.join(ROI_dir, f'sub-{subject}_ROI_LIG.html')
 
 # Read sensor layout sheet from camcan RDS
 """these variables are in correct right-and-left-corresponding-sensors order"""
-sensors_layout_sheet = op.join(camcan_dir, 'sensor_layout_name_grad_no_central.csv')
+sensors_layout_sheet = op.join(mTBI_root, 'results-outputs/sensor_layout_name_grad_no_central.csv')  # while camcan is inaccessible
 sensors_layout_names_df = pd.read_csv(sensors_layout_sheet)
 
 right_sensors = [ch[1:8] for ch in sensors_layout_names_df['right_sensors']]
@@ -92,7 +92,12 @@ sensors_layout_df = pd.DataFrame({'left_sensors': left_sensors,
                                   'right_sensors': right_sensors})  
 
 # Read epoched data
-epochs = mne.read_epochs(input_fname, verbose=True, preload=True)  # epochs are from -0.8 to 1.2
+epochs = mne.read_epochs(input_fname, verbose=True, preload=True)  # epochs are from -0.3 to 0.75
+
+# Create a dictionary of epoch objects on face_onset_emotional vs face_onset_neutral
+face_epochs = {}
+face_epochs['face_emotional'] = epochs['event_name.str.endswith("y")'] 
+face_epochs['face_neutral'] = epochs['face_onset_neutral']
 
 # ========================================= TFR CALCULATIONS AND FIRST PLOT (PLOT_TOPO) ====================================
 # Calculate tfr for post cue alpha
@@ -104,29 +109,29 @@ time_bandwidth = 4.0  # '(2deltaTdeltaF) number of DPSS tapers to be used + 1.'
                       # 'it relates to the temporal (deltaT) and spectral (deltaF)' 
                       # 'smoothing'
                       # 'the more tapers, the more smooth'->useful for high freq data
-                       
-tfr_fast_face_offset = mne.time_frequency.tfr_multitaper(epochs['face_offset'],  
+                    
+tfr_fast_face_offset = mne.time_frequency.tfr_multitaper(epochs['face_onset'],  
                                                   freqs=freqs, 
                                                   n_cycles=n_cycles,
                                                   time_bandwidth=time_bandwidth, 
                                                   **tfr_params                                                  
                                                   )
-"""    
+  
 # the two below are useless before re-epoching the raw data to contain post-stim signal data as well                          
-tfr_fast_angry_face = mne.time_frequency.tfr_multitaper(epochs['face_onset_angry'],  
+tfr_fast_emotional_face = mne.time_frequency.tfr_multitaper(face_epochs['face_emotional'],  
                                                   freqs=freqs, 
                                                   n_cycles=n_cycles,
                                                   time_bandwidth=time_bandwidth, 
                                                   **tfr_params                                                  
                                                   )
 
-tfr_fast_happy_face = mne.time_frequency.tfr_multitaper(epochs['face_onset_happy'],  
+tfr_fast_neutral_face = mne.time_frequency.tfr_multitaper(face_epochs['face_neutral'],  
                                                   freqs=freqs, 
                                                   n_cycles=n_cycles,
                                                   time_bandwidth=time_bandwidth, 
                                                   **tfr_params                                                  
                                                   )
-"""
+
 # Plot TFR on all sensors and check
 fig_plot_topo_face_offset = tfr_fast_face_offset.plot_topo(tmin=-.65, tmax=.65, 
                         baseline=[-.5,-.3], 
@@ -137,25 +142,25 @@ fig_plot_topo_face_offset = tfr_fast_face_offset.plot_topo(tmin=-.65, tmax=.65,
                         vmax=.5, 
                         title='TFR of power > 30Hz - face offset')
 
-"""    
+   
 # the two below are useless before re-epoching the raw data to contain post-stim signal data as well    
-fig_plot_topo_angry = tfr_fast_angry_face.plot_topo(tmin=-.65, tmax=.65, 
-                        baseline=[-.5,-.3], 
-                        mode='percent',
-                        fig_facecolor='w', 
-                        font_color='k',
-                        vmin=-1, 
-                        vmax=1, 
-                        title='TFR of power > 30Hz - angry face onset')
-fig_plot_topo_happy = tfr_fast_happy_face.plot_topo(tmin=-.65, tmax=.65,
-                         baseline=[-.5,-.3], 
-                         mode='percent',
-                         fig_facecolor='w', 
-                         font_color='k',
-                         vmin=-1, 
-                         vmax=1, 
-                         title='TFR of power > 30Hz - happy face onset')
-"""       
+fig_plot_topo_emotional = tfr_fast_emotional_face.plot_topo(tmin=-.65, tmax=.65, 
+                            baseline=[-.5,-.3], 
+                            mode='percent',
+                            fig_facecolor='w', 
+                            font_color='k',
+                            vmin=-1, 
+                            vmax=1, 
+                            title='TFR of power > 30Hz - emotional face onset')
+fig_plot_topo_neutral = tfr_fast_neutral_face.plot_topo(tmin=-.65, tmax=.65,
+                            baseline=[-.5,-.3], 
+                            mode='percent',
+                            fig_facecolor='w', 
+                            font_color='k',
+                            vmin=-1, 
+                            vmax=1, 
+                            title='TFR of power > 30Hz - neutral face onset')
+   
 
 # ========================================= SECOND PLOT (REPRESENTATIVE SENSROS) ====================================
 # Plot TFR for representative sensors - same in all participants

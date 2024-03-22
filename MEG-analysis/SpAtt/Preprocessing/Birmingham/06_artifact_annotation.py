@@ -10,21 +10,17 @@ written by Tara Ghafari
 adapted from flux pipeline
 ==============================================
 ToDos:
-    1) rename eog and ecg channels (if wrong names)
-    2) run maxfilter on anonymized data before 
-    reading them here
-    
+    1) consider using auto_rejection for
+    blink threshold
+
 Issues:
-    1) many of the blinks are not identified by find_eog_events
-    2) there is no ecg or veog channgel for sub=03
-    3) 
+    1) for 200705B had to manually change thresh=3e-4 + ECG is 04, vEOG is 02
+    2) no vEOG for 201005B
 
 Contributions to community:
     1) read-Raw-bids doesn't work on the derivatives
     folder -> using mne_io_read_raw_fif instead
-    2) get_bids_path_from_fname cannot recognize
-    bids root from sss file
-    3) BIDSPath doesn't read sss as suffix
+    2) BIDSPath doesn't read sss as suffix
     
 Questions:
     1) why blink_onsets has -0.25?
@@ -40,8 +36,8 @@ from mne_bids import BIDSPath
 
 # fill these out
 site = 'Birmingham'
-subject = '2005'  # subject code in mTBI project
-session = '04B'  # data collection session within each run
+subject = '2010'  # subject code in mTBI project
+session = '05B'  # data collection session within each run
 run = '01'  # data collection run for each participant
 pilot = 'P' # is the data collected 'P'ilot or 'T'ask?
 task = 'SpAtt'
@@ -51,7 +47,8 @@ input_suffix = 'raw_sss'
 deriv_suffix = 'ann'
 
 remove_line_noise = False
-platform = 'bluebear'  # are you using 'bluebear', 'mac', or 'windows'?
+platform = 'mac'  # are you using 'bluebear', 'mac', or 'windows'?
+test_plot = True  # do you want to plot the data to test (True) or just generate report (False)?
 
 if platform == 'bluebear':
     rds_dir = '/rds/projects/j/jenseno-avtemporal-attention'
@@ -79,11 +76,12 @@ deriv_fname = str(input_fname).replace(input_suffix, deriv_suffix)
 # Read max filtered data 
 raw_sss = mne.io.read_raw_fif(input_fname, preload=True)  # read_raw_bids doesn't work on derivatives
 
-# Identifying and annotating eye blinks using vEOG (EOG001)
-raw_sss.copy().pick_channels(ch_names=['EOG001','EOG002'   # vEOG, hEOG, EKG
-                                       ,'ECG003']).plot()  # 'plot to make sure channel' 
-                                                           # 'names are correct, rename otherwise'
-eog_events = mne.preprocessing.find_eog_events(raw_sss, ch_name='EOG001')
+if test_plot:
+    # Identifying and annotating eye blinks using vEOG (EOG001)
+    raw_sss.copy().pick_channels(ch_names=['EOG001','EOG002'   # vEOG, hEOG, EKG
+                                        ,'ECG003']).plot()  # 'plot to make sure channel' 
+                                                            # 'names are correct, rename otherwise'
+eog_events = mne.preprocessing.find_eog_events(raw_sss, ch_name='EOG001', thresh=7e-5)  
 onset = eog_events[:,0] / raw_sss.info['sfreq'] -.25 #'from flux pipline, but why?'
                                                      # 'blink onsets in seconds'
 onset -= raw_sss.first_time  # first_time is apparently the time start time of the raw data
