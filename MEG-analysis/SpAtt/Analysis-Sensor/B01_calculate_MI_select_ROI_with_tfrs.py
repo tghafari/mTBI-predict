@@ -124,7 +124,7 @@ tfr_slow_cue_left = mne.time_frequency.tfr_multitaper(epochs['cue_onset_left'],
 # Plot TFR on all sensors and check
 fig_plot_topo_right = tfr_slow_cue_right.plot_topo(tmin=-.5, 
                                                    tmax=.8, 
-                                                   baseline=[-.5,0], 
+                                                   baseline=[-.5,-.2], 
                                                    mode='percent',
                                                    fig_facecolor='w', 
                                                    font_color='k',
@@ -133,7 +133,7 @@ fig_plot_topo_right = tfr_slow_cue_right.plot_topo(tmin=-.5,
                                                    title='TFR of power < 30Hz - cue right')
 fig_plot_topo_left = tfr_slow_cue_left.plot_topo(tmin=-.5, 
                                                  tmax=.8,
-                                                 baseline=[-.5,0], 
+                                                 baseline=[-.5,-.2], 
                                                  mode='percent',
                                                  fig_facecolor='w', 
                                                  font_color='k',
@@ -144,15 +144,17 @@ fig_plot_topo_left = tfr_slow_cue_left.plot_topo(tmin=-.5,
 # ========================================= SECOND PLOT (REPRESENTATIVE SENSROS) ====================================
 # Plot TFR for representative sensors - same in all participants
 fig_tfr, axis = plt.subplots(2, 2, figsize = (7, 7))
-sensors = ['MEG1733','MEG2133','MEG1943','MEG2533']
+sensors = ['MEG1943','MEG2533']
+
+'MEG1733','MEG2133',
 
 for idx, sensor in enumerate(sensors):
     if idx < len(sensors)/2:
         tfr_slow_cue_left.plot(picks=sensor, 
-                               baseline=[-.5,0],
+                               baseline=[-.5,-.2],
                                mode='percent', 
                                tmin=-.5, 
-                               tmax=1.0,
+                               tmax=1.2,
                                vmin=-.75, 
                                vmax=.75,
                                axes=axis[idx,0], 
@@ -160,10 +162,10 @@ for idx, sensor in enumerate(sensors):
         axis[idx, 0].set_title(f'cue left-{sensor}')        
     else:   
         tfr_slow_cue_right.plot(picks=sensor,
-                                baseline=[-.5,0],
+                                baseline=[-.5,-.2],
                                 mode='percent', 
                                 tmin=-.5, 
-                                tmax=1.0,
+                                tmax=1.2,
                                 vmin=-.75, 
                                 vmax=.75, 
                                 axes=axis[idx-2,1], 
@@ -254,7 +256,7 @@ topomap_params = dict(fmin=peak_alpha_freq_range[0],
                       tmin=.2,
                       tmax=.8,
                       vlim=(-.5,.5),
-                      baseline=(-.5, -.3), 
+                      baseline=(-.5, -.2), 
                       mode='percent', 
                       ch_type='grad',)
 
@@ -346,7 +348,7 @@ MI_left_ROI_df = pd.DataFrame({'MI_left': tfr_avg_alpha_MI_left_ROI_power,
                                'left_sensors': ROI_left_sens})  
 
 # Plot MI on topoplot with highlighted ROI sensors
-tfr_alpha_modulation_power= tfr_right_alpha_all_sens.copy()
+tfr_alpha_modulation_power = tfr_right_alpha_all_sens.copy()
 tfr_alpha_modulation_power.data = (tfr_right_alpha_all_sens.data - tfr_left_alpha_all_sens.data) \
                                 / (tfr_right_alpha_all_sens.data + tfr_left_alpha_all_sens.data)
 
@@ -357,7 +359,7 @@ fig, ax = plt.subplots()
 fig_mi = tfr_alpha_modulation_power.plot_topomap(tmin=.2, 
                                                  tmax=.8, 
                                                  fmin=peak_alpha_freq_range[0],
-                                                 fmax=peak_alpha_freq_range[1],
+                                                 fmax=peak_alpha_freq_range[-1],
                                                  vlim=(-.2,.2),
                                                  show=False, axes=ax)
 # Plot markers for the sensors in ROI_right_sens
