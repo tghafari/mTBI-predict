@@ -74,8 +74,9 @@ if task == 'rest':
 
 
 # Plot 10 first seconds of raw data
-raw.copy().crop(tmax=180).pick(["meg", "stim"]).filter(l_freq=0.1, h_freq=150).plot(title="raw")  # should be filtered bcz of cHPI high freq noise
-   
+#raw.copy().crop(tmax=180).pick(["meg", "stim"]).filter(l_freq=0.1, h_freq=150).plot(title="raw")  # should be filtered bcz of cHPI high freq noise
+raw.copy().crop(tmax=180).pick(["meg", "stim"]).filter(l_freq=0.1, h_freq=80).plot(title="raw")  # should be filtered bcz of cHPI high freq noise
+  
 
 # picks = mne.pick_channels(raw.info["ch_names"], include=["MEG0931", "MEG1311", "MEG1331", "MEG1421", "MEG1431", "MEG2621", "MEG1441", "MEG1033", "MEG2513", "MEG2322", "MEG2033"])
 # raw.plot(order=picks, n_channels=len(picks))
@@ -91,13 +92,19 @@ if rprt:
    if not op.exists(op.join(report_root , 'sub-' + subject, 'ses-' +session, 'task-' + task, 'run-' + run)): #added ses
        os.makedirs(op.join(report_root , 'sub-' + subject, 'ses-' +session, 'task-' + task, 'run-' + run))
    report_folder = op.join(report_root , 'sub-' + subject, 'ses-' +session, 'task-' + task, 'run-' + run)
-   report_fname = op.join(report_folder, f'mneReport_sub-{subject}_ses-{session}.hdf5')    # it is in .hdf5 for later adding images
-   html_report_fname = op.join(report_folder, 'report_raw.html')
+   report_fname = op.join(report_folder, 
+                         f'mneReport_sub-{subject}_{task}_raw.hdf5')    # it is in .hdf5 for later adding images
+   html_report_fname = op.join(report_folder, f'report_preproc_{task}_raw.html')
+   # report_fname = op.join(report_folder, f'mneReport_sub-{subject}_ses-{session}.hdf5')    # it is in .hdf5 for later adding images
+   # html_report_fname = op.join(report_folder, 'report_raw.html')
 #report_fname = op.join(report_folder, 'report_raw.html')
-raw.pick(["meg", "stim", "eog", "ecg"]).filter(l_freq=0.1, h_freq=150).load_data()
+
+#raw.pick(["meg", "stim", "eog", "ecg"]).filter(l_freq=0.1, h_freq=150).load_data()
+raw.pick(["meg", "stim", "eog", "ecg"]).filter(l_freq=0.1, h_freq=80).load_data()
 
 report = mne.Report(title=f'Subject n.{subject}')
 #report = mne.Report(title='Raw data')
-report.add_raw(raw=raw, title='Raw', psd=True)
+report.add_raw(raw=raw, title='Raw', psd=True,
+               tags=('raw'))
 report.save(report_fname, overwrite=True, open_browser=True)
 report.save(html_report_fname, overwrite=True, open_browser=True)  # to check how the report looks
