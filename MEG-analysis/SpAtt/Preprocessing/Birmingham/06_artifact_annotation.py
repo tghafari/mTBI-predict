@@ -60,7 +60,6 @@ elif platform == 'mac':
     rds_dir = '/Volumes/jenseno-avtemporal-attention'
     camcan_dir = '/Volumes/quinna-camcan/dataman/data_information'
 
-
 # Specify specific file names
 mTBI_root = op.join(rds_dir, 'Projects/mTBI-predict')
 bids_root = op.join(mTBI_root, 'collected-data', 'BIDS', 'task_BIDS')  # RDS folder for bids formatted data
@@ -81,16 +80,27 @@ if test_plot:
     raw_sss.copy().pick_channels(ch_names=['EOG001','EOG002'   # vEOG, hEOG, EKG
                                         ,'ECG003']).plot()  # 'plot to make sure channel' 
                                                             # 'names are correct, rename otherwise'
-eog_events = mne.preprocessing.find_eog_events(raw_sss, ch_name=['EOG001', 'EOG002'], thresh=7e-5)  
-onset = eog_events[:,0] / raw_sss.info['sfreq'] -.25 #'from flux pipline, but why?'
+# Blinks
+blink_events = mne.preprocessing.find_eog_events(raw_sss, ch_name=['EOG001'])  # blinks
+onset_blink = blink_events[:,0] / raw_sss.info['sfreq'] -.25 #'from flux pipline, but why?'
                                                      # 'blink onsets in seconds'
-onset -= raw_sss.first_time  # first_time is apparently the time start time of the raw data
-n_blinks = len(eog_events)  # length of the event file is the number of blinks in total
-duration = np.repeat(.5, n_blinks)  # duration of each blink is assumed to be 500ms
-description = ['blink'] * n_blinks
-annotation_blink = mne.Annotations(onset, duration, description)
-annotation_saccade = mne.Annotations
-# Identifying and annotating muscle artifacts
+onset_blink -= raw_sss.first_time  # first_time is apparently the time start time of the raw data
+n_blinks = len(blink_events)  # length of the event file is the number of blinks in total
+duration_blink = np.repeat(.5, n_blinks)  # duration of each blink is assumed to be 500ms
+description_blink = ['blink'] * n_blinks
+annotation_blink = mne.Annotations(onset_blink, duration_blink, description_blink)
+
+# Saccades
+saccade_events = mne.preprocessing.find_eog_events(raw_sss, ch_name=['EOG002'], thresh=4e-5)#, thresh=7e-5)  # saccades
+onset_saccade = saccade_events[:,0] / raw_sss.info['sfreq'] -.25 #'from flux pipline, but why?'
+                                                         #'blink onsets in seconds'
+onset_saccade -= raw_sss.first_time  # first_time is apparently the time start time of the raw data
+n_saccades = len(saccade_events)  # length of the event file is the number of blinks in total
+duration_saccade = np.repeat(.3, n_saccades)  # duration of each saccade is assumed to be 300ms
+description_saccade = ['saccade'] * n_saccades
+annotation_saccade = mne.Annotations(onset_saccade, duration_saccade, description_saccade)
+
+# Muscle artifacts
 """ 
 muscle artifacts are identified from the magnetometer data filtered and 
 z-scored in filter_freq range
@@ -105,7 +115,7 @@ annotation_muscle.onset -= raw_sss.first_time  # align the artifact onsets to da
 annotation_muscle._orig_time = None  # remove date and time from the annotation variable
 
 # Include annotations in dataset and inspect
-raw_sss.set_annotations(annotation_blink + annotation_muscle)
+raw_sss.set_annotations(annotation_blink + annotation_saccade + annotation_muscle)
 raw_sss.set_channel_types({'EOG001':'eog', 'EOG002':'eog', 'ECG003':'ecg'})  # set both vEOG and hEOG as EOG channels
 eog_picks = mne.pick_types(raw_sss.info, meg=False, eog=True)
 scale = dict(eog=500e-6)
