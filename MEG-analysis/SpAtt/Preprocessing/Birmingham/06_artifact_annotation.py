@@ -36,8 +36,8 @@ from mne_bids import BIDSPath
 
 # fill these out
 site = 'Birmingham'
-subject = '2010'  # subject code in mTBI project
-session = '05B'  # data collection session within each run
+subject = '2013'  # subject code in mTBI project
+session = '01B'  # data collection session within each run
 run = '01'  # data collection run for each participant
 pilot = 'P' # is the data collected 'P'ilot or 'T'ask?
 task = 'SpAtt'
@@ -81,7 +81,7 @@ if test_plot:
     raw_sss.copy().pick_channels(ch_names=['EOG001','EOG002'   # vEOG, hEOG, EKG
                                         ,'ECG003']).plot()  # 'plot to make sure channel' 
                                                             # 'names are correct, rename otherwise'
-eog_events = mne.preprocessing.find_eog_events(raw_sss, ch_name='EOG001', thresh=7e-5)  
+eog_events = mne.preprocessing.find_eog_events(raw_sss, ch_name=['EOG001', 'EOG002'], thresh=7e-5)  
 onset = eog_events[:,0] / raw_sss.info['sfreq'] -.25 #'from flux pipline, but why?'
                                                      # 'blink onsets in seconds'
 onset -= raw_sss.first_time  # first_time is apparently the time start time of the raw data
@@ -89,7 +89,7 @@ n_blinks = len(eog_events)  # length of the event file is the number of blinks i
 duration = np.repeat(.5, n_blinks)  # duration of each blink is assumed to be 500ms
 description = ['blink'] * n_blinks
 annotation_blink = mne.Annotations(onset, duration, description)
-
+annotation_saccade = mne.Annotations
 # Identifying and annotating muscle artifacts
 """ 
 muscle artifacts are identified from the magnetometer data filtered and 

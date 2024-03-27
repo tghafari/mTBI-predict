@@ -31,7 +31,7 @@ import mne.preprocessing as preproc
 
 # fill these out
 site = 'Birmingham'
-subject = '2001'  # subject code in mTBI project
+subject = '2013'  # subject code in mTBI project
 session = '02B'  # data collection session within each run
 run = '01'  # data collection run for each participant
 task = 'SpAtt'
