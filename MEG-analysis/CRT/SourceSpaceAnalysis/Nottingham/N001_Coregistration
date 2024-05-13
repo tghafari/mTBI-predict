@@ -1,0 +1,108 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Apr 12 14:43:04 2024
+
+@author: ppzdf
+"""
+
+import os
+import os.path as op
+
+import numpy as np
+import mne
+from mne_bids import BIDSPath, read_raw_bids, inspect_dataset
+from matplotlib import pyplot as plt
+
+#%%
+
+subject = '2001'
+session = '05N'
+task = 'CRT'  # name of the task
+run = '01'  # we have two runs for this subject, let's look at run = 1
+suffix = 'meg'
+fs_subject  = 'sub-' + subject
+coreg_type = 'manual' # manual or auto
+
+#%%
+
+bids_root = r'R:\DRS-mTBI\Seb\mTBI_predict\BIDS'
+deriv_root = r'R:\DRS-mTBI\Dan\mTBI_predict\derivatives'
+subjects_dir = r"R:\DRS-mTBI\Dan\Practice\FreeSurfer_SUBJECTS"
+
+bids_path = BIDSPath(subject=subject, session=session,
+task=task, run=run, suffix=suffix, root=bids_root)
+
+deriv_path = BIDSPath(subject=subject, session=session,
+task=task, run=run, suffix=suffix, root=deriv_root)
+
+#%%
+
+data = mne.io.Raw(op.join(deriv_path.directory, 
+                          deriv_path.basename + "_preproc.fif"))
+data.pick("mag")
+
+#%%
+ 
+if coreg_type == 'auto':
+    plot_kwargs = dict(
+        subject=fs_subject,
+        subjects_dir=subjects_dir,
+        surfaces="head-dense",
+        dig=True,
+        meg="ref",
+        show_axes=True,
+        coord_frame="meg",   
+        )
+ 
+    coreg = mne.coreg.Coregistration(data.info, fs_subject,
+                                 subjects_dir=subjects_dir)
+    coreg.set_grow_hair(5)
+
+    mne.viz.plot_alignment(data.info, trans=coreg.trans, **plot_kwargs)
+
+    coreg.fit_fiducials()
+
+    coreg.fit_icp(20)
+
+    mne.viz.plot_alignment(data.info, trans=coreg.trans, **plot_kwargs)
+    
+    trans = coreg.trans
+    trans_fname = deriv_path.basename + "-trans.fif"
+    trans.save(op.join(deriv_path.directory, trans_fname), overwrite=True)
+    
+#%%
+
+if coreg_type == 'manual':
+    mne.coreg.Coregistration(data.info, fs_subject, subjects_dir=subjects_dir)  
+    mne.gui.coregistration(subjects_dir=subjects_dir, subject=fs_subject,scale_by_distance=False)    
+    
+#%%
+
+trans = op.join(deriv_path.directory,deriv_path.basename +"-trans.fif")
+
+info= data.info
+
+#With Sensors
+coreg_fig = mne.viz.plot_alignment(
+    info,
+    trans,
+    subject = fs_subject,
+    dig=True,
+    meg=["ref", "sensors","helmet"],
+    subjects_dir=subjects_dir,
+    surfaces="head-dense",
+)
+
+#Just fiducials
+fiducial_coreg_fig=mne.viz.plot_alignment(
+    info,
+    trans,
+    subject = fs_subject,
+    dig=True,
+    meg=["ref"],
+    subjects_dir=subjects_dir,
+    surfaces="head-dense",
+)
+
+coreg_fig.savefig(deriv_path + 'coreg_fig')
+fiducial_coreg_fig.savefig(deriv_path + 'fiducial_coreg_fig')
