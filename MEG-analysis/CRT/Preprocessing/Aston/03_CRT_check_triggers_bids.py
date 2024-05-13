@@ -5,6 +5,7 @@ Created on Thu Jan  4 10:25:24 2024
 
 @author: waitta
 """
+#%%
 import os.path as op
 import pandas as pd
 import numpy as np
@@ -15,19 +16,34 @@ from mne_bids import BIDSPath, read_raw_bids
 
 # fill these out
 
-subject = '2002'  # subject code in mTBI project
-session = '06A'  # data collection session within each run
+subject = '2001'  # subject code in mTBI project
+session = '04A'  # data collection session within each run
 run = '01'  # data collection run for each participant
 meg_suffix = 'meg'
 meg_extension = '.fif'
 events_suffix = 'events'
 events_extension = '.tsv'
 
+platform = 'laptop' #'bluebear' # are you using 'bluebear', 'windows' or 'laptop'?
+
+#%%
 ###################################### Choice Reaction Task ##########################################                                       
 task = 'CRT' 
 
-# specify specific file names
-bids_root = r'/clinical/vol113/raw-sub-data/BIDS/task_BIDS'  #folder for bids formatted data
+# Specify specific file names
+if platform == 'bluebear':
+    rds_dir = r'/rds/projects/s/sidhuc-mtbi-data' #r'\\its-rds.bham.ac.uk\rdsprojects\s\sidhuc-mtbi-data' #'/rds/projects/j/jenseno-avtemporal-attention'
+    data_root = op.join(rds_dir, r'Alice_Aston_testing')
+    #mTBI_root = op.join(rds_dir, r'Projects/mTBI-predict')
+    #data_root = op.join(mTBI_root, 'collected-data')
+elif platform == 'laptop':
+    rds_dir = r'C:\Users\waitta\Documents\ClusterDocs'
+    data_root = op.join(rds_dir, 'BearTestSub')
+
+# Specify specific file names
+bids_root = op.join(data_root, 'BIDS', 'task_BIDS')  # RDS folder for bids formatted data
+#bids_root = r'/clinical/vol113/raw-sub-data/BIDS/task_BIDS'  #folder for bids formatted data
+
 bids_path = BIDSPath(subject=subject, session=session,
                      task=task, run=run, root=bids_root, datatype ='meg',
                      suffix=meg_suffix, extension=meg_extension)
@@ -35,11 +51,18 @@ bids_path = BIDSPath(subject=subject, session=session,
 raw = read_raw_bids(bids_path=bids_path, verbose=False)
 raw.copy().pick_types(meg=False, stim=True).plot()
 
+#%%
 # Passing the TSV file to read_csv() with tab separator
 events_bids_path = bids_path.copy().update(suffix=events_suffix,
                                            extension=events_extension)
 events_file = pd.read_csv(events_bids_path, sep='\t')
 event_onsets = events_file[['onset', 'value', 'trial_type']]
+
+# Plot all events
+event_onsets.plot(kind='scatter', x='onset', y='trial_type')
+plt.xlabel('onset(sec)')
+plt.ylabel('event type')
+plt.show()
 
 # Check durations using triggers
 durations_onset = ['cue', 'trial', 'response'] 
@@ -67,6 +90,7 @@ plt.xticks(range(len(numbers_dict)), list(numbers_dict.keys()), rotation=45)
 ax.bar_label(bars)
 plt.show()
 
+#%%
 # Check duration of cue presentation  
 # AW Had to add try except loop as not enough trial onset triggers recorded
 try:
@@ -99,12 +123,13 @@ except:
         plt.show()
         
 #Get actual RTs from .mat file as Aston button triggers not correct
-beh_data_root = r'/clinical/vol113/raw-sub-data'
-Beh_data_folder = op.join(beh_data_root, 'sub_' + subject, 'ses_' + session, 'Behaviour')  # RDS folder for MEG data
-file_extension = '.mat'
-file_name = op.join('sub-' + subject + '_ses-' + session + '_task-' + task + '_run-' + run + '_logfile')
-raw_fname = op.join(Beh_data_folder, file_name + file_extension)
+#beh_data_root = r'/clinical/vol113/raw-sub-data'
+#Beh_data_folder = op.join(beh_data_root, 'sub_' + subject, 'ses_' + session, 'Behaviour')  # RDS folder for MEG data
+#file_extension = '.mat'
+#file_name = op.join('sub-' + subject + '_ses-' + session + '_task-' + task + '_run-' + run + '_logfile')
+#raw_fname = op.join(Beh_data_folder, file_name + file_extension)
 
 #need to read in matlab file using something like this
 # import scipy.io        
 # mat = scipy.io.loadmat(raw_fname)       
+# %%
