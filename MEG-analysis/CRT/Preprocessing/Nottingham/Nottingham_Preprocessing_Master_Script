@@ -1,0 +1,194 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Jan 16 11:33:02 2024
+
+Adapted from Tara Ghafari's and Sebastian C Coleman's Scripts adapted from the flux Pipeline
+@author: ppzdf
+"""
+
+import os
+import os.path as op
+
+import numpy as np
+import mne
+from mne_bids import BIDSPath, read_raw_bids, inspect_dataset
+from mne.preprocessing import ICA
+from mne.preprocessing import annotate_muscle_zscore
+
+
+#%%Setting Roots
+
+bids_root = r'R:\DRS-mTBI\Seb\mTBI_predict\BIDS'
+deriv_root = r'R:\DRS-mTBI\Dan\mTBI_predict\derivatives'
+
+#%%Participant info for changing
+subject = '2003'
+session = '03N'
+task = 'CRT'  # name of the task
+run = '01'  # we have two runs for this subject, let's look at run = 1
+suffix = 'meg'
+
+report = True
+checks = False
+
+bids_path = BIDSPath(subject=subject, session=session,
+task=task, run=run, suffix=suffix, root=bids_root)
+
+data = read_raw_bids(bids_path=bids_path, verbose=False, 
+                     extra_params={'preload':True})
+
+deriv_path = bids_path = BIDSPath(subject=subject, session=session,
+task=task, run=run, suffix=suffix, root=deriv_root)
+
+if not op.exists(deriv_path.directory):
+    deriv_path.mkdir()
+
+#%%Establish Events 
+#For CRT combine events lists
+#In Nottingham channel 2 is open
+events_response = mne.find_events(data, stim_channel="UPPT001")
+events_stim = mne.find_events(data, stim_channel="UPPT002")
+events_stim[events_stim[:,2]==1,2] = 2
+
+
+events = np.concatenate((events_response, events_stim))
+
+#For other tasks
+#events = mne.find_events(data, stim_channel="UPPT001")
+
+mne.viz.plot_events(events)
+
+#%%Head Movement
+
+chpi_locs = mne.chpi.extract_chpi_locs_ctf(data)
+head_pos = mne.chpi.compute_head_pos(data.info, chpi_locs)
+original_head_dev_t = mne.transforms.invert_transform(data.info["dev_head_t"])
+#average_head_dev_t = mne.transforms.invert_transform(compute_average_dev_head_t(thrd_data, head_pos))
+    
+#%%Applying Third Order Gradiometers
+
+raw_data = data.copy()
+
+data.apply_gradient_compensation(grade=3)
+ 
+thrd_data = data.copy()
+
+if checks:
+    raw_data.plot_psd()
+    print(raw_data.info)
+    thrd_data.plot_psd()
+    print(thrd_data.info)
+
+if checks:
+    thrd_data.copy().compute_psd(fmax=60).plot
+    mne.viz.plot_raw_psd(thrd_data, fmin=.5, fmax=40, n_fft=None, picks=None)
+
+if checks:
+    thrd_data.copy().crop(tmax=180).pick(["meg","stim"]).filter(l_freq=0.1, h_freq=150).plot(title="raw")
+
+#%%Notch Filter Powerlines
+
+power_freqs=(50,100,150)
+data.notch_filter(freqs=power_freqs)
+
+
+#%%Resample
+
+#orig_freq = 600
+#new_freq = 250
+#If resampling
+#data.resample(sfreq=new_freq)
+
+#downsample events
+#events[:0] = np.round(events[:,0] * (new_freq/orig_freq))
+#%%Broadband Filter
+
+data.filter(l_freq=1, h_freq=150)
+resampled_data = data.copy()
+
+#%%Bad Channel Removal (Select Bad Channels)
+data.plot_psd()
+data.plot()
+
+#%% Show List of Bad Channels
+
+data.info['bads']
+
+#%% Artifact Annotation (Taken almost exactly from taras script) 
+
+#EOG AND ECG
+EOG_channels = ['UADC007-4123','UADC008-4123']
+ECG_channels = ['UADC009-4123']
+eog_events = mne.preprocessing.find_eog_events(data, ch_name=EOG_channels)
+onset = eog_events[:,0]/data.info['sfreq']-.25
+onset -= data.first_time
+n_blinks = len(eog_events)
+duration = np.repeat(.5, n_blinks)
+description = ['blink']*n_blinks
+annotation_blink = mne.Annotations(onset, duration, description)
+
+#Identifying and annotation muscle artifacts
+threshold_muscle = 10   # seb reckons 30 is better here to avoid picking up neural stuff
+min_length_good = .2   # Seb reckons a bit higher for induced responses, e.g. 0.5 s
+filter_freq = [80,100] # seb says 100 - 120 is better, requires bigger broadband
+annotation_muscle, scores_muscle = annotate_muscle_zscore(
+   data, ch_type='mag', threshold=threshold_muscle,
+    min_length_good=min_length_good, filter_freq=filter_freq)
+annotation_muscle.onset -= data.first_time
+annotation_muscle._orig_time = None
+
+#Including annotation in data set
+
+data.set_annotations(annotation_blink + annotation_muscle)
+data.set_channel_types({'UADC008-4123':'eog', 'UADC007-4123':'eog', 'UADC009-4123':'ecg'})  # set both vEOG and hEOG as EOG channels
+eog_picks = mne.pick_types(data.info, meg=False, eog=True, ecg=True)
+scale = dict(eog=500e-6)
+if checks:
+    data.plot(order=eog_picks, scalings=scale, start=50)
+
+data_artifacts = data.copy()
+
+#%%Save Derivatives
+
+preproc_fname = deriv_path.basename + "_preproc.fif"
+events_fname = deriv_path.basename + "_preproc_events.fif"
+#head_pos_fname = deriv_path.basename + "_preproc_headpos.fif"
+data.save(op.join(deriv_path.directory, preproc_fname), overwrite= True)
+#head_pos.save(op.join(deriv_path.directory, head_pos_fname), overwrite = True)
+mne.write_events(op.join(deriv_path.directory, events_fname), events, overwrite= True)
+
+#%%Figure's For Report
+
+if report:
+    head_movement_fig = mne.viz.plot_head_positions(head_pos)
+   # fig_ica = ica.plot_components(picks=artifact_ICs, title='removed components')
+    raw_time_course = raw_data.copy().pick("mag").plot()
+    post_ica_time_course = data.copy().pick("mag").plot()
+    
+    
+#%%Report
+
+if report:
+    report_root = r'R:\DRS-mTBI\Dan\mTBI_predict\Bids_Reports'  # RDS folder for reports
+    if not op.exists(op.join(report_root , 'sub-' + subject, 'task-' + task)):
+        os.makedirs(op.join(report_root , 'sub-' + subject, 'task-' + task))
+    report_folder = op.join(report_root , 'sub-' + subject, 'task-' + task)
+
+    report_fname = op.join(report_folder,f'mneReport_sub-{subject}_{session}_{task}_raw.hdf5')
+    html_report_fname = op.join(report_folder, f'report_preproc_{task}_raw.html')
+    
+    data.pick(["meg", "stim", "eog", "ecg"]).filter(l_freq=0.1, h_freq=100).load_data()
+    
+    
+    report = mne.Report(title=f'sub-{subject}_{session}_{task}')
+    report.add_raw(raw=raw_data, title='Raw', psd=True)
+    report.add_figure(raw_time_course, title="Raw Data")
+    report.add_raw(raw=thrd_data, title='Third Order Gradiometers', psd=True, butterfly=False)
+    report.add_figure(head_movement_fig, title="Head Position Over Time",
+                      image_format="PNG", tags=('cHPI'))
+    report.add_figure(fig_ica, title="removed ICA components(EOG, ECG)",
+                      tags=('ica'), image_format="PNG")
+    report.add_raw(raw=data, title="Post ICA Data", psd=True,
+                   butterfly=False, tags=('ica'))
+    report.add_figure(post_ica_time_course, title="Processed Data")
+    report.save(report_fname, overwrite=True, open_browser=True)
