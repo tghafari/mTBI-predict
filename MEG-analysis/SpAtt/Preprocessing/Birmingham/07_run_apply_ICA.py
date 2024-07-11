@@ -39,7 +39,7 @@ def get_bad_components_from_user():
     from the user to exclude from the data."""
     numbers = []
     while True:
-        user_input = input("Enter a number (or press 'd' to finish): ")
+        user_input = input("Enter the number of bad ICA components one by one (or press 'd' to finish): ")
         if user_input.lower() == 'd':
             break
         try:

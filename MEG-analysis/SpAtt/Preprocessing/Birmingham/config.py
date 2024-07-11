@@ -10,92 +10,56 @@ Configurate the parameters of the mTBI-predict study.
 
 
 import os
+import os.path as op
 import pandas as pd
 
 
 # =============================================================================
-# SESSION-SPECIFIC SETTINGS
+# SESSION-SPECIFIC SETTINGS 
 # =============================================================================
 
-# experiment_id = 1
-# subject_id = '109'
-subject_list = ['SA124']
-
-# Set user-specific params
-user = os.getlogin()
-
-if user in ['oscfe', 'ferranto', 'FerrantO']:               # Oscar
-    site_id = 'SA'
-    raw_path = r'Z:\Real_data\Exp%s'
-    # raw_path = r'Z:\Real_data\Exp%s' % visit_id[1]
-    # data_path = raw_path + '\%s\meg'# % site_id, subject_id
-    cal_path = r'Z:\MaxFilter'
-    t1_path = r'Z:\Real_data\MRI\%s'# % site_id, subject_id
-    freesurfer_path = r'Z:\Real_data\MRI\%s\freesurfer'# % site_id, subject_id
-elif user in ['root']:                          # Ling
-    site_id = 'SB'
-    raw_path = r'/Volumes/Cogitate/MEG_reorganized'
-    # data_path = op.join(raw_path, site_id+subject_id,visit_id)
-    cal_path = r'/Users/ling/Documents/work/Cogitate/data_analysis/Maxfilter'
-
-# Set filename based on experiment number
-if visit_id == 'V1':
-    file_exts = ['%s_MEEG_V1_DurR1',
-                 '%s_MEEG_V1_DurR2',
-                 '%s_MEEG_V1_DurR3',
-                 '%s_MEEG_V1_DurR4',
-                 '%s_MEEG_V1_DurR5']
-    # file_names = [f % (site_id+subject_id) for f in file_exts]
-elif visit_id == 'V2':
-    file_exts = ['%s_MEEG_V2_VGR1',
-                 '%s_MEEG_V2_VGR2',
-                 '%s_MEEG_V2_VGR3',
-                 '%s_MEEG_V2_VGR4',
-                 '%s_MEEG_V2_ReplayR1',
-                 '%s_MEEG_V2_ReplayR2']
-    # file_names = [f % (site_id+subject_id) for f in file_exts]
-
+site = 'Birmingham'
+subject = '2013'  # subject code in mTBI project
+session = '02B'  # data collection session within each run
+run = '01'  # data collection run for each participant
+task = 'SpAtt'
 
 # =============================================================================
-# GENERAL SETTINGS
+# PATH & BIDS SETTINGS
 # =============================================================================
 
-# Set out_path folder or create it if it doesn't exist
-# out_path = op.join(data_path, "out_path")
-# if not op.exists(out_path):
-#     os.mkdir(out_path)
-        
-# Remove participant without EEG from EEG analysis
-if site_id == 'SA':
-    if visit_id == 'V1':
-        no_eeg_sbj = ['SA101', 'SA102', 'SA103', 'SA104']
-    elif visit_id == 'V2':
-        no_eeg_sbj = ['SA104', 'SA106']
-elif site_id == 'SB':
-    if visit_id == 'V1':
-        no_eeg_sbj = []
-    elif visit_id == 'V2':
-        no_eeg_sbj = []
+platform = 'mac'  # are you using 'bluebear', 'mac', or 'windows'?
 
+if platform == 'bluebear':
+    rds_dir = '/rds/projects/j/jenseno-avtemporal-attention'
+    camcan_dir = '/rds/projects/q/quinna-camcan/dataman/data_information'
+elif platform == 'windows':
+    rds_dir = 'Z:'
+    camcan_dir = 'X:/dataman/data_information'
+elif platform == 'mac':
+    rds_dir = '/Volumes/jenseno-avtemporal-attention'
+    camcan_dir = '/Volumes/quinna-camcan/dataman/data_information'
 
-# =============================================================================
-# BIDS SETTINGS
-# =============================================================================
+# Specify specific directories
+mTBI_root = op.join(rds_dir, 'Projects/mTBI-predict')
+bids_root = op.join(mTBI_root, 'collected-data', 'BIDS', 'task_BIDS')  # RDS folder for bids formatted data
 
-bids_root = r'Z:\_bids_'
-
+deriv_root = op.join(bids_root, 'derivatives')  # RDS folder for results
+if not op.exists(op.join(deriv_root , 'sub-' + subject, 'task-' + task)):
+    os.makedirs(op.join(deriv_root , 'sub-' + subject, 'task-' + task))
+deriv_folder = op.join(deriv_root , 'sub-' + subject, 'task-' + task)
 
 # =============================================================================
 # MAXWELL FILTERING SETTINGS
 # =============================================================================
 
-# Set filtering method (sss/tsss)
-method='sss'
+# Apply Spatiotemporal SSS (tsss) by passing st_duration to maxwell_filter
+
+method = 'sss'  # set filtering method (sss/tsss)
 if method == 'tsss':
     st_duration = 10
 else:
     st_duration = None
-
 
 # =============================================================================
 # ARTIFACT ANNOTATION SETTINGS

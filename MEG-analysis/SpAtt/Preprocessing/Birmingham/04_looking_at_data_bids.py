@@ -23,8 +23,8 @@ site = 'Birmingham'
 subject = '2002'  # subject code in mTBI project
 session = '04B'  # data collection session within each run
 run = '01'  # data collection run for each participant
-meg_suffix = 'meg'
 task = 'SpAtt'
+meg_suffix = 'meg'
 
 summary_rprt = True
 

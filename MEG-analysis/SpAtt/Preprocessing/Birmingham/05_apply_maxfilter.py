@@ -28,6 +28,41 @@ import numpy as np
 import mne
 from mne_bids import BIDSPath, read_raw_bids
 import mne.preprocessing as preproc
+from copy import deepcopy
+
+from config import st_duration
+
+
+def get_bad_sensors_from_user(original_bads, raw, plot_bads=True):
+    """this function will get the number of bad ICA components
+    from the user to exclude from the data."""
+    
+    bad_sensors = []
+    while True:
+        user_bads = input("Enter full name of bad sensors if you have \
+                            additional ones that were not detected by \
+                            maxwell(or press 'd' to finish):")
+        if user_bads.lower() == 'd':
+            break
+        try:
+            bad_sensor = str(user_bads)  # Convert the input to a string
+            bad_sensors.append(bad_sensor)
+        except ValueError:
+            print("Invalid input. Please enter a valid sensor name.")
+    
+    if len(user_bads) != 0:
+        if plot_bads:
+            raw.copy().pick(user_bads + original_bads).compute_psd().plot()  # double check bad channels
+        if len(user_bads) > 1:
+            raw.info["bads"].extend(user_bads)
+        elif len(user_bads) == 1:
+            raw.info["bads"].append(user_bads)  # add a single channel 
+    elif len(user_bads) == 0:
+        if plot_bads:
+            raw.copy().pick(original_bads).compute_psd().plot()
+
+    return bad_sensors
+
 
 # fill these out
 site = 'Birmingham'
@@ -59,23 +94,26 @@ elif platform == 'mac':
 # Specify specific file names
 mTBI_root = op.join(rds_dir, 'Projects/mTBI-predict')
 bids_root = op.join(mTBI_root, 'collected-data', 'BIDS', 'task_BIDS')  # RDS folder for bids formatted data
-bids_path = BIDSPath(subject=subject, session=session,
-                     task=task, run=run, root=bids_root, datatype='meg',
-                     suffix=meg_suffix, extension=meg_extension)
-bids_fname = bids_path.basename.replace(meg_suffix, deriv_suffix)  # only used for suffices that are not recognizable to bids 
 
 deriv_root = op.join(bids_root, 'derivatives')  # RDS folder for results
 if not op.exists(op.join(deriv_root , 'sub-' + subject, 'task-' + task)):
     os.makedirs(op.join(deriv_root , 'sub-' + subject, 'task-' + task))
 deriv_folder = op.join(deriv_root , 'sub-' + subject, 'task-' + task)
-deriv_fname = op.join(deriv_folder, bids_fname)
+
+bids_path = BIDSPath(subject=subject, session=session,
+                     task=task, run=run, root=bids_root, datatype='meg',
+                     suffix=meg_suffix, extension=meg_extension)
+input_fname = bids_path.basename.replace(meg_suffix, deriv_suffix)  # only used for suffices that are not recognizable to bids 
+deriv_fname = op.join(deriv_folder, input_fname)
 head_pos_fname = deriv_fname.replace(deriv_suffix, head_pos_suffix)
 
 # Define the fine calibration and cross-talk compensation files 
+"""I think we don't need this section now
 crosstalk_file = op.join(bids_path.directory, 'sub-' + subject +'_ses-' + session + 
                          '_acq-crosstalk_meg.fif')  
 calibration_file = op.join(bids_path.directory, 'sub-' + subject +'_ses-' + session + 
                            '_acq-calibration_meg.dat')  
+"""
 
 # read and raw data 
 """only do the if run==2 for this part (as an example) for other sections
@@ -100,33 +138,35 @@ multiple meg files) and then run the maxfilter for files separately (works
 better on separate files) 
 """
 auto_noisy_chs, auto_flat_chs, auto_scores = preproc.find_bad_channels_maxwell(
-    raw.copy(), cross_talk=crosstalk_file, calibration=calibration_file,
+    raw.copy(), cross_talk=bids_path.meg_crosstalk_fpath, calibration=bids_path.meg_calibration_fpath,
     return_scores=True, verbose=True)
 
 print('noisy = ', auto_noisy_chs)
 print('flat = ', auto_flat_chs)
-len(auto_noisy_chs) + len(auto_flat_chs)
 
 # set noisy and flat channels as 'bads' in the data set
 raw.info['bads'] = []
 raw.info['bads'].extend(auto_noisy_chs + auto_flat_chs)
-print('bads = ', raw.info['bads'])
-len(raw.info['bads'])
+original_bads = deepcopy(raw.info["bads"])
+print('these are the bad sensors from maxwell: ', original_bads)
+user_bads = get_bad_sensors_from_user(original_bads, raw)
+
 
 # we might need to change MEGIN magnetometer coil types (type 3022 and 3023 to 3024) 
 # to ensure compatibility across systems
 raw.fix_mag_coil_types()
 
-if not tsss:  # which maxwell filtering to use? sss or tsss
-    # Apply the Maxfilter with fine calibration and cross-talk reduction (SSS)
-    raw_sss = preproc.maxwell_filter(raw, cross_talk=crosstalk_file,
-                                     calibration=calibration_file, verbose=True)
+coord_frame = 'meg'  # set coordinate frame
     
-elif tsss:  
-    # Apply Spatiotemporal SSS by passing st_duration to maxwell_filter
-    raw_sss = preproc.maxwell_filter(raw, cross_talk=crosstalk_file, st_duration=20,
-                                     calibration=calibration_file, verbose=True)
-
+# Apply the Maxfilter with fine calibration and cross-talk reduction (SSS)
+raw_sss = preproc.maxwell_filter(raw, 
+                                 cross_talk=bids_path.meg_crosstalk_fpath,
+                                 calibration=bids_path.meg_calibration_fpath, 
+                                 st_duration=st_duration,
+                                 origin='auto',
+                                 coord_frame=coord_frame, 
+                                 verbose=True)
+    
 if test_plot:
     # Plot power spectra of raw data and after maxwell filterting for comparison
     fig, ax = plt.subplots(2,2)
