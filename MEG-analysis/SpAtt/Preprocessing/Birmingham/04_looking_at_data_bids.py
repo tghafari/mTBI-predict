@@ -38,7 +38,7 @@ elif platform == 'mac':
     rds_dir = '/Volumes/jenseno-avtemporal-attention'
 
 # Specify specific file names
-mTBI_root = op.join(rds_dir, r'Projects/mTBI-predict')
+mTBI_root = op.join(rds_dir, 'Projects/mTBI-predict')
 data_root = op.join(mTBI_root, 'collected-data')
 bids_root = op.join(data_root, 'BIDS', 'task_BIDS')  # RDS folder for bids formatted data
 bids_path = BIDSPath(subject=subject, session=session, datatype ='meg',

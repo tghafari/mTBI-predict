@@ -4,7 +4,9 @@
 07. Run and apply ICA
 
 This code will run ICA to find occular and cardiac
-artifacts: 1. decomposition, 2. manual identification,
+artifacts and then input which components
+to remove and removes them from the data : 
+1. decomposition, 2. manual identification, 
 3. project out
 
 written by Tara Ghafari
@@ -30,6 +32,23 @@ import numpy as np
 import mne
 from mne.preprocessing import ICA
 from mne_bids import BIDSPath
+
+
+def get_bad_components_from_user():
+    """this function will get the number of bad ICA components
+    from the user to exclude from the data."""
+    numbers = []
+    while True:
+        user_input = input("Enter a number (or press 'd' to finish): ")
+        if user_input.lower() == 'd':
+            break
+        try:
+            number = int(user_input)  # Convert the input to a integer
+            numbers.append(number)
+        except ValueError:
+            print("Invalid input. Please enter a valid number.")
+    return numbers
+
 
 # fill these out
 site = 'Birmingham'
@@ -87,10 +106,10 @@ ica.fit(raw_resmpld, verbose=True)
 ica.plot_sources(raw_resmpld, title='ICA')
 ica.plot_components()
 
-#scores = ica.score_sources(raw_resmpld, target='EOG002', score_func='pearsonr')  # helps finding the saccade component
-#ica.plot_scores(scores)
+bad_components = get_bad_components_from_user()
+print("You entered the following numbers:", bad_components)
 
-ICA_rej_dic = {f'sub-{subject}_ses-{session}':[1, 2]} # manually selected bad ICs or from sub config file 
+ICA_rej_dic = {f'sub-{subject}_ses-{session}':bad_components} # manually selected bad ICs or from sub config file 
 """200102B: [3, 13]
 200204B: [1, 11]
 200302B: [7, 9]
@@ -152,10 +171,6 @@ if summary_rprt:
                    psd=True, butterfly=False, tags=('ica'))
     report.save(report_fname, overwrite=True)
     report.save(html_report_fname, overwrite=True, open_browser=True)  # to check how the report looks
-
-
-
-
 
 
 
