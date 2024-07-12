@@ -14,40 +14,60 @@ import os.path as op
 import pandas as pd
 
 
+
+class Config:
+    def __init__(self, site, subject, session, run, task, datatype, suffix, extension, platform):
+        self.site = site
+        self.subject = subject
+        self.session = session
+        self.run = run
+        self.task = task
+        self.datatype = datatype
+        self.suffix = suffix
+        self.extension = extension
+        self.platform = platform
+        self.set_directories()
+
+    
+    def set_directories(self):  # change these directories according to your system
+        if self.platform == 'bluebear':
+            self.rds_dir = '/rds/projects/j/jenseno-avtemporal-attention'
+            self.camcan_dir = '/rds/projects/q/quinna-camcan/dataman/data_information'
+        elif self.platform == 'windows':
+            self.rds_dir = 'Z:'
+            self.camcan_dir = 'X:/dataman/data_information'
+        elif self.platform == 'mac':
+            self.rds_dir = '/Volumes/jenseno-avtemporal-attention'
+            self.camcan_dir = '/Volumes/quinna-camcan/dataman/data_information'
+        else:
+            raise ValueError("Invalid platform. Choose 'bluebear', 'mac', or 'windows'.")
+
+        self.mTBI_root = op.join(self.rds_dir, 'Projects/mTBI-predict')
+        self.bids_root = op.join(self.mTBI_root, 'collected-data', 'BIDS', 'task_BIDS')
+        self.deriv_root = op.join(self.bids_root, 'derivatives')
+        
+        self.deriv_folder = op.join(self.deriv_root, f'sub-{self.subject}', f'task-{self.task}')
+        if not op.exists(self.deriv_folder):
+            os.makedirs(self.deriv_folder)
+
 # =============================================================================
 # SESSION-SPECIFIC SETTINGS 
 # =============================================================================
-
-site = 'Birmingham'
-subject = '2013'  # subject code in mTBI project
-session = '02B'  # data collection session within each run
-run = '01'  # data collection run for each participant
-task = 'SpAtt'
+# Create an instance of the class for each subject
+session_info = Config(site='Birmingham', 
+                      subject='2013', 
+                      session='02B', 
+                      run='01', 
+                      task='SpAtt',
+                      datatype ='meg',
+                      suffix='meg', 
+                      extension='.fif')
 
 # =============================================================================
 # PATH & BIDS SETTINGS
 # =============================================================================
-
-platform = 'mac'  # are you using 'bluebear', 'mac', or 'windows'?
-
-if platform == 'bluebear':
-    rds_dir = '/rds/projects/j/jenseno-avtemporal-attention'
-    camcan_dir = '/rds/projects/q/quinna-camcan/dataman/data_information'
-elif platform == 'windows':
-    rds_dir = 'Z:'
-    camcan_dir = 'X:/dataman/data_information'
-elif platform == 'mac':
-    rds_dir = '/Volumes/jenseno-avtemporal-attention'
-    camcan_dir = '/Volumes/quinna-camcan/dataman/data_information'
-
-# Specify specific directories
-mTBI_root = op.join(rds_dir, 'Projects/mTBI-predict')
-bids_root = op.join(mTBI_root, 'collected-data', 'BIDS', 'task_BIDS')  # RDS folder for bids formatted data
-
-deriv_root = op.join(bids_root, 'derivatives')  # RDS folder for results
-if not op.exists(op.join(deriv_root , 'sub-' + subject, 'task-' + task)):
-    os.makedirs(op.join(deriv_root , 'sub-' + subject, 'task-' + task))
-deriv_folder = op.join(deriv_root , 'sub-' + subject, 'task-' + task)
+# Define the platform to set directories
+directories = Config(platform='mac')
 
 # =============================================================================
 # MAXWELL FILTERING SETTINGS

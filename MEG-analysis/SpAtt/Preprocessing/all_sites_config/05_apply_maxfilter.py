@@ -1,23 +1,16 @@
 # -*- coding: utf-8 -*-
 """
 ===============================================
-05. Applying MaxFilter
+P02. Applying MaxFilter
 
 this code uses MaxFilter to reduce artifacts from
-environmental sources and sensor noise
+environmental sources and sensor noise. 
+This is part of the automated preprocessing
+pipeline.
 
 written by Tara Ghafari
-adapted from flux pipeline
+adapted from oscfer88
 ==============================================
-ToDos:
-    1) generate the report and save concat files
-    again
-Questions:
-    1) 
-    2) raw.info['dev_head_t'] is not align for 
-    two runs. what should be done?
-    3) how come there are more gradio and
-    magneto sensors after filtering?
 """
 
 import os
@@ -28,54 +21,61 @@ import numpy as np
 import mne
 from mne_bids import BIDSPath, read_raw_bids
 import mne.preprocessing as preproc
+from copy import deepcopy
+
+from config import st_duration, session_info, directories
+
+
+def get_bad_sensors_from_user(original_bads, raw, plot_bads=True):
+    """this function will get the number of bad ICA components
+    from the user to exclude from the data."""
+    
+    bad_sensors = []
+    while True:
+        user_bads = input("Enter full name of bad sensors if you have \
+                            additional ones that were not detected by \
+                            maxwell(or press 'd' to finish):")
+        if user_bads.lower() == 'd':
+            break
+        try:
+            bad_sensor = str(user_bads)  # Convert the input to a string
+            bad_sensors.append(bad_sensor)
+        except ValueError:
+            print("Invalid input. Please enter a valid sensor name.")
+    
+    if len(user_bads) != 0:
+        if plot_bads:
+            raw.copy().pick(user_bads + original_bads).compute_psd().plot()  # double check bad channels
+        if len(user_bads) > 1:
+            raw.info["bads"].extend(user_bads)
+        elif len(user_bads) == 1:
+            raw.info["bads"].append(user_bads)  # add a single channel 
+    elif len(user_bads) == 0:
+        if plot_bads:
+            raw.copy().pick(original_bads).compute_psd().plot()
+
+    return bad_sensors
+
 
 # fill these out
-site = 'Birmingham'
-subject = '2013'  # subject code in mTBI project
-session = '02B'  # data collection session within each run
-run = '01'  # data collection run for each participant
-task = 'SpAtt'
-meg_suffix = 'meg'
-meg_extension = '.fif'
 deriv_suffix = 'raw_sss'
 head_pos_suffix = 'head_pos'  # name for headposition file
 
-tsss = False  # sss or tsss?
-summary_rprt = True  # do you want to add evokeds figures to the summary report?
-platform = 'mac'  # are you using 'bluebear', 'mac', or 'windows'?
 test_plot = False  # do you want to plot the data to test (True) or just generate report (False)?
 
-if platform == 'bluebear':
-    rds_dir = '/rds/projects/j/jenseno-avtemporal-attention'
-    camcan_dir = '/rds/projects/q/quinna-camcan/dataman/data_information'
-elif platform == 'windows':
-    rds_dir = 'Z:'
-    camcan_dir = 'X:/dataman/data_information'
-elif platform == 'mac':
-    rds_dir = '/Volumes/jenseno-avtemporal-attention'
-    camcan_dir = '/Volumes/quinna-camcan/dataman/data_information'
+bids_path = BIDSPath(subject=session_info.subject, 
+                     session=session_info.session, 
+                     task=session_info.task, 
+                     run=session_info.run, 
+                     datatype ='meg',
+                     suffix='meg', 
+                     extension='.fif',
+                     root=directories.bids_root)
 
 
-# Specify specific file names
-mTBI_root = op.join(rds_dir, 'Projects/mTBI-predict')
-bids_root = op.join(mTBI_root, 'collected-data', 'BIDS', 'task_BIDS')  # RDS folder for bids formatted data
-bids_path = BIDSPath(subject=subject, session=session,
-                     task=task, run=run, root=bids_root, datatype='meg',
-                     suffix=meg_suffix, extension=meg_extension)
-bids_fname = bids_path.basename.replace(meg_suffix, deriv_suffix)  # only used for suffices that are not recognizable to bids 
-
-deriv_root = op.join(bids_root, 'derivatives')  # RDS folder for results
-if not op.exists(op.join(deriv_root , 'sub-' + subject, 'task-' + task)):
-    os.makedirs(op.join(deriv_root , 'sub-' + subject, 'task-' + task))
-deriv_folder = op.join(deriv_root , 'sub-' + subject, 'task-' + task)
-deriv_fname = op.join(deriv_folder, bids_fname)
+input_fname = bids_path.basename.replace(meg_suffix, deriv_suffix)  # only used for suffices that are not recognizable to bids 
+deriv_fname = op.join(deriv_folder, input_fname)
 head_pos_fname = deriv_fname.replace(deriv_suffix, head_pos_suffix)
-
-# Define the fine calibration and cross-talk compensation files 
-crosstalk_file = op.join(bids_path.directory, 'sub-' + subject +'_ses-' + session + 
-                         '_acq-crosstalk_meg.fif')  
-calibration_file = op.join(bids_path.directory, 'sub-' + subject +'_ses-' + session + 
-                           '_acq-calibration_meg.dat')  
 
 # read and raw data 
 """only do the if run==2 for this part (as an example) for other sections
@@ -100,33 +100,35 @@ multiple meg files) and then run the maxfilter for files separately (works
 better on separate files) 
 """
 auto_noisy_chs, auto_flat_chs, auto_scores = preproc.find_bad_channels_maxwell(
-    raw.copy(), cross_talk=crosstalk_file, calibration=calibration_file,
+    raw.copy(), cross_talk=bids_path.meg_crosstalk_fpath, calibration=bids_path.meg_calibration_fpath,
     return_scores=True, verbose=True)
 
 print('noisy = ', auto_noisy_chs)
 print('flat = ', auto_flat_chs)
-len(auto_noisy_chs) + len(auto_flat_chs)
 
 # set noisy and flat channels as 'bads' in the data set
 raw.info['bads'] = []
 raw.info['bads'].extend(auto_noisy_chs + auto_flat_chs)
-print('bads = ', raw.info['bads'])
-len(raw.info['bads'])
+original_bads = deepcopy(raw.info["bads"])
+print('these are the bad sensors from maxwell: ', original_bads)
+user_bads = get_bad_sensors_from_user(original_bads, raw)
+
 
 # we might need to change MEGIN magnetometer coil types (type 3022 and 3023 to 3024) 
 # to ensure compatibility across systems
 raw.fix_mag_coil_types()
 
-if not tsss:  # which maxwell filtering to use? sss or tsss
-    # Apply the Maxfilter with fine calibration and cross-talk reduction (SSS)
-    raw_sss = preproc.maxwell_filter(raw, cross_talk=crosstalk_file,
-                                     calibration=calibration_file, verbose=True)
+coord_frame = 'meg'  # set coordinate frame
     
-elif tsss:  
-    # Apply Spatiotemporal SSS by passing st_duration to maxwell_filter
-    raw_sss = preproc.maxwell_filter(raw, cross_talk=crosstalk_file, st_duration=20,
-                                     calibration=calibration_file, verbose=True)
-
+# Apply the Maxfilter with fine calibration and cross-talk reduction (SSS)
+raw_sss = preproc.maxwell_filter(raw, 
+                                 cross_talk=bids_path.meg_crosstalk_fpath,
+                                 calibration=bids_path.meg_calibration_fpath, 
+                                 st_duration=st_duration,
+                                 origin='auto',
+                                 coord_frame=coord_frame, 
+                                 verbose=True)
+    
 if test_plot:
     # Plot power spectra of raw data and after maxwell filterting for comparison
     fig, ax = plt.subplots(2,2)
@@ -186,16 +188,16 @@ plt.show()
 raw_sss_filtered = raw_sss.copy().filter(0.3,100)  
 raw_sss_filtered.save(deriv_fname, overwrite=True)
 
-if summary_rprt:
-    report_root = op.join(mTBI_root, 'results-outputs/mne-reports')  # RDS folder for reports
-   
-    if not op.exists(op.join(report_root , 'sub-' + subject, 'ses-' + session, 'task-' + task)):
-        os.makedirs(op.join(report_root , 'sub-' + subject, 'ses-' + session, 'task-' + task))
-    report_folder = op.join(report_root , 'sub-' + subject, 'ses-' + session, 'task-' + task)
+report_root = op.join(mTBI_root, 'results-outputs/mne-reports')  # RDS folder for reports
+if not op.exists(op.join(report_root , 'sub-' + subject, 'ses-' + session, 'task-' + task)):
+    os.makedirs(op.join(report_root , 'sub-' + subject, 'ses-' + session, 'task-' + task))
+report_folder = op.join(report_root , 'sub-' + subject, 'ses-' + session, 'task-' + task)
 
+report_input = input("Dp you want the output plot to be added to the \
+                           participant's report? (y/n)")
+if report_input == 'y':
     report_fname = op.join(report_folder, 
-                        f'mneReport_sub-{subject}_{session}_{task}_1.hdf5')    # it is in .hdf5 for later adding images
-    html_report_fname = op.join(report_folder, f'report_preproc_{session}_{task}_1.html')
+                        f'mneReport_sub-{subject}_{session}_{task}_full.hdf5')    # it is in .hdf5 for later adding images
     
     # Filter raw data to become similar to sss for the report
     raw.filter(0.3,100)
@@ -209,10 +211,21 @@ if summary_rprt:
     report.add_figure(fig_head_pos, title="head position over time",
                         tags=('cHPI'), image_format="PNG")
     report.save(report_fname, overwrite=True)
+
+else:
+    html_report_fname = op.join(report_folder, f'report_preproc_{session}_{task}_1.html')
+    # Filter raw data to become similar to sss for the report
+    raw.filter(0.3,100)
+
+    # Create the report for the first time
+    report = mne.Report(title=f'Subject n.{subject}- {task}')
+    report.add_raw(raw=raw, title='Raw <60Hz', 
+                    psd=True, butterfly=False, tags=('raw'))
+    report.add_raw(raw=raw_sss_filtered, title='Max filter (sss) <60Hz', 
+                    psd=True, butterfly=False, tags=('MaxFilter'))
+    report.add_figure(fig_head_pos, title="head position over time",
+                        tags=('cHPI'), image_format="PNG")
     report.save(html_report_fname, overwrite=True, open_browser=True)  # to check how the report looks
-
-
-
 
 
 

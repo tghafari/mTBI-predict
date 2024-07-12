@@ -4,7 +4,9 @@
 07. Run and apply ICA
 
 This code will run ICA to find occular and cardiac
-artifacts: 1. decomposition, 2. manual identification,
+artifacts and then input which components
+to remove and removes them from the data : 
+1. decomposition, 2. manual identification, 
 3. project out
 
 written by Tara Ghafari
@@ -31,40 +33,38 @@ import mne
 from mne.preprocessing import ICA
 from mne_bids import BIDSPath
 
+
+def get_bad_components_from_user():
+    """this function will get the number of bad ICA components
+    from the user to exclude from the data."""
+    numbers = []
+    while True:
+        user_input = input("Enter the number of bad ICA components one by one (or press 'd' to finish): ")
+        if user_input.lower() == 'd':
+            break
+        try:
+            number = int(user_input)  # Convert the input to a integer
+            numbers.append(number)
+        except ValueError:
+            print("Invalid input. Please enter a valid number.")
+    return numbers
+
+
 # fill these out
-site = 'Birmingham'
-subject = '2010'  # subject code in mTBI project
-session = '05B'  # data collection session within each run
-run = '01'  # data collection run for each participant
-task = 'SpAtt'
 meg_extension = '.fif'
 meg_suffix = 'meg'
 input_suffix = 'ann'
 deriv_suffix = 'ica'
 
 summary_rprt = True  # do you want to add evokeds figures to the summary report?
-platform = 'mac'  # are you using 'bluebear', 'mac', or 'windows'?
 test_plot = False  # do you want to plot the data to test (True) or just generate report (False)?
 
-if platform == 'bluebear':
-    rds_dir = '/rds/projects/j/jenseno-avtemporal-attention'
-    camcan_dir = '/rds/projects/q/quinna-camcan/dataman/data_information'
-elif platform == 'windows':
-    rds_dir = 'Z:'
-    camcan_dir = 'X:/dataman/data_information'
-elif platform == 'mac':
-    rds_dir = '/Volumes/jenseno-avtemporal-attention'
-    camcan_dir = '/Volumes/quinna-camcan/dataman/data_information'
 
 
 # Specify specific file names
-mTBI_root = op.join(rds_dir, 'Projects/mTBI-predict')
-bids_root = op.join(mTBI_root, 'collected-data', 'BIDS', 'task_BIDS')  # RDS folder for bids formatted data
 bids_path = BIDSPath(subject=subject, session=session,
                      task=task, run=run, root=bids_root, 
                      suffix=meg_suffix, extension=meg_extension)
-deriv_folder = op.join(bids_root, 'derivatives', 'sub-' + subject, 
-                       'task-' + task)  # RDS folder for results
 bids_fname = bids_path.basename.replace(meg_suffix, input_suffix)  # only used for suffices that are not recognizable to bids 
 input_fname = op.join(deriv_folder, bids_fname)
 deriv_fname = str(input_fname).replace(input_suffix, deriv_suffix)
@@ -87,10 +87,10 @@ ica.fit(raw_resmpld, verbose=True)
 ica.plot_sources(raw_resmpld, title='ICA')
 ica.plot_components()
 
-#scores = ica.score_sources(raw_resmpld, target='EOG002', score_func='pearsonr')  # helps finding the saccade component
-#ica.plot_scores(scores)
+bad_components = get_bad_components_from_user()
+print("You entered the following numbers:", bad_components)
 
-ICA_rej_dic = {f'sub-{subject}_ses-{session}':[1, 2]} # manually selected bad ICs or from sub config file 
+ICA_rej_dic = {f'sub-{subject}_ses-{session}':bad_components} # manually selected bad ICs or from sub config file 
 """200102B: [3, 13]
 200204B: [1, 11]
 200302B: [7, 9]
@@ -152,10 +152,6 @@ if summary_rprt:
                    psd=True, butterfly=False, tags=('ica'))
     report.save(report_fname, overwrite=True)
     report.save(html_report_fname, overwrite=True, open_browser=True)  # to check how the report looks
-
-
-
-
 
 
 
