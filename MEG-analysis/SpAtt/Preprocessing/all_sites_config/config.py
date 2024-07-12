@@ -15,8 +15,40 @@ import pandas as pd
 
 
 
+
 class Config:
-    def __init__(self, site, subject, session, run, task, datatype, suffix, extension, platform):
+    """
+    Configuration class for setting up directory paths and other parameters 
+    for preprocessing MEG data.
+
+    Attributes:
+        site (str): Site name, e.g., 'Birmingham'.
+        subject (str): Subject code, e.g., '2013'.
+        session (str): Data collection session, e.g., '02B'.
+        run (str): Data collection run, default is '01'.
+        task (str): Task name, e.g., 'SpAtt'.
+        datatype (str): Data type, default is 'meg'.
+        suffix (str): Suffix for file names, default is 'meg'.
+        extension (str): File extension, default is '.fif'.
+        platform (str): Platform type, e.g., 'mac', 'windows', or 'bluebear'.
+    """
+
+    def __init__(self, site=None, subject=None, session=None, run='01', task=None, datatype='meg', suffix='meg', extension='.fif', platform='mac',
+                 method='sss'):
+        """
+        Initialize the Config class with provided parameters.
+
+        Args:
+            site (str): Site name.
+            subject (str): Subject code.
+            session (str): Data collection session.
+            run (str): Data collection run, default is '01'.
+            task (str): Task name.
+            datatype (str): Data type, default is 'meg'.
+            suffix (str): Suffix for file names, default is 'meg'.
+            extension (str): File extension, default is '.fif'.
+            platform (str): Platform type, e.g., 'mac', 'windows', or 'bluebear'.
+        """
         self.site = site
         self.subject = subject
         self.session = session
@@ -26,10 +58,20 @@ class Config:
         self.suffix = suffix
         self.extension = extension
         self.platform = platform
+        self.method = method
         self.set_directories()
+        self.set_maxwell_filter()
+        
+        if self.subject and self.task:
+            self.create_deriv_folder()
 
-    
-    def set_directories(self):  # change these directories according to your system
+    def set_directories(self):
+        """
+        Set directories based on the platform type.
+        
+        Raises:
+            ValueError: If an invalid platform is provided.
+        """
         if self.platform == 'bluebear':
             self.rds_dir = '/rds/projects/j/jenseno-avtemporal-attention'
             self.camcan_dir = '/rds/projects/q/quinna-camcan/dataman/data_information'
@@ -45,11 +87,43 @@ class Config:
         self.mTBI_root = op.join(self.rds_dir, 'Projects/mTBI-predict')
         self.bids_root = op.join(self.mTBI_root, 'collected-data', 'BIDS', 'task_BIDS')
         self.deriv_root = op.join(self.bids_root, 'derivatives')
-        
-        self.deriv_folder = op.join(self.deriv_root, f'sub-{self.subject}', f'task-{self.task}')
+        self.report_root = op.join(self.mTBI_root, 'results-outputs/mne-reports')  # RDS folder for reports
+
+        self.deriv_folder = None
+        if self.subject and self.task:
+            self.deriv_folder = op.join(self.deriv_root, f'sub-{self.subject}', f'task-{self.task}')
+
+        self.report_folder = None
+        if self.subject and self.session and self.task:
+            self.report_folder = op.join(self.report_root , f'sub-{self.subject}', f'ses{self.session}', f'task-{self.task}')
+
+    def create_deriv_report_folder(self):
+        """
+        Create the derivatives folder and report folder 
+        if they do not exist.
+        """
         if not op.exists(self.deriv_folder):
             os.makedirs(self.deriv_folder)
+            
+        if not op.exists(self.report_folder):
+            os.makedirs(self.report_folder)
+    
+    def set_maxwell_filter(self):
+        """
+        Set the maxwell filter based on method.
 
+        Raises:
+            ValueError: If an invalid method is provided.
+        """
+        if self.method == 'tsss':
+            self.st_duration = 10
+        elif self.method == 'sss':
+            self.st_duration = None
+        else:
+            raise ValueError("Invalid method. Choose 'sss', or 'tsss'.")
+        
+
+# these should be saved in a separate file I think       
 # =============================================================================
 # SESSION-SPECIFIC SETTINGS 
 # =============================================================================
@@ -57,29 +131,14 @@ class Config:
 session_info = Config(site='Birmingham', 
                       subject='2013', 
                       session='02B', 
-                      run='01', 
-                      task='SpAtt',
-                      datatype ='meg',
-                      suffix='meg', 
-                      extension='.fif')
-
-# =============================================================================
-# PATH & BIDS SETTINGS
-# =============================================================================
-# Define the platform to set directories
-directories = Config(platform='mac')
+                      task='SpAtt')
 
 # =============================================================================
 # MAXWELL FILTERING SETTINGS
 # =============================================================================
 
-# Apply Spatiotemporal SSS (tsss) by passing st_duration to maxwell_filter
 
-method = 'sss'  # set filtering method (sss/tsss)
-if method == 'tsss':
-    st_duration = 10
-else:
-    st_duration = None
+
 
 # =============================================================================
 # ARTIFACT ANNOTATION SETTINGS

@@ -193,9 +193,31 @@ if not op.exists(op.join(report_root , 'sub-' + subject, 'ses-' + session, 'task
     os.makedirs(op.join(report_root , 'sub-' + subject, 'ses-' + session, 'task-' + task))
 report_folder = op.join(report_root , 'sub-' + subject, 'ses-' + session, 'task-' + task)
 
-report_input = input("Dp you want the output plot to be added to the \
-                           participant's report? (y/n)")
-if report_input == 'y':
+report_input = input("Do you want the output plot to be added to the \
+                        participant's report? (y/n)")
+
+if report_input == 'n':
+    html_report_fname = op.join(report_folder, f'report_preproc_{session}_{task}_maxwell.html')
+    # Filter raw data to become similar to sss for the report
+    raw.filter(0.3,100)
+
+    # Create the report for the first time
+    report = mne.Report(title=f'Subject n.{subject}- {task}')
+    report.add_raw(raw=raw, title='Raw <60Hz', 
+                    psd=True, butterfly=False, tags=('raw'))
+    report.add_raw(raw=raw_sss_filtered, title='Max filter (sss) <60Hz', 
+                    psd=True, butterfly=False, tags=('MaxFilter'))
+    report.add_figure(fig_head_pos, title="head position over time",
+                        tags=('cHPI'), image_format="PNG")
+    report.save(html_report_fname, overwrite=True, open_browser=True)  # to check how the report looks
+
+    full_report_input = input("Do you want to add this to the full report now? (y/n)")
+    if full_report_input == 'y':
+        report_fname = op.join(report_folder, 
+                    f'mneReport_sub-{subject}_{session}_{task}_full.hdf5') 
+        report.save(report_fname, overwrite=True)
+
+elif report_input == 'y':
     report_fname = op.join(report_folder, 
                         f'mneReport_sub-{subject}_{session}_{task}_full.hdf5')    # it is in .hdf5 for later adding images
     
@@ -211,23 +233,6 @@ if report_input == 'y':
     report.add_figure(fig_head_pos, title="head position over time",
                         tags=('cHPI'), image_format="PNG")
     report.save(report_fname, overwrite=True)
-
-else:
-    html_report_fname = op.join(report_folder, f'report_preproc_{session}_{task}_1.html')
-    # Filter raw data to become similar to sss for the report
-    raw.filter(0.3,100)
-
-    # Create the report for the first time
-    report = mne.Report(title=f'Subject n.{subject}- {task}')
-    report.add_raw(raw=raw, title='Raw <60Hz', 
-                    psd=True, butterfly=False, tags=('raw'))
-    report.add_raw(raw=raw_sss_filtered, title='Max filter (sss) <60Hz', 
-                    psd=True, butterfly=False, tags=('MaxFilter'))
-    report.add_figure(fig_head_pos, title="head position over time",
-                        tags=('cHPI'), image_format="PNG")
-    report.save(html_report_fname, overwrite=True, open_browser=True)  # to check how the report looks
-
-
 
 
 
