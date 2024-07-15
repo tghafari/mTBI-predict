@@ -39,7 +39,7 @@ config = Config()
 # fill these out
 input_suffix = 'ica'
 deriv_suffix = 'epo'
-test_plot = False  # set to True if you want to plot the data for testing
+test_plot = False  # set to True if you want to plot the data for testing - can only be True for SpAtt
 
 # Specify specific file names
 bids_path = BIDSPath(subject=config.session_info.subject, 
@@ -56,23 +56,17 @@ input_fname = op.join(config.directories.deriv_folder, bids_fname)
 deriv_fname = str(input_fname).replace(input_suffix, deriv_suffix)
 
 
-
-summary_rprt = True  # do you want to add evokeds figures to the summary report?
-test_plot = False  # do you want to plot the data to test (True) or just generate report (False)?
-
-
-
 raw = read_raw_bids(bids_path=bids_path, 
                     verbose=False, 
                     extra_params={'preload':True})  # read raw for events and event ids only
 
 events, events_id = mne.events_from_annotations(raw, event_id='auto')
 
-# read raw and events file
+# Read raw and events file
 raw_ica = mne.io.read_raw_fif(input_fname, allow_maxshield=True,
                               verbose=True, preload=True)
 
-
+# Create epochs
 epochs = mne.Epochs(raw_ica, 
                     events, 
                     events_id,   # select events_picks and events_picks_id                   
@@ -114,12 +108,13 @@ html_report_fname = op.join(config.session_info.report_folder,
                             f'report_{config.session_info.subject}_{config.session_info.session}_{config.session_info.task}_epo.html')
 report_html = mne.Report(title=f'sub-{config.session_info.subject}_{config.session_info.task}')
 
-report_html.add_figure(fig=fig_epocheds, 
-                title='evoked topo',
-                caption='avg right and left cue epochs', 
-                tags=('epo'),
-                section='epocheds'
-                )
+if test_plot:
+    report_html.add_figure(fig=fig_epocheds, 
+                    title='evoked topo',
+                    caption='avg right and left cue epochs', 
+                    tags=('epo'),
+                    section='epocheds'
+                    )
 report_html.add_figure(fig=fig_bads, 
                 title='dropped epochs',
                 caption='epochs dropped from each sensor', 
