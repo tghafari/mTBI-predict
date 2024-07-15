@@ -174,14 +174,14 @@ raw_sss_filtered.save(deriv_fname, overwrite=True)
 print("Reporting output of P02_apply_maxfilter_config")
 html_report_fname = op.join(session_info.report_folder, 
                             f'report_{session_info.subject}_{session_info.session}_{session_info.task}_raw_sss.html')
-report = mne.Report(title=f'sub-{session_info.subject}_{session_info.task}')
+report_html = mne.Report(title=f'sub-{session_info.subject}_{session_info.task}')
 raw.filter(0.3,100)  # filter raw data to become similar to sss for the report
-report.add_raw(raw=raw, 
+report_html.add_raw(raw=raw, 
                 title='Raw <60Hz', 
                 psd=True, 
                 butterfly=False, 
                 tags=('raw'))
-report.add_raw(raw=raw_sss_filtered, 
+report_html.add_raw(raw=raw_sss_filtered, 
                 title='Max filter (sss) <60Hz', 
                 psd=True, 
                 butterfly=False, 
@@ -198,12 +198,12 @@ plt.annotate(f'Std deviation of movement: {head_pos_std_cmbnd_three_planes:.2f}'
              xy=(0.1, 0.05), 
              xycoords='axes fraction')
 fig_head_pos = plt.gcf()
-report.add_figure(fig_head_pos, 
+report_html.add_figure(fig_head_pos, 
                     title="head position over time",
                     tags=('cHPI'), 
                     image_format="PNG")
 
-report.save(html_report_fname, 
+report_html.save(html_report_fname, 
             overwrite=True, 
             open_browser=True)  
 

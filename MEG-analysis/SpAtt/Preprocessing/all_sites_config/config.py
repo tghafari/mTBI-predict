@@ -35,7 +35,7 @@ class Config:
 
     def __init__(self, site=None, subject=None, session=None, run='01', task=None, datatype='meg', meg_suffix='meg', extension='.fif', platform='mac',
                  method='sss', threshold_muscle=10, min_length_good=.2, filter_freq=[110,140], ica_method = 'fastica', n_components = 0.99, 
-                 max_iter = 800, random_state = 1688):
+                 max_iter = 800, random_state = 1688, epo_tmin=None, epo_tmax=None):
         """
         Initialize the Config class with provided parameters.
 
@@ -59,14 +59,21 @@ class Config:
         self.meg_suffix = meg_suffix
         self.extension = extension
         self.platform = platform
+
         self.method = method
+
         self.threshold_muscle = threshold_muscle  # decided individually based on the plot in P03
         self.min_length_good = min_length_good  # min acceptable duration for muscle artifact
         self.filter_freq = filter_freq  # filter frequency for muscle artifact
+
         self.ica_method = ica_method  # the method of ica
         self.n_components = n_components  # number of components that ica will generate or the precentage of variability to be explained
         self.random_state = random_state
         self.max_iter = max_iter
+
+        self.epo_tmin = epo_tmin  # Set epoch timewindow
+        self.epo_tmax = epo_tmax
+
         self.set_directories()
         self.set_maxwell_filter()
         
@@ -165,48 +172,11 @@ session_info = Config(site='Birmingham',
 # =============================================================================
 
 
-
-# Rejected ICs (manually selected)  #TODO: to be changed
-rej_ic = pd.DataFrame({
-    'sub': ['SA113','SA116','SA118','SA124','SA126','SA127'],
-    'meg_ica_eog': [[4],[2],[3],[14],[8],[3]],
-    'meg_ica_ecg': [[7],[5,18],[5],[16],[7],[4]],
-    'eeg_ica_eog': [[2,7],[],[],[],[],[]],
-    'eeg_ica_ecg': [[],[],[],[],[],[]]})
-
-
 # =============================================================================
 # EPOCHING SETTINGS
 # =============================================================================
-
-# Set timewindow
-tmin = -1
-tmax = 2.5
-
-# Epoch rejection criteria
-reject = dict(grad=4000e-13,    # T / m (gradiometers)
-                      mag=4e-12,        # T (magnetometers)
-                      eeg=200e-6       # V (EEG channels)
-                      )
-# reject = dict(grad=4000e-13,    # T / m (gradiometers)
-#                   mag=4e-12         # T (magnetometers)
-#                   )
-
-# Set epoching event ids
-if visit_id == 'V1':
-    events_id = {}
-    types = ['face','object','letter','false']
-    for j,t in enumerate(types):
-        for i in range(1,21):
-            events_id[t+str(i)] = i + j * 20
-elif visit_id == 'V2':
-    events_id = {}
-    events_id['blank'] = 50
-    types = ['face','object']
-    for j,t in enumerate(types):
-        for i in range(1,11):
-            events_id[t+str(i)] = i + j * 20
-
+epoch_info = Config(tmin=-.7, 
+                    tmax=1.7)
 
 # =============================================================================
 #  FACTOR AND CONDITIONS OF INTEREST

@@ -57,10 +57,7 @@ def get_bad_components_from_user():
 # fill these out
 input_suffix = 'ann'
 deriv_suffix = 'ica'
-
 test_plot = False  # set to True if you want to plot the data for testing
-
-
 
 # Specify specific file names
 bids_path = BIDSPath(subject=config.session_info.subject, 
@@ -147,32 +144,33 @@ raw_ica.save(deriv_fname,
 print("Reporting output of P04_run_apply_ICA_config")
 html_report_fname = op.join(config.session_info.report_folder, 
                             f'report_{config.session_info.subject}_{config.session_info.session}_{config.session_info.task}_ICA.html')
-report = mne.Report(title=f'sub-{config.session_info.subject}_{config.session_info.task}')
+report_html = mne.Report(title=f'sub-{config.session_info.subject}_{config.session_info.task}')
 
 # only add excluded components to the report
 fig_ica = ica.plot_components(picks=artifact_ICs, title='removed components', show=False)
     
-report.add_figure(fig_ica, 
+report_html.add_figure(fig_ica, 
                   title="removed ICA components (eog, ecg)",
                     tags=('ica'), 
                     image_format="PNG")
-report.add_raw(raw=raw_ica.filter(0, 60), 
+report_html.add_raw(raw=raw_ica.filter(0, 60), 
                title='raw after ICA', 
                 psd=True, 
                 butterfly=False, 
                 tags=('ica'))
 
-report.save(html_report_fname, 
+report_html.save(html_report_fname, 
             overwrite=True, 
             open_browser=True)  
 
 full_report_input = input("Do you want to add this to the full report (y/n)? ")
 if full_report_input == 'y':
+    report = mne.open_report(config.directories.report_fname)
+
     report.add_figure(fig_ica, title="removed ICA components (eog, ecg)",
                         tags=('ica'), image_format="PNG")
     report.add_raw(raw=raw_ica.filter(0, 60), title='raw after ICA', 
                     psd=True, butterfly=False, tags=('ica'))
 
-    report = mne.open_report(config.directories.report_fname)
 
     report.save(config.directories.report_fname, overwrite=True)

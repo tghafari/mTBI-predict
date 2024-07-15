@@ -48,19 +48,18 @@ raw.copy().crop(tmax=180).pick(["meg", "stim"]).filter(l_freq=0.1, h_freq=80).pl
 print("Reporting output of P01_looking_at_data_config")
 html_report_fname = op.join(session_info.report_folder, 
                             f'report_{session_info.subject}_{session_info.session}_{session_info.task}_raw_psd.html')
-report = mne.Report(title=f'sub-{session_info.subject}_{session_info.task}')
+report_html = mne.Report(title=f'sub-{session_info.subject}_{session_info.task}')
 
 raw.pick(["meg", "stim", "eog", "ecg"]).filter(l_freq=0.1, h_freq=80).load_data()
-report.add_raw(raw=raw, 
+report_html.add_raw(raw=raw, 
                title='Raw', 
                psd=True, 
                tags=('raw')) 
-report.save(html_report_fname, 
+report_html.save(html_report_fname, 
             overwrite=True, 
             open_browser=True)  # to check how the report looks
 
 full_report_input = input("Do you want to add this to the full report now? (y/n)")
-
 if full_report_input == 'y':
     raw_report_fname = op.join(session_info.report_folder,
                            f'report_sub-{session_info.subject}_{session_info.session}_{session_info.task}_raw.hdf5')
