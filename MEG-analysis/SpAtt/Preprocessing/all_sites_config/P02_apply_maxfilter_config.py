@@ -23,8 +23,10 @@ from mne_bids import BIDSPath, read_raw_bids
 import mne.preprocessing as preproc
 from copy import deepcopy
 
-from config import st_duration, session_info, directories
+from config import Config
 
+# Initialize the config
+config = Config()
 
 def get_bad_sensors_from_user(original_bads, raw, plot_bads=True):
     """    
@@ -74,23 +76,22 @@ def get_bad_sensors_from_user(original_bads, raw, plot_bads=True):
 deriv_suffix = 'raw_sss'
 head_pos_suffix = 'head_pos'  # name for headposition file
 
-bids_path = BIDSPath(subject=session_info.subject, 
-                     session=session_info.session, 
-                     task=session_info.task, 
-                     run=session_info.run, 
-                     datatype=session_info.datatype,
-                     suffix=session_info.meg_suffix, 
-                     extension=session_info.extension,
-                     root=directories.bids_root)
+bids_path = BIDSPath(subject=config.session_info.subject, 
+                     session=config.session_info.session, 
+                     task=config.session_info.task, 
+                     run=config.session_info.run, 
+                     datatype=config.session_info.datatype,
+                     suffix=config.session_info.meg_suffix, 
+                     extension=config.session_info.extension,
+                     root=config.directories.bids_root)
 
 
-deriv_fname = bids_path.basename.replace(session_info.meg_suffix, deriv_suffix) 
-deriv_fname = op.join(directories.deriv_folder, deriv_fname)
+deriv_fname = bids_path.basename.replace(config.session_info.meg_suffix, deriv_suffix) 
 head_pos_fname = deriv_fname.replace(deriv_suffix, head_pos_suffix)
 
 # Read raw data 
-if session_info.task == 'rest': 
-    if session_info.run == '02':
+if config.session_info.task == 'rest': 
+    if config.session_info.run == '02':
         bids_path2 = bids_path.copy().update(run='02')
         if op.exists(bids_path2):    
             raw1 = read_raw_bids(bids_path=bids_path, 
@@ -197,7 +198,6 @@ plt.annotate(f'Std deviation of movement: {head_pos_std_cmbnd_three_planes:.2f}'
              xy=(0.1, 0.05), 
              xycoords='axes fraction')
 fig_head_pos = plt.gcf()
-plt.show()
 report.add_figure(fig_head_pos, 
                     title="head position over time",
                     tags=('cHPI'), 

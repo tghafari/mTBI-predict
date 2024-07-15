@@ -34,7 +34,8 @@ class Config:
     """
 
     def __init__(self, site=None, subject=None, session=None, run='01', task=None, datatype='meg', meg_suffix='meg', extension='.fif', platform='mac',
-                 method='sss', threshold_muscle=10, min_length_good=.2, filter_freq=[110,140]):
+                 method='sss', threshold_muscle=10, min_length_good=.2, filter_freq=[110,140], ica_method = 'fastica', n_components = 0.99, 
+                 max_iter = 800, random_state = 1688):
         """
         Initialize the Config class with provided parameters.
 
@@ -62,6 +63,10 @@ class Config:
         self.threshold_muscle = threshold_muscle  # decided individually based on the plot in P03
         self.min_length_good = min_length_good  # min acceptable duration for muscle artifact
         self.filter_freq = filter_freq  # filter frequency for muscle artifact
+        self.ica_method = ica_method  # the method of ica
+        self.n_components = n_components  # number of components that ica will generate or the precentage of variability to be explained
+        self.random_state = random_state
+        self.max_iter = max_iter
         self.set_directories()
         self.set_maxwell_filter()
         
@@ -101,7 +106,8 @@ class Config:
             self.report_folder = op.join(self.report_root , f'sub-{self.subject}', f'ses{self.session}', f'task-{self.task}')
             self.report_fname = op.join(self.report_folder,
                            f'report_sub-{self.subject}_{self.session}_{self.task}_full.hdf5')
-            
+            self.ICA_rej_dict = op.join(self.report_folder, f'group-analysis/task-{self.task}/rejected-ICs/{self.task}_rejected_ICS_all.npy')
+
     def create_deriv_report_folder(self):
         """
         Create the derivatives folder and report folder 
@@ -152,17 +158,13 @@ session_info = Config(site='Birmingham',
 # Set muscle artifact threshold (z-scores)
 # IMPORTTANT: This threshold is data dependent, check the optimal threshold by 
 # plotting "scores_muscle"
-threshold_muscle = 7
 
 
 # =============================================================================
 # ICA SETTINGS
 # =============================================================================
 
-ica_method = 'fastica'
-n_components = 0.99
-max_iter = 800
-random_state = 1688
+
 
 # Rejected ICs (manually selected)  #TODO: to be changed
 rej_ic = pd.DataFrame({
