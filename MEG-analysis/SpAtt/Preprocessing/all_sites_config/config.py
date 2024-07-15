@@ -28,13 +28,13 @@ class Config:
         run (str): Data collection run, default is '01'.
         task (str): Task name, e.g., 'SpAtt'.
         datatype (str): Data type, default is 'meg'.
-        suffix (str): Suffix for file names, default is 'meg'.
+        meg_suffix (str): Suffix for file names, default is 'meg'.
         extension (str): File extension, default is '.fif'.
         platform (str): Platform type, e.g., 'mac', 'windows', or 'bluebear'.
     """
 
-    def __init__(self, site=None, subject=None, session=None, run='01', task=None, datatype='meg', suffix='meg', extension='.fif', platform='mac',
-                 method='sss'):
+    def __init__(self, site=None, subject=None, session=None, run='01', task=None, datatype='meg', meg_suffix='meg', extension='.fif', platform='mac',
+                 method='sss', threshold_muscle=10, min_length_good=.2, filter_freq=[110,140]):
         """
         Initialize the Config class with provided parameters.
 
@@ -45,7 +45,7 @@ class Config:
             run (str): Data collection run, default is '01'.
             task (str): Task name.
             datatype (str): Data type, default is 'meg'.
-            suffix (str): Suffix for file names, default is 'meg'.
+            meg_suffix (str): Suffix for file names, default is 'meg'.
             extension (str): File extension, default is '.fif'.
             platform (str): Platform type, e.g., 'mac', 'windows', or 'bluebear'.
         """
@@ -55,10 +55,13 @@ class Config:
         self.run = run
         self.task = task
         self.datatype = datatype
-        self.suffix = suffix
+        self.meg_suffix = meg_suffix
         self.extension = extension
         self.platform = platform
         self.method = method
+        self.threshold_muscle = threshold_muscle  # decided individually based on the plot in P03
+        self.min_length_good = min_length_good  # min acceptable duration for muscle artifact
+        self.filter_freq = filter_freq  # filter frequency for muscle artifact
         self.set_directories()
         self.set_maxwell_filter()
         
@@ -88,7 +91,7 @@ class Config:
         self.bids_root = op.join(self.mTBI_root, 'collected-data', 'BIDS', 'task_BIDS')
         self.deriv_root = op.join(self.bids_root, 'derivatives')
         self.report_root = op.join(self.mTBI_root, 'results-outputs/mne-reports')  # RDS folder for reports
-
+        
         self.deriv_folder = None
         if self.subject and self.task:
             self.deriv_folder = op.join(self.deriv_root, f'sub-{self.subject}', f'task-{self.task}')
@@ -96,7 +99,9 @@ class Config:
         self.report_folder = None
         if self.subject and self.session and self.task:
             self.report_folder = op.join(self.report_root , f'sub-{self.subject}', f'ses{self.session}', f'task-{self.task}')
-
+            self.report_fname = op.join(self.report_folder,
+                           f'report_sub-{self.subject}_{self.session}_{self.task}_full.hdf5')
+            
     def create_deriv_report_folder(self):
         """
         Create the derivatives folder and report folder 
