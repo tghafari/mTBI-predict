@@ -124,8 +124,11 @@ def compute_head_pos_stats(head_pos):
     
     return head_pos_avg_cmbnd_three_planes, head_pos_std_cmbnd_three_planes
 
-def create_report(raw, raw_sss_filtered, head_pos, report_html_fname, head_pos_avg, head_pos_std):
+def create_report(raw, raw_sss_filtered, head_pos, head_pos_avg, head_pos_std):
     """Create and save the MNE report."""
+
+    html_report_fname = op.join(config.report_folder, f'report_{config.subject}_{config.session}_{config.task}_raw_sss.html')
+
     report_html = mne.Report(title=f'Sub-{config.subject}_{config.task}')
     raw.filter(0.3, 100)
     report_html.add_raw(raw=raw, title='Raw <60Hz', psd=True, butterfly=False, tags=('raw'))
@@ -138,7 +141,16 @@ def create_report(raw, raw_sss_filtered, head_pos, report_html_fname, head_pos_a
     fig_head_pos = plt.gcf()
     report_html.add_figure(fig_head_pos, title="Head position over time", tags=('cHPI'), image_format="PNG")
     
-    report_html.save(report_html_fname, overwrite=True, open_browser=True)
+    report_html.save(html_report_fname, overwrite=True, open_browser=True)
+
+    full_report_input = input("Do you want to add this to the full report (without head position) (y/n)? ")
+    if full_report_input.lower() == 'y':
+        full_report = mne.Report(title=f'Sub-{config.subject}_{config.task}')
+        raw.filter(0.3, 100)
+        full_report.add_raw(raw=raw, title='Raw <60Hz', psd=True, butterfly=False, tags=('raw'))
+        full_report.add_raw(raw=raw_sss_filtered, title='Max filter (sss) <60Hz', psd=True, butterfly=False, tags=('MaxFilter'))
+        full_report.save(config.report_fname, overwrite=True)
+
 
 def main():
     deriv_suffix = 'raw_sss'
@@ -188,16 +200,7 @@ def main():
     raw_sss_filtered = raw_sss.copy().filter(0.3, 100)
     raw_sss_filtered.save(deriv_fname, overwrite=True)
     
-    html_report_fname = op.join(config.report_folder, f'report_{config.subject}_{config.session}_{config.task}_raw_sss.html')
     create_report(raw, raw_sss_filtered, head_pos, html_report_fname, head_pos_avg, head_pos_std)
     
-    full_report_input = input("Do you want to add this to the full report (without head position) (y/n)? ")
-    if full_report_input.lower() == 'y':
-        full_report = mne.Report(title=f'Sub-{config.subject}_{config.task}')
-        raw.filter(0.3, 100)
-        full_report.add_raw(raw=raw, title='Raw <60Hz', psd=True, butterfly=False, tags=('raw'))
-        full_report.add_raw(raw=raw_sss_filtered, title='Max filter (sss) <60Hz', psd=True, butterfly=False, tags=('MaxFilter'))
-        full_report.save(config.report_fname, overwrite=True)
-
 if __name__ == "__main__":
     main()
