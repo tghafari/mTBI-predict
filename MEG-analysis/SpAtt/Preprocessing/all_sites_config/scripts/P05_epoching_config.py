@@ -103,6 +103,17 @@ if test_plot:
     evoked_obj_topo_plot = [epochs['cue_onset_left'].average(picks=['grad']), epochs['cue_onset_right'].average(picks=['grad'])]
     fig_epocheds = mne.viz.plot_evoked_topo(evoked_obj_topo_plot, show=True)
 
+# Make evoked data for conditions of interest and save
+evoked = epochs['cue_onset_right','cue_onset_left'].copy().average(
+                                                    method='mean').filter(0.0,60).crop(-.2,.8)  
+# Plot magnetometers for summary report
+topos_times = np.arange(50,450,30)*0.001
+fig_mag = evoked.copy().pick('mag').plot_joint(times=topos_times)
+
+# Plot and combine gradiometers for summary report
+fig_grad = evoked.copy().pick('grad').plot_joint(times=topos_times, 
+                                                topomap_args={'vlim':(0,140)})
+
 print("Reporting output of P05_epoching_config")
 html_report_fname = op.join(config.session_info.report_folder, 
                             f'report_{config.session_info.subject}_{config.session_info.session}_{config.session_info.task}_epo.html')
@@ -121,6 +132,17 @@ report_html.add_figure(fig=fig_bads,
                 tags=('epo'),
                 section='epocheds'
                 )
+report_html.add_figure(fig=fig_mag, title='evoked magnetometer',
+                    caption='evoked response for cue = 0-200ms', 
+                    tags=('evo'),
+                    section='evokeds'
+                    )
+report_html.add_figure(fig=fig_grad, title='evoked gradiometer',
+                    caption='evoked response for cue = 0-200ms', 
+                    tags=('evo'),
+                    section='evokeds'
+                    )
+
 report_html.save(html_report_fname, overwrite=True, open_browser=True)  # to check how the report looks
 
 
@@ -134,5 +156,15 @@ if full_report_input == 'y':
                     tags=('epo'),
                     section='epocheds'
                     )
+    report.add_figure(fig=fig_mag, title='evoked magnetometer',
+                      caption='evoked response for cue = 0-200ms', 
+                      tags=('evo'),
+                      section='evokeds'
+                      )
+    report.add_figure(fig=fig_grad, title='evoked gradiometer',
+                      caption='evoked response for cue = 0-200ms', 
+                      tags=('evo'),
+                      section='evokeds'
+                      )
 
     report.save(config.directories.report_fname, overwrite=True)
