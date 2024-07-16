@@ -18,15 +18,14 @@ import os.path as op
 
 import matplotlib.pyplot as plt
 import numpy as np
+from copy import deepcopy
+import argparse
+
 import mne
 from mne_bids import BIDSPath, read_raw_bids
 import mne.preprocessing as preproc
-from copy import deepcopy
 
 from config import Config
-
-# Initialize the config
-config = Config(site='Birmingham', subject='2013', session='02B', task='SpAtt')
 
 def get_bad_sensors_from_user(original_bads, raw, plot_bads=True):
     """
@@ -124,12 +123,12 @@ def compute_head_pos_stats(head_pos):
     
     return head_pos_avg_cmbnd_three_planes, head_pos_std_cmbnd_three_planes
 
-def create_report(raw, raw_sss_filtered, head_pos, head_pos_avg, head_pos_std):
+def create_report(subject, session, task, report_folder, report_fname, raw, raw_sss_filtered, head_pos, head_pos_avg, head_pos_std):
     """Create and save the MNE report."""
 
-    html_report_fname = op.join(config.report_folder, f'report_{config.subject}_{config.session}_{config.task}_raw_sss.html')
+    html_report_fname = op.join(report_folder, f'report_{subject}_{session}_{task}_raw_sss.html')
 
-    report_html = mne.Report(title=f'Sub-{config.subject}_{config.task}')
+    report_html = mne.Report(title=f'Sub-{subject}_{task}')
     raw.filter(0.3, 100)
     report_html.add_raw(raw=raw, title='Raw <60Hz', psd=True, butterfly=False, tags=('raw'))
     report_html.add_raw(raw=raw_sss_filtered, title='Max filter (sss) <60Hz', psd=True, butterfly=False, tags=('MaxFilter'))
@@ -145,27 +144,29 @@ def create_report(raw, raw_sss_filtered, head_pos, head_pos_avg, head_pos_std):
 
     full_report_input = input("Do you want to add this to the full report (without head position) (y/n)? ")
     if full_report_input.lower() == 'y':
-        full_report = mne.Report(title=f'Sub-{config.subject}_{config.task}')
+        full_report = mne.Report(title=f'Sub-{subject}_{task}')
         raw.filter(0.3, 100)
         full_report.add_raw(raw=raw, title='Raw <60Hz', psd=True, butterfly=False, tags=('raw'))
         full_report.add_raw(raw=raw_sss_filtered, title='Max filter (sss) <60Hz', psd=True, butterfly=False, tags=('MaxFilter'))
-        full_report.save(config.report_fname, overwrite=True)
+        full_report.save(report_fname, overwrite=True)
 
+def main(subject, session):
+    # Initialize the config
+    config = Config(site='Birmingham', subject=subject, session=session, task='SpAtt')
 
-def main():
     deriv_suffix = 'raw_sss'
     head_pos_suffix = 'head_pos'
     
-    bids_path = BIDSPath(subject=config.subject, 
-                         session=config.session, 
-                         task=config.task, 
-                         run=config.run, 
-                         datatype=config.datatype,
-                         suffix=config.meg_suffix, 
-                         extension=config.extension,
-                         root=config.bids_root)
+    bids_path = BIDSPath(subject=config.session_info.subject, 
+                         session=config.session_info.session, 
+                         task=config.session_info.task, 
+                         run=config.session_info.run, 
+                         datatype=config.session_info.datatype,
+                         suffix=config.session_info.meg_suffix, 
+                         extension=config.session_info.extension,
+                         root=config.directories.bids_root)
     
-    deriv_fname = bids_path.basename.replace(config.meg_suffix, deriv_suffix) 
+    deriv_fname = bids_path.basename.replace(config.session_info.meg_suffix, deriv_suffix) 
     head_pos_fname = deriv_fname.replace(deriv_suffix, head_pos_suffix)
     
     raw = read_and_concatenate_raw_data(config, bids_path)  # this only extecutes if we have run=02 and task='rest'
@@ -200,7 +201,15 @@ def main():
     raw_sss_filtered = raw_sss.copy().filter(0.3, 100)
     raw_sss_filtered.save(deriv_fname, overwrite=True)
     
-    create_report(raw, raw_sss_filtered, head_pos, html_report_fname, head_pos_avg, head_pos_std)
+    create_report(config.session_info.subject, config.session_info.session,
+                  config.session_info.task, config.directories.report_folder,
+                  config.directories.report_fname, raw, raw_sss_filtered, 
+                  head_pos, head_pos_avg, head_pos_std)
     
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Run maxfilter")
+    parser.add_argument('--subject', type=str, required=True, help='Subject ID')
+    parser.add_argument('--session', type=str, required=True, help='Session ID')
+    
+    args = parser.parse_args()
+    main(args.subject, args.session)

@@ -18,6 +18,17 @@ class Config:
     for preprocessing MEG data.
     """
 
+    class SessionInfo:
+        def __init__(self, site=None, subject=None, session=None, run='01', task=None, datatype='meg', meg_suffix='meg', extension='.fif', platform='mac'):
+            self.site = site
+            self.subject = subject
+            self.session = session
+            self.run = run
+            self.task = task
+            self.datatype = datatype
+            self.meg_suffix = meg_suffix
+            self.extension = extension
+
     class ICAConfig:
         def __init__(self, n_components=0.99, random_state=97, ica_method='fastica', max_iter=800):
             self.n_components = n_components
@@ -95,6 +106,7 @@ class Config:
     def __init__(self, site=None, subject=None, session=None, run='01', task=None, datatype='meg', meg_suffix='meg', extension='.fif', platform='mac', 
                  maxwell_method='sss', threshold_muscle=None, min_length_good=.2, filter_freq=[110,140], n_components=0.99, random_state=97, 
                  ica_method='fastica', max_iter=800, epo_tmin=None, epo_tmax=None):
+        
         """
         Initialize the Config class with provided parameters.
 
@@ -119,17 +131,9 @@ class Config:
         epo_tmin (float): tmin for epoching, e.g., for spatial attention epo_tmin = -0.7
         epo_tmax (float): tmax for epoching, e.g., for spatial attention epo_tmax = 1.7
         """
-        # Session info
-        self.site = site
-        self.subject = subject
-        self.session = session
-        self.run = run
-        self.task = task
-        self.datatype = datatype
-        self.meg_suffix = meg_suffix
-        self.extension = extension
-
+                
         # Config sub-classes
+        self.session_info = self.SessionInfo(site, subject, session, run, task, datatype, meg_suffix, extension)
         self.ica = self.ICAConfig(n_components, random_state, ica_method, max_iter)
         self.artifact = self.ArtifactConfig(threshold_muscle, min_length_good, filter_freq)
         self.directories = self.DirectoryConfig(platform, site, subject, session, task)
@@ -151,6 +155,8 @@ class Config:
         else:
             raise ValueError("Invalid maxwell_method. Choose 'sss', or 'tsss'.")
 
+# EXAMPLES
+"""
 # =============================================================================
 # SESSION-SPECIFIC SETTINGS 
 # =============================================================================
@@ -172,3 +178,4 @@ artifact_info = Config.ArtifactConfig(threshold_muscle=10)
 # EPOCHING SETTINGS
 # =============================================================================
 epoch_info = Config.EpochConfig(epo_tmin=-.7, epo_tmax=1.7)
+"""
