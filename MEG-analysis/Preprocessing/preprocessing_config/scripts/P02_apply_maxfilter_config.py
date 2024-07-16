@@ -15,6 +15,7 @@ adapted from oscfer88
 
 import os
 import os.path as op
+import sys
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -24,6 +25,11 @@ import argparse
 import mne
 from mne_bids import BIDSPath, read_raw_bids
 import mne.preprocessing as preproc
+
+# Add the project root directory to the sys.path
+project_root = op.abspath(op.join(op.dirname(__file__), '..'))
+config_root = op.join(project_root, 'config')
+sys.path.append(config_root)
 
 from config import Config
 
@@ -72,7 +78,7 @@ def read_and_concatenate_raw_data(config, bids_path):
     It only does so if it is resting state and has 2 runs.
     """
     
-    if config.task == 'rest' and config.run == '02':
+    if config.session_info.task == 'rest' and config.session_info.run == '02':
         bids_path2 = bids_path.copy().update(run='02')
         if op.exists(bids_path2):
             raw1 = read_raw_bids(bids_path=bids_path, extra_params={'preload': True}, verbose=True)
@@ -178,7 +184,7 @@ def main(subject, session):
     better on separate files) 
     """
 
-    auto_noisy_chs, auto_flat_chs, auto_scores = preproc.find_bad_channels_maxwell(
+    auto_noisy_chs, auto_flat_chs, _ = preproc.find_bad_channels_maxwell(
         raw.copy(), 
         cross_talk=bids_path.meg_crosstalk_fpath, 
         calibration=bids_path.meg_calibration_fpath,

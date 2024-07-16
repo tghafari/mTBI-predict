@@ -15,33 +15,24 @@ Issues:
 """
 
 import os.path as op
+import sys
 
 import numpy as np
 import matplotlib.pyplot as plt
+import argparse
 
 import mne
 from mne.preprocessing import annotate_muscle_zscore
 from mne_bids import BIDSPath
 
+
+# Add the project root directory to the sys.path
+project_root = op.abspath(op.join(op.dirname(__file__), '..'))
+sys.path.append(project_root)
+
+print(f'in artifact annotation: {sys.path}')
+
 from config import Config
-
-# Initialize the config
-config = Config()
-
-# Fill these out
-input_suffix = 'raw_sss'
-deriv_suffix = 'ann'
-eog_raw_plots = True  # Set to True if you want to plot annotated raw eog channels 
-
-bids_path = BIDSPath(subject=config.session_info.subject, 
-                     session=config.session_info.session, 
-                     task=config.session_info.task, 
-                     run=config.session_info.run, 
-                     root=config.directories.bids_root)
-
-bids_fname = bids_path.basename.replace(config.session_info.meg_suffix, input_suffix)  
-input_fname = op.join(config.directories.deriv_folder, bids_fname)
-deriv_fname = input_fname.replace(input_suffix, deriv_suffix)
 
 def read_and_prepare_raw(input_fname):
     raw = mne.io.read_raw_fif(input_fname, preload=True)
@@ -88,7 +79,25 @@ def detect_and_annotate_muscle(raw):
     return annotation_muscle
 
 # Main function to handle all processing steps
-def main():
+def main(subject, session):
+    # Initialize the config
+    config = Config(site='Birmingham', subject=subject, session=session, task='SpAtt')
+
+    # Fill these out
+    input_suffix = 'raw_sss'
+    deriv_suffix = 'ann'
+    eog_raw_plots = True  # Set to True if you want to plot annotated raw eog channels 
+
+    bids_path = BIDSPath(subject=config.session_info.subject, 
+                        session=config.session_info.session, 
+                        task=config.session_info.task, 
+                        run=config.session_info.run, 
+                        root=config.directories.bids_root)
+
+    bids_fname = bids_path.basename.replace(config.session_info.meg_suffix, input_suffix)  
+    input_fname = op.join(config.directories.deriv_folder, bids_fname)
+    deriv_fname = input_fname.replace(input_suffix, deriv_suffix)
+
     raw_sss = read_and_prepare_raw(input_fname)
 
     annotation_blink = detect_and_annotate_blinks(raw_sss)
@@ -106,4 +115,9 @@ def main():
     raw_sss.save(deriv_fname, overwrite=True)
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Run artifact annotation")
+    parser.add_argument('--subject', type=str, required=True, help='Subject ID')
+    parser.add_argument('--session', type=str, required=True, help='Session ID')
+    
+    args = parser.parse_args()
+    main(args.subject, args.session)

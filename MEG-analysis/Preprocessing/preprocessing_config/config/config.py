@@ -138,12 +138,16 @@ class Config:
         self.artifact = self.ArtifactConfig(threshold_muscle, min_length_good, filter_freq)
         self.directories = self.DirectoryConfig(platform, site, subject, session, task)
         self.epoch = self.EpochConfig(epo_tmin, epo_tmax)
+        self.maxwell_method = maxwell_method
 
-        self.set_maxwell_filter()
+        self.get_st_duration(maxwell_method)
 
-    def set_maxwell_filter(self):
+    def get_st_duration(self, maxwell_method):
         """
         Set the maxwell filter based on the method.
+
+        Returns:
+            The value of st_duration.
 
         Raises:
             ValueError: If an invalid method is provided.
@@ -154,6 +158,8 @@ class Config:
             self.st_duration = None
         else:
             raise ValueError("Invalid maxwell_method. Choose 'sss', or 'tsss'.")
+        
+        return self.st_duration
 
 # EXAMPLES
 """
