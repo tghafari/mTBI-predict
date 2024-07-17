@@ -16,10 +16,10 @@ Issues:
 
 import os.path as op
 import sys
+import argparse
 
 import numpy as np
 import matplotlib.pyplot as plt
-import argparse
 
 import mne
 from mne.preprocessing import annotate_muscle_zscore

@@ -17,6 +17,7 @@ adapted from flux pipeline
 
 import os.path as op
 import os
+import argparse
 
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -26,15 +27,12 @@ from autoreject import get_rejection_threshold
 import mne
 from mne_bids import BIDSPath, read_raw_bids
 
+# Add the project root directory to the sys.path
+project_root = op.abspath(op.join(op.dirname(__file__), '..'))
+config_root = op.join(project_root, 'config')
+sys.path.append(config_root)
+
 from config import Config
-
-# Initialize the config
-config = Config(site='Birmingham', subject='2013', session='02B', task='SpAtt')
-
-# Configuration parameters
-input_suffix = 'ica'
-deriv_suffix = 'epo'
-test_plot = True  # set to True if you want to plot evoked responses topographically- sanity check
 
 def create_bids_path(config):
     """
@@ -50,15 +48,6 @@ def create_bids_path(config):
         extension=config.extension,
         root=config.directories.bids_root
     )
-
-def create_file_paths(config, bids_path):
-    """
-    Create input and derivative file paths.
-    """
-    bids_fname = bids_path.basename.replace(config.meg_suffix, input_suffix)
-    input_fname = op.join(config.directories.deriv_folder, bids_fname)
-    deriv_fname = str(input_fname).replace(input_suffix, deriv_suffix)
-    return input_fname, deriv_fname
 
 def read_raw_data(bids_path, input_fname):
     """
@@ -152,16 +141,34 @@ def create_report(fig_bads, fig_mag, fig_grad, fig_epocheds=None):
         report.save(config.directories.report_fname, overwrite=True)
 
 
-def main():
-    """
-    Main function to run the epoching and reporting process.
-    """
-    bids_path = create_bids_path(config)
-    input_fname, deriv_fname = create_file_paths(config, bids_path)
+def main(subject, session):
+    # Initialize the config
+    config = Config(site='Birmingham', subject=subject, session=session, task='SpAtt')
+
+    # Fill these out
+    input_suffix = 'ica'
+    deriv_suffix = 'epo'
+    test_plot = True  # set to True if you want to plot evoked responses topographically- sanity check
+
+
+    bids_path = BIDSPath(subject=config.session_info.subject, 
+                         session=config.session_info.session, 
+                         task=config.session_info.task, 
+                         run=config.session_info.run, 
+                         datatype=config.session_info.datatype,
+                         suffix=config.session_info.meg_suffix, 
+                         extension=config.session_info.extension,
+                         root=config.directories.bids_root)
+    
+    bids_fname = bids_path.basename.replace(config.session_info.meg_suffix, input_suffix)  
+    input_fpath = op.join(config.directories.deriv_folder, bids_fname)
+    deriv_fpath = input_fpath.replace(input_suffix, deriv_suffix)
+
+
     raw_ica, events, events_id = read_raw_data(bids_path, input_fname)
     epochs = create_epochs(raw_ica, events, events_id, config)
     epochs = reject_bad_epochs(epochs)
-    fig_bads = save_epochs(epochs, deriv_fname)
+    fig_bads = save_epochs(epochs, deriv_fpath)
     
     if test_plot:
         fig_epocheds = plot_evoked_responses(epochs)
@@ -172,4 +179,9 @@ def main():
     create_report(fig_bads, fig_mag, fig_grad, fig_epocheds)
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Epoching")
+    parser.add_argument('--subject', type=str, required=True, help='Subject ID')
+    parser.add_argument('--session', type=str, required=True, help='Session ID')
+    
+    args = parser.parse_args()
+    main(args.subject, args.session)

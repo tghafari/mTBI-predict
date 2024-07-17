@@ -12,6 +12,8 @@ written by Tara Ghafari
 import os
 import os.path as op
 
+from mne_bids import BIDSPath
+
 class Config:
     """
     Configuration class for setting up directory paths and other parameters 
@@ -30,9 +32,13 @@ class Config:
             self.extension = extension
 
     class DirectoryConfig:
-        def __init__(self, platform='mac', subject=None, session=None, task=None):
+        def __init__(self, platform='mac', subject=None, session=None, 
+                     task=None, run=None, input_suffix=None, deriv_suffix=None):
             self.platform = platform
             self.set_directories()
+            if subject and session and task and run:
+                self.get_bids_path(input_suffix, deriv_suffix)
+
             if subject and task:
                 self.create_deriv_report_folder(subject, session, task)
         
@@ -70,6 +76,22 @@ class Config:
             self.deriv_root = op.join(self.bids_root, 'derivatives')
             self.report_root = op.join(self.mTBI_root, 'results-outputs/mne-reports')
 
+        def get_bids_paths(self, input_suffix, deriv_suffix):
+            bids_path = BIDSPath(subject=self.session_info.subject, 
+                                session=self.session_info.session, 
+                                task=self.session_info.task, 
+                                run=self.session_info.run, 
+                                datatype=self.session_info.datatype,
+                                suffix=self.session_info.meg_suffix, 
+                                extension=self.session_info.extension,
+                                root=self.directories.bids_root)
+            
+            bids_fname = bids_path.basename.replace(self.session_info.meg_suffix, input_suffix)
+            input_fpath = op.join(self.directories.deriv_folder, bids_fname)
+            deriv_fpath = input_fpath.replace(input_suffix, deriv_suffix)
+
+            return input_fpath, deriv_fpath
+
         def create_deriv_report_folder(self, subject, session, task):
             """
             Create the derivatives folder and report folder if they do not exist.
@@ -104,7 +126,7 @@ class Config:
             self.epo_tmax = epo_tmax
 
     def __init__(self, site=None, subject=None, session=None, run='01', task=None, datatype='meg', meg_suffix='meg', extension='.fif', platform='mac', 
-                 maxwell_method='sss', threshold_muscle=7.0, min_length_good=0.2, filter_freq=[110,140], n_components=0.99, random_state=97, 
+                 input_suffix=None, deriv_suffix=None, maxwell_method='sss', threshold_muscle=7.0, min_length_good=0.2, filter_freq=[110,140], n_components=0.99, random_state=97, 
                  ica_method='fastica', max_iter=800, epo_tmin=None, epo_tmax=None):
         
         """
@@ -120,6 +142,8 @@ class Config:
         meg_suffix (str): Suffix for file names, default is 'meg'.
         extension (str): File extension, default is '.fif'.
         platform (str): Platform type, e.g., 'mac', 'windows', or 'bluebear'.
+        input_suffix (str): suffix for the input fif file, e.g., 'ann'.
+        deriv_suffix (str): suffix for the derivative fif file, e.g., 'ica'.
         maxwell_method (str): method of maxwell filter, e.g., 'sss' or 'tsss'.
         threshold_muscle (float): the threshold of rejecting artifact based on muscle activity, default = 7.
         min_length_good (float): The shortest allowed duration of “good data” (in seconds), e.g., 0.2.
@@ -134,7 +158,7 @@ class Config:
                 
         # Config sub-classes
         self.session_info = self.SessionInfo(site, subject, session, run, task, datatype, meg_suffix, extension)
-        self.directories = self.DirectoryConfig(platform, subject, session, task)
+        self.directories = self.DirectoryConfig(platform, subject, session, task, input_suffix, deriv_suffix)
         self.maxwell_method = maxwell_method
         self.artifact_params = self.ArtifactConfig(threshold_muscle, min_length_good, filter_freq)
         self.ica_params = self.ICAConfig(n_components, random_state, ica_method, max_iter)

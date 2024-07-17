@@ -16,6 +16,8 @@ adapted from flux pipeline
 
 import sys
 import os.path as op
+import argparse
+
 import numpy as np
 
 import mne
@@ -124,21 +126,23 @@ def main(subject, session):
     input_suffix = 'ann'
     deriv_suffix = 'ica'
 
-    bids_path = BIDSPath(subject=config.session_info.subject, 
-                         session=config.session_info.session, 
-                         task=config.session_info.task, 
-                         run=config.session_info.run, 
-                         datatype=config.session_info.datatype,
-                         suffix=config.session_info.meg_suffix, 
-                         extension=config.session_info.extension,
-                         root=config.directories.bids_root)
+    input_fpath, deriv_fpath = config.get_bids_paths(input_suffix, deriv_suffix)
+
+    # bids_path = BIDSPath(subject=config.session_info.subject, 
+    #                      session=config.session_info.session, 
+    #                      task=config.session_info.task, 
+    #                      run=config.session_info.run, 
+    #                      datatype=config.session_info.datatype,
+    #                      suffix=config.session_info.meg_suffix, 
+    #                      extension=config.session_info.extension,
+    #                      root=config.directories.bids_root)
     
-    bids_fname = bids_path.basename.replace(config.session_info.meg_suffix, input_suffix)  
-    input_fpath = op.join(config.directories.deriv_folder, bids_fname)
-    deriv_fpath = input_fpath.replace(input_suffix, deriv_suffix)
+    # bids_fname = bids_path.basename.replace(config.session_info.meg_suffix, input_suffix)  
+    # input_fpath = op.join(config.directories.deriv_folder, bids_fname)
+    # deriv_fpath = input_fpath.replace(input_suffix, deriv_suffix)
 
     raw_ann, raw_resampled = prepare_raw_data(input_fpath)
-    ica = apply_ica(raw_resampled, config.ica_params.method, 
+    ica = apply_ica(raw_resampled, config.ica_params.ica_method, 
                     config.ica_params.random_state, config.ica_params.n_components)
     
     bad_components = get_bad_components_from_user()
@@ -169,4 +173,9 @@ def main(subject, session):
                   config.directories.report_fname, ica, raw_ica, artifact_ICs)
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Running ICA")
+    parser.add_argument('--subject', type=str, required=True, help='Subject ID')
+    parser.add_argument('--session', type=str, required=True, help='Session ID')
+    
+    args = parser.parse_args()
+    main(args.subject, args.session)
