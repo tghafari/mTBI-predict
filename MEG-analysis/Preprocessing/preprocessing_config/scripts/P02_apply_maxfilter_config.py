@@ -50,21 +50,24 @@ def get_bad_sensors_from_user(original_bads, raw, plot_bads=True):
     while True:
         print('These are the bad sensors from maxwell: ', original_bads)
         user_bads = input("Enter full name of bad sensors if you have \
-                            additional ones that were not detected by \
-                            maxwell (eg. 'MEG1323') or press 'd' to finish:")
+    additional ones that were not detected by \
+    maxwell (eg. MEG1323) or press d to finish:")  # removed indent to ensure continuity when printing on terminal
         if user_bads.lower() == 'd':
             break
         bad_sensors.append(user_bads)
     
     if bad_sensors:
         if plot_bads:
-            raw.copy().pick(bad_sensors).compute_psd().plot(title='User added bad channels')  # double check bad channels
-            raw.copy().pick(original_bads).compute_psd().plot(title='Original bad channels')
+            fig_user = raw.copy().pick(bad_sensors).compute_psd(fmin=0.1, fmax=100).plot()  # double check bad channels
+            fig_user.suptitle('User added bad channels')
+            fig_orig = raw.copy().pick(original_bads).compute_psd(fmin=0.1, fmax=100).plot()
+            fig_orig.suptitle('Original bad channels')
         add_input = input("Add user channels to bad channels? (y/n)")
         if add_input == 'y':
             raw.info['bads'].extend(bad_sensors)
             if plot_bads:
-                raw.copy().pick(original_bads + bad_sensors).compute_psd().plot(title='All bad channels')
+                fig_all = raw.copy().pick(original_bads + bad_sensors).compute_psd(fmin=0.1, fmax=100).plot()
+                fig_all.suptitle('All bad channels')
     else:
         print("No bad channels added by user")
         if plot_bads:
@@ -102,7 +105,7 @@ def apply_maxwell_filter(raw, bids_path, st_duration):
                                   coord_frame='meg', 
                                   verbose=True)
 
-def compute_and_save_head_pos(raw, head_pos_fname):
+def compute_and_save_head_pos(raw, head_pos_fpath):
     """
     These head positions can then be used with mne.preprocessing.maxwell_filter()
     to compensate for movement, or with mne.preprocessing.annotate_movement() to
@@ -112,7 +115,7 @@ def compute_and_save_head_pos(raw, head_pos_fname):
     chpi_amplitudes = mne.chpi.compute_chpi_amplitudes(raw)
     chpi_locs = mne.chpi.compute_chpi_locs(raw.info, chpi_amplitudes)
     head_pos = mne.chpi.compute_head_pos(raw.info, chpi_locs, verbose=True)
-    mne.chpi.write_head_pos(head_pos_fname, head_pos)
+    mne.chpi.write_head_pos(head_pos_fpath, head_pos)
     
     return head_pos
 
@@ -173,7 +176,8 @@ def main(subject, session):
                          root=config.directories.bids_root)
     
     deriv_fname = bids_path.basename.replace(config.session_info.meg_suffix, deriv_suffix) 
-    head_pos_fname = deriv_fname.replace(deriv_suffix, head_pos_suffix)
+    deriv_fpath = op.join(config.directories.deriv_root, deriv_fname)
+    head_pos_fpath = deriv_fpath.replace(deriv_suffix, head_pos_suffix)
     
     raw = read_and_concatenate_raw_data(config, bids_path)  # this only extecutes if we have run=02 and task='rest'
     
@@ -183,7 +187,6 @@ def main(subject, session):
     multiple meg files) and then run the maxfilter for files separately (works
     better on separate files) 
     """
-
     auto_noisy_chs, auto_flat_chs, _ = preproc.find_bad_channels_maxwell(
         raw.copy(), 
         cross_talk=bids_path.meg_crosstalk_fpath, 
@@ -200,12 +203,12 @@ def main(subject, session):
     raw.fix_mag_coil_types()
     
     raw_sss = apply_maxwell_filter(raw, bids_path, config.st_duration)
-    head_pos = compute_and_save_head_pos(raw, head_pos_fname)    
+    head_pos = compute_and_save_head_pos(raw, head_pos_fpath)    
     head_pos_avg, head_pos_std = compute_head_pos_stats(head_pos)
 
     # Remove cHPI frequencies and save sss/tsss file
     raw_sss_filtered = raw_sss.copy().filter(0.3, 100)
-    raw_sss_filtered.save(deriv_fname, overwrite=True)
+    raw_sss_filtered.save(deriv_fpath, overwrite=True)
     
     create_report(config.session_info.subject, config.session_info.session,
                   config.session_info.task, config.directories.report_folder,

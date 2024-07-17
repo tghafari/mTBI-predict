@@ -43,11 +43,11 @@ class Config:
             self.filter_freq = filter_freq
 
     class DirectoryConfig:
-        def __init__(self, platform='mac', site=None, subject=None, session=None, task=None):
+        def __init__(self, platform='mac', subject=None, session=None, task=None):
             self.platform = platform
             self.set_directories()
             if subject and task:
-                self.create_deriv_report_folder(site, subject, session, task)
+                self.create_deriv_report_folder(subject, session, task)
         
         def set_directories(self):
             """
@@ -83,7 +83,7 @@ class Config:
             self.deriv_root = op.join(self.bids_root, 'derivatives')
             self.report_root = op.join(self.mTBI_root, 'results-outputs/mne-reports')
 
-        def create_deriv_report_folder(self, site, subject, session, task):
+        def create_deriv_report_folder(self, subject, session, task):
             """
             Create the derivatives folder and report folder if they do not exist.
             """
@@ -136,13 +136,13 @@ class Config:
         self.session_info = self.SessionInfo(site, subject, session, run, task, datatype, meg_suffix, extension)
         self.ica = self.ICAConfig(n_components, random_state, ica_method, max_iter)
         self.artifact = self.ArtifactConfig(threshold_muscle, min_length_good, filter_freq)
-        self.directories = self.DirectoryConfig(platform, site, subject, session, task)
+        self.directories = self.DirectoryConfig(platform, subject, session, task)
         self.epoch = self.EpochConfig(epo_tmin, epo_tmax)
         self.maxwell_method = maxwell_method
 
-        self.get_st_duration(maxwell_method)
+        self.get_st_duration()
 
-    def get_st_duration(self, maxwell_method):
+    def get_st_duration(self):
         """
         Set the maxwell filter based on the method.
 
