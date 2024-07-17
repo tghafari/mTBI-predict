@@ -29,19 +29,6 @@ class Config:
             self.meg_suffix = meg_suffix
             self.extension = extension
 
-    class ICAConfig:
-        def __init__(self, n_components=0.99, random_state=97, ica_method='fastica', max_iter=800):
-            self.n_components = n_components
-            self.random_state = random_state
-            self.ica_method = ica_method
-            self.max_iter = max_iter
-
-    class ArtifactConfig:
-        def __init__(self, threshold_muscle=None, min_length_good=0.2, filter_freq=[110, 140]):
-            self.threshold_muscle = threshold_muscle
-            self.min_length_good = min_length_good
-            self.filter_freq = filter_freq
-
     class DirectoryConfig:
         def __init__(self, platform='mac', subject=None, session=None, task=None):
             self.platform = platform
@@ -96,7 +83,20 @@ class Config:
                 os.makedirs(self.report_folder)
 
             self.report_fname = op.join(self.report_folder, f'report_sub-{subject}_{session}_{task}_full.hdf5')
-            self.ICA_rej_dict = op.join(self.report_folder, f'group-analysis/task-{task}/rejected-ICs/{task}_rejected_ICS_all.npy')
+            self.ICA_rej_dict_dir = op.join(self.report_folder, f'group-analysis/task-{task}/rejected-ICs/{task}_rejected_ICS_all.npy')
+ 
+    class ArtifactConfig:
+        def __init__(self, threshold_muscle=7.0, min_length_good=0.2, filter_freq=[110, 140]):
+            self.threshold_muscle = float(threshold_muscle)
+            self.min_length_good = min_length_good
+            self.filter_freq = filter_freq
+              
+    class ICAConfig:
+        def __init__(self, n_components=0.99, random_state=97, ica_method='fastica', max_iter=800):
+            self.n_components = n_components
+            self.random_state = random_state
+            self.ica_method = ica_method
+            self.max_iter = max_iter
 
     class EpochConfig:
         def __init__(self, epo_tmin=None, epo_tmax=None):
@@ -104,7 +104,7 @@ class Config:
             self.epo_tmax = epo_tmax
 
     def __init__(self, site=None, subject=None, session=None, run='01', task=None, datatype='meg', meg_suffix='meg', extension='.fif', platform='mac', 
-                 maxwell_method='sss', threshold_muscle=None, min_length_good=.2, filter_freq=[110,140], n_components=0.99, random_state=97, 
+                 maxwell_method='sss', threshold_muscle=7.0, min_length_good=0.2, filter_freq=[110,140], n_components=0.99, random_state=97, 
                  ica_method='fastica', max_iter=800, epo_tmin=None, epo_tmax=None):
         
         """
@@ -121,7 +121,7 @@ class Config:
         extension (str): File extension, default is '.fif'.
         platform (str): Platform type, e.g., 'mac', 'windows', or 'bluebear'.
         maxwell_method (str): method of maxwell filter, e.g., 'sss' or 'tsss'.
-        threshold_muscle (float): the threshold of rejecting artifact based on muscle activity.
+        threshold_muscle (float): the threshold of rejecting artifact based on muscle activity, default = 7.
         min_length_good (float): The shortest allowed duration of “good data” (in seconds), e.g., 0.2.
         filter_freq (array_like): lower and upper frequencies of the band-pass filter for muscle activity.
         n_components (int, float): number of PCAs or min number of components to explain the variance. Default is 99%.
@@ -134,11 +134,11 @@ class Config:
                 
         # Config sub-classes
         self.session_info = self.SessionInfo(site, subject, session, run, task, datatype, meg_suffix, extension)
-        self.ica = self.ICAConfig(n_components, random_state, ica_method, max_iter)
-        self.artifact = self.ArtifactConfig(threshold_muscle, min_length_good, filter_freq)
         self.directories = self.DirectoryConfig(platform, subject, session, task)
-        self.epoch = self.EpochConfig(epo_tmin, epo_tmax)
         self.maxwell_method = maxwell_method
+        self.artifact_params = self.ArtifactConfig(threshold_muscle, min_length_good, filter_freq)
+        self.ica_params = self.ICAConfig(n_components, random_state, ica_method, max_iter)
+        self.epoch_params = self.EpochConfig(epo_tmin, epo_tmax)
 
         self.get_st_duration()
 

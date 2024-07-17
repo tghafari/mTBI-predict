@@ -136,8 +136,8 @@ def create_report(subject, session, task, report_folder, report_fname, raw, raw_
     """Create and save the MNE report."""
 
     html_report_fname = op.join(report_folder, f'report_{subject}_{session}_{task}_raw_sss.html')
-
     report_html = mne.Report(title=f'Sub-{subject}_{task}')
+    
     raw.filter(0.3, 100)
     report_html.add_raw(raw=raw, title='Raw <60Hz', psd=True, butterfly=False, tags=('raw'))
     report_html.add_raw(raw=raw_sss_filtered, title='Max filter (sss) <60Hz', psd=True, butterfly=False, tags=('MaxFilter'))
@@ -176,7 +176,7 @@ def main(subject, session):
                          root=config.directories.bids_root)
     
     deriv_fname = bids_path.basename.replace(config.session_info.meg_suffix, deriv_suffix) 
-    deriv_fpath = op.join(config.directories.deriv_root, deriv_fname)
+    deriv_fpath = op.join(config.directories.deriv_folder, deriv_fname)
     head_pos_fpath = deriv_fpath.replace(deriv_suffix, head_pos_suffix)
     
     raw = read_and_concatenate_raw_data(config, bids_path)  # this only extecutes if we have run=02 and task='rest'

@@ -25,16 +25,15 @@ import mne
 from mne.preprocessing import annotate_muscle_zscore
 from mne_bids import BIDSPath
 
-
 # Add the project root directory to the sys.path
 project_root = op.abspath(op.join(op.dirname(__file__), '..'))
-sys.path.append(project_root)
-
-print(f'in artifact annotation: {sys.path}')
+config_root = op.join(project_root, 'config')
+sys.path.append(config_root)
 
 from config import Config
 
 def read_and_prepare_raw(input_fname):
+    print("Setting channel names")
     raw = mne.io.read_raw_fif(input_fname, preload=True)
     raw.copy().pick_channels(['EOG001', 'EOG002', 'ECG003']).plot()
     raw.set_channel_types({'EOG001': 'eog', 'EOG002': 'eog', 'ECG003': 'ecg'})
@@ -60,25 +59,24 @@ def detect_and_annotate_saccades(raw):
     annotation_saccade = mne.Annotations(onset_saccade, duration_saccade, description_saccade)
     return annotation_saccade
 
-def detect_and_annotate_muscle(raw):
+def detect_and_annotate_muscle(raw, threshold_muscle, min_length_good, filter_freq):
     """ 
     muscle artifacts are identified from the magnetometer data filtered and 
     z-scored in filter_freq range
     """
     annotation_muscle, scores_muscle = annotate_muscle_zscore(raw, 
                                                               ch_type='mag', 
-                                                              threshold=config.artifact_params.threshold_muscle, 
-                                                              min_length_good=config.artifact_params.min_length_good, 
-                                                              filter_freq=config.artifact_params.filter_freq)
+                                                              threshold=threshold_muscle, 
+                                                              min_length_good=min_length_good, 
+                                                              filter_freq=filter_freq)
     fig, ax = plt.subplots()
     ax.plot(raw.times, scores_muscle)
-    ax.axhline(y=config.artifact_params.threshold_muscle, color='r')
-    ax.set(xlabel='Time (s)', ylabel='zscore', title=f'Muscle activity (threshold = {config.artifact_params.threshold_muscle})')
+    ax.axhline(y=threshold_muscle, color='r')
+    ax.set(xlabel='Time (s)', ylabel='zscore', title=f'Muscle activity (threshold = {threshold_muscle})')
     annotation_muscle.onset -= raw.first_time
     annotation_muscle._orig_time = None
     return annotation_muscle
 
-# Main function to handle all processing steps
 def main(subject, session):
     # Initialize the config
     config = Config(site='Birmingham', subject=subject, session=session, task='SpAtt')
@@ -92,17 +90,23 @@ def main(subject, session):
                         session=config.session_info.session, 
                         task=config.session_info.task, 
                         run=config.session_info.run, 
+                        datatype=config.session_info.datatype,
+                        suffix=config.session_info.meg_suffix, 
+                        extension=config.session_info.extension,
                         root=config.directories.bids_root)
 
     bids_fname = bids_path.basename.replace(config.session_info.meg_suffix, input_suffix)  
-    input_fname = op.join(config.directories.deriv_folder, bids_fname)
-    deriv_fname = input_fname.replace(input_suffix, deriv_suffix)
+    input_fpath = op.join(config.directories.deriv_folder, bids_fname)
+    deriv_fpath = input_fpath.replace(input_suffix, deriv_suffix)
 
-    raw_sss = read_and_prepare_raw(input_fname)
+    raw_sss = read_and_prepare_raw(input_fpath)
 
     annotation_blink = detect_and_annotate_blinks(raw_sss)
     annotation_saccade = detect_and_annotate_saccades(raw_sss)
-    annotation_muscle = detect_and_annotate_muscle(raw_sss)
+    annotation_muscle = detect_and_annotate_muscle(raw_sss, 
+                                                   config.artifact_params.threshold_muscle,
+                                                   config.artifact_params.min_length_good,
+                                                   config.artifact_params.filter_freq)
 
     raw_sss.set_annotations(annotation_blink + annotation_saccade + annotation_muscle)
 
@@ -112,10 +116,10 @@ def main(subject, session):
         scale = dict(eog=500e-6)
         raw_sss.plot(order=eog_picks, scalings=scale, start=50)
 
-    raw_sss.save(deriv_fname, overwrite=True)
+    raw_sss.save(deriv_fpath, overwrite=True)
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Run artifact annotation")
+    parser = argparse.ArgumentParser(description="Artifact Annotation")
     parser.add_argument('--subject', type=str, required=True, help='Subject ID')
     parser.add_argument('--session', type=str, required=True, help='Session ID')
     
