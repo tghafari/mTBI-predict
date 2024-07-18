@@ -111,7 +111,7 @@ def create_report(subject, session, task, report_folder, report_fname, fig_bads,
     report_html.add_figure(fig=fig_grad, title='Evoked Gradiometer', caption='Evoked response for cue = 0-200ms', tags=('evo'), section='Evoked')
     report_html.save(html_report_fname, overwrite=True, open_browser=True)
 
-    full_report_input = input("Do you want to add this to the full report (y/n)? ")
+    full_report_input = input("Do you want to add this to the full report (except the evoked topo plot)(y/n)? ")
     if full_report_input.lower() == 'y':
         report = mne.open_report(report_fname)
         report.add_figure(fig=fig_bads, title='Dropped Epochs', caption='Epochs dropped from each sensor', tags=('epo'), section='Epoched')
