@@ -17,6 +17,7 @@ adapted from flux pipeline
 
 import os.path as op
 import os
+import sys
 import argparse
 
 import pandas as pd
@@ -33,21 +34,6 @@ config_root = op.join(project_root, 'config')
 sys.path.append(config_root)
 
 from config import Config
-
-def create_bids_path(config):
-    """
-    Create BIDS path based on the configuration.
-    """
-    return BIDSPath(
-        subject=config.subject, 
-        session=config.session, 
-        task=config.task, 
-        run=config.run, 
-        datatype=config.datatype,
-        suffix=config.meg_suffix, 
-        extension=config.extension,
-        root=config.directories.bids_root
-    )
 
 def read_raw_data(bids_path, input_fname):
     """
@@ -145,25 +131,9 @@ def main(subject, session):
     # Initialize the config
     config = Config(site='Birmingham', subject=subject, session=session, task='SpAtt')
 
-    # Fill these out
-    input_suffix = 'ica'
-    deriv_suffix = 'epo'
     test_plot = True  # set to True if you want to plot evoked responses topographically- sanity check
 
-
-    bids_path = BIDSPath(subject=config.session_info.subject, 
-                         session=config.session_info.session, 
-                         task=config.session_info.task, 
-                         run=config.session_info.run, 
-                         datatype=config.session_info.datatype,
-                         suffix=config.session_info.meg_suffix, 
-                         extension=config.session_info.extension,
-                         root=config.directories.bids_root)
-    
-    bids_fname = bids_path.basename.replace(config.session_info.meg_suffix, input_suffix)  
-    input_fpath = op.join(config.directories.deriv_folder, bids_fname)
-    deriv_fpath = input_fpath.replace(input_suffix, deriv_suffix)
-
+    bids_path, input_fpath, deriv_fpath = config.directories.get_bids_paths(input_suffix='ica', deriv_suffix='epo')
 
     raw_ica, events, events_id = read_raw_data(bids_path, input_fname)
     epochs = create_epochs(raw_ica, events, events_id, config)

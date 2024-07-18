@@ -21,7 +21,9 @@ class Config:
     """
 
     class SessionInfo:
-        def __init__(self, site=None, subject=None, session=None, run='01', task=None, datatype='meg', meg_suffix='meg', extension='.fif', platform='mac'):
+        """Holds information about the data collection session."""
+        def __init__(self, site=None, subject=None, session=None, run='01', 
+                     task=None, datatype='meg', meg_suffix='meg', extension='.fif', platform='mac'):
             self.site = site
             self.subject = subject
             self.session = session
@@ -32,8 +34,10 @@ class Config:
             self.extension = extension
 
     class DirectoryConfig:
-        def __init__(self, platform='mac', subject=None, session=None, 
+        """Manages the directory structure, file paths and BIDS paths"""
+        def __init__(self, config, platform='mac', subject=None, session=None, 
                      task=None, run=None, input_suffix=None, deriv_suffix=None):
+            self.config = config
             self.platform = platform
             self.set_directories()
             if subject and session and task and run:
@@ -74,23 +78,25 @@ class Config:
             self.mTBI_root = op.join(self.rds_dir, 'Projects/mTBI-predict')
             self.bids_root = op.join(self.mTBI_root, 'collected-data', 'BIDS', 'task_BIDS')
             self.deriv_root = op.join(self.bids_root, 'derivatives')
+            self.group_root = op.join(self.mTBI_root, 'results-outputs/group-analysis')
             self.report_root = op.join(self.mTBI_root, 'results-outputs/mne-reports')
 
-        def get_bids_paths(self, input_suffix, deriv_suffix):
-            bids_path = BIDSPath(subject=self.session_info.subject, 
-                                session=self.session_info.session, 
-                                task=self.session_info.task, 
-                                run=self.session_info.run, 
-                                datatype=self.session_info.datatype,
-                                suffix=self.session_info.meg_suffix, 
-                                extension=self.session_info.extension,
-                                root=self.directories.bids_root)
+        def get_bids_paths(self, input_suffix=None, deriv_suffix=None):
+            session_info = self.config.session_info
+            bids_path = BIDSPath(subject=session_info.subject, 
+                                session=session_info.session, 
+                                task=session_info.task, 
+                                run=session_info.run, 
+                                datatype=session_info.datatype,
+                                suffix=session_info.meg_suffix, 
+                                extension=session_info.extension,
+                                root=self.bids_root)
             
-            bids_fname = bids_path.basename.replace(self.session_info.meg_suffix, input_suffix)
-            input_fpath = op.join(self.directories.deriv_folder, bids_fname)
+            bids_fname = bids_path.basename.replace(session_info.meg_suffix, input_suffix)
+            input_fpath = op.join(self.deriv_folder, bids_fname)
             deriv_fpath = input_fpath.replace(input_suffix, deriv_suffix)
 
-            return input_fpath, deriv_fpath
+            return bids_path, input_fpath, deriv_fpath
 
         def create_deriv_report_folder(self, subject, session, task):
             """
@@ -105,15 +111,17 @@ class Config:
                 os.makedirs(self.report_folder)
 
             self.report_fname = op.join(self.report_folder, f'report_sub-{subject}_{session}_{task}_full.hdf5')
-            self.ICA_rej_dict_dir = op.join(self.report_folder, f'group-analysis/task-{task}/rejected-ICs/{task}_rejected_ICS_all.npy')
+            self.ICA_rej_dict_fpath = op.join(self.group_root, f'task-{task}/rejected-ICs/{task}_rejected_ICS_all.npy')
  
     class ArtifactConfig:
+        """Configures artifact rejection parameters."""
         def __init__(self, threshold_muscle=7.0, min_length_good=0.2, filter_freq=[110, 140]):
             self.threshold_muscle = float(threshold_muscle)
             self.min_length_good = min_length_good
             self.filter_freq = filter_freq
               
     class ICAConfig:
+        """Configures Independent Component Analysis (ICA) parameters."""
         def __init__(self, n_components=0.99, random_state=97, ica_method='fastica', max_iter=800):
             self.n_components = n_components
             self.random_state = random_state
@@ -121,6 +129,7 @@ class Config:
             self.max_iter = max_iter
 
     class EpochConfig:
+        """Configures epoching parameters."""
         def __init__(self, epo_tmin=None, epo_tmax=None):
             self.epo_tmin = epo_tmin
             self.epo_tmax = epo_tmax
@@ -158,13 +167,14 @@ class Config:
                 
         # Config sub-classes
         self.session_info = self.SessionInfo(site, subject, session, run, task, datatype, meg_suffix, extension)
-        self.directories = self.DirectoryConfig(platform, subject, session, task, input_suffix, deriv_suffix)
+        self.directories = self.DirectoryConfig(self, platform, subject, session, task, input_suffix, deriv_suffix)
         self.maxwell_method = maxwell_method
         self.artifact_params = self.ArtifactConfig(threshold_muscle, min_length_good, filter_freq)
         self.ica_params = self.ICAConfig(n_components, random_state, ica_method, max_iter)
         self.epoch_params = self.EpochConfig(epo_tmin, epo_tmax)
 
         self.get_st_duration()
+        
 
     def get_st_duration(self):
         """

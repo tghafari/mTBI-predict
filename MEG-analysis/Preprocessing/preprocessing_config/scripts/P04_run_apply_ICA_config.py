@@ -46,7 +46,7 @@ def prepare_raw_data(input_fpath):
     raw_resampled = raw_ann.copy().pick(["meg", "eog", "ecg"]).resample(200).filter(1, 40)
     return raw_ann, raw_resampled
 
-def apply_ica(raw_resampled, method, random_state, n_components):
+def fit_ica(raw_resampled, method, random_state, n_components):
     """
     Apply ICA and identify artifact components.
 
@@ -82,31 +82,45 @@ def get_bad_components_from_user():
             print("Invalid input. Please enter a valid number.")
     return numbers
 
-def save_bad_components(bad_components, ICA_rej_dict_dir, subject, session):
+def save_bad_components(bad_components, ICA_rej_dict_fpath, subject, session):
     """
     Save the manually selected bad ICA components to the rejected dictionary.
 
     Args:
         bad_components (list): List of bad ICA components.
     """
-    ICA_rej_dic = np.load(ICA_rej_dict_dir, allow_pickle=True).item()
-    ICA_rej_dic[f'sub-{subject}_ses-{session}'] = bad_components
-    np.save(ICA_rej_dict_dir, ICA_rej_dic)
+    if op.exists(ICA_rej_dict_fpath):
+        ICA_rej_dic = np.load(ICA_rej_dict_fpath, allow_pickle=True).item()
+    else:
+        ICA_rej_dic = {}
 
-def create_report(subject, session, task, report_folder, report_fname, ica, raw_ica, artifact_ICs):
+    ICA_rej_dic[f'sub-{subject}_ses-{session}'] = bad_components
+    np.save(ICA_rej_dict_fpath, ICA_rej_dic, allow_pickle=True)
+
+    return bad_components
+
+def apply_ica(ica, raw_ann, bad_components, deriv_fpath):
+        ica.exclude = bad_components
+        raw_ica = raw_ann.copy()
+        ica.apply(raw_ica)
+        raw_ica.save(deriv_fpath, overwrite=True)
+
+        return raw_ica
+
+def create_report(subject, session, task, report_folder, report_fname, ica, raw_ica, bad_components):
     """
     Create and save the report after applying ICA.
 
     Args:
         ica (mne.preprocessing.ICA): Fitted ICA object.
         raw_ica (mne.io.Raw): ICA cleaned raw data.
-        artifact_ICs (list): List of artifact ICA components.
+        bad_components (list): List of artifact ICA components.
     """
 
     html_report_fname = op.join(report_folder, f'report_{subject}_{session}_{task}_ica.html')
     report_html = mne.Report(title=f'Sub-{subject}_{task}')
 
-    fig_ica = ica.plot_components(picks=artifact_ICs, title='removed components', show=False)
+    fig_ica = ica.plot_components(picks=bad_components, title='removed components', show=False)
     report_html.add_figure(fig_ica, title="removed ICA components (eog, ecg)", tags=('ica'), image_format="PNG")
     report_html.add_raw(raw=raw_ica.filter(0, 60), title='raw after ICA', psd=True, butterfly=False, tags=('ica'))
     report_html.save(html_report_fname, overwrite=True, open_browser=True)
@@ -122,52 +136,30 @@ def main(subject, session):
     # Initialize the config
     config = Config(site='Birmingham', subject=subject, session=session, task='SpAtt')
 
-    # Fill these out
-    input_suffix = 'ann'
-    deriv_suffix = 'ica'
+    ica_overlay_plots = True  # Set to True if you want to plot ica cleaned data overlaid on uncleaned
 
-    input_fpath, deriv_fpath = config.get_bids_paths(input_suffix, deriv_suffix)
-
-    # bids_path = BIDSPath(subject=config.session_info.subject, 
-    #                      session=config.session_info.session, 
-    #                      task=config.session_info.task, 
-    #                      run=config.session_info.run, 
-    #                      datatype=config.session_info.datatype,
-    #                      suffix=config.session_info.meg_suffix, 
-    #                      extension=config.session_info.extension,
-    #                      root=config.directories.bids_root)
-    
-    # bids_fname = bids_path.basename.replace(config.session_info.meg_suffix, input_suffix)  
-    # input_fpath = op.join(config.directories.deriv_folder, bids_fname)
-    # deriv_fpath = input_fpath.replace(input_suffix, deriv_suffix)
+    _, input_fpath, deriv_fpath = config.directories.get_bids_paths(input_suffix='ann', deriv_suffix='ica')
 
     raw_ann, raw_resampled = prepare_raw_data(input_fpath)
-    ica = apply_ica(raw_resampled, config.ica_params.ica_method, 
+    ica = fit_ica(raw_resampled, config.ica_params.ica_method, 
                     config.ica_params.random_state, config.ica_params.n_components)
     
     bad_components = get_bad_components_from_user()
     print("You entered the following numbers:", bad_components)
     
-    save_bad_components(bad_components, 
-                        config.directories.ICA_rej_dict_dir, 
-                        config.session_info.subject,
-                        config.session_info.session)
-    
-    ICA_rej_dic = np.load(config.directories.ICA_rej_dict_dir, allow_pickle=True).item()
-    artifact_ICs = ICA_rej_dic[f'sub-{config.session_info.subject}_ses-{config.session_info.session}']
-    
-    if config.session_info.test_plot:
+    artifact_ICs = save_bad_components(bad_components, 
+                                    config.directories.ICA_rej_dict_fpath, 
+                                    config.session_info.subject,
+                                    config.session_info.session)
+        
+    if ica_overlay_plots:
         for exc in np.arange(len(artifact_ICs)):
             ica.plot_overlay(raw_resampled, exclude=[artifact_ICs[exc]], picks='mag')
         ica.plot_overlay(raw_resampled, exclude=artifact_ICs, picks='mag')
         ica.plot_properties(raw_resampled, picks=artifact_ICs)
-    
-    ica.exclude = artifact_ICs
-    raw_ica = raw_ann.copy()
-    ica.apply(raw_ica)
-    raw_ica.save(deriv_fpath, overwrite=True)
-    
-    create_report(ica, raw_ica, artifact_ICs)
+
+    raw_ica = apply_ica(ica, raw_ann, bad_components, deriv_fpath)
+
     create_report(config.session_info.subject, config.session_info.session,
                   config.session_info.task, config.directories.report_folder,
                   config.directories.report_fname, ica, raw_ica, artifact_ICs)

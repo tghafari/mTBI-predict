@@ -166,17 +166,8 @@ def main(subject, session):
     deriv_suffix = 'raw_sss'
     head_pos_suffix = 'head_pos'
     
-    bids_path = BIDSPath(subject=config.session_info.subject, 
-                         session=config.session_info.session, 
-                         task=config.session_info.task, 
-                         run=config.session_info.run, 
-                         datatype=config.session_info.datatype,
-                         suffix=config.session_info.meg_suffix, 
-                         extension=config.session_info.extension,
-                         root=config.directories.bids_root)
-    
-    deriv_fname = bids_path.basename.replace(config.session_info.meg_suffix, deriv_suffix) 
-    deriv_fpath = op.join(config.directories.deriv_folder, deriv_fname)
+    bids_path, _, deriv_fpath = config.directories.get_bids_paths(input_suffix='raw_sss', deriv_suffix='raw_sss')
+
     head_pos_fpath = deriv_fpath.replace(deriv_suffix, head_pos_suffix)
     
     raw = read_and_concatenate_raw_data(config, bids_path)  # this only extecutes if we have run=02 and task='rest'
