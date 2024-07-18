@@ -1,6 +1,42 @@
+"""
+===============================================
+P99. Preprocessing_config
 
+Instructions for users:
 
+1. Project Setup:
+   Ensure the project directory structure is as follows:
+   - project_root/
+     - scripts/
+     - config/
+     - (other project files and directories)
 
+2. Environment Configuration:
+   Modify the `project_root` variable to point to the root directory of your project.
+   This script automatically adds the project root, scripts, and config directories to the PYTHONPATH.
+
+3. Subject and Session Configuration:
+   Edit the `sub_dict` dictionary to include the subjects and sessions you want to process. 
+   For example:
+   sub_dict = {'subjects': ['2015', '2016'], 'sessions': ['03B', '04B']}
+
+4. Scripts to Execute:
+   List of the `scripts` in the order they should be executed.
+
+5. Running the Script:
+   Run this script in mne environment from the command line:
+
+   python P99_preprocessing_config.py
+
+This will iterate over all subject-session pairs and execute the listed scripts for each pair.
+
+6. Error Handling:
+    If any script encounters an error, it will print the error message and try to continue with the next script.
+    Successfully executed scripts will print a success message.
+
+written by Tara Ghafari
+t.ghafari@bham.ac.uk
+"""
 
 import subprocess
 import os
@@ -19,8 +55,7 @@ sys.path.append(config_root)
 from config import Config
 
 # Subject and session dictionary
-sub_dict = {'subjects': ['2015'], 'sessions': ['03B']}
-# {'subjects': ['2015', '2015', '2015'], 'sessions': ['03B', '05B', '06B']}
+sub_dict =  {'subjects': ['2015', '2015', '2015'], 'sessions': ['03B', '05B', '06B']}
 
 # List of scripts to execute in order
 scripts = [
@@ -32,7 +67,17 @@ scripts = [
 
 def run_preprocessing(script_path, script, subject, session):
     """
-    Run a script with subject and session as arguments.
+    Run a script with script_path, script, subject and session as arguments.
+    
+    Parameters:
+    - script_path (str): path to the script to run
+    - script (str): name of the script
+    - subject (str): subject identifier
+    - session (str): session identifier
+    
+    This function sets the necessary environment variable (PYTHONPATH) and
+    executes the script using the subprocess module. It captures and prints
+    any errors encountered during the execution.
     """
     # Prepare the environment with PYTHONPATH set to the project root
     print("Reading environment")

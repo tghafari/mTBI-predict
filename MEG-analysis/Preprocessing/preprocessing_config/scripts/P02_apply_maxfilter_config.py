@@ -71,7 +71,7 @@ def get_bad_sensors_from_user(original_bads, raw, plot_bads=True):
     else:
         print("No bad channels added by user")
         if plot_bads:
-            raw.copy().pick(original_bads).compute_psd().plot()
+            raw.copy().pick(original_bads).compute_psd(fmin=0.1, fmax=100).plot()
     
     return bad_sensors
 

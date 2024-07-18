@@ -121,7 +121,7 @@ def create_report(subject, session, task, report_folder, report_fname, fig_bads,
 
         # Save the full preprocessing report in html and open
         full_html_report_fname = op.join(report_folder, f'report_{subject}_{session}_{task}_full.html')
-        report_html.save(full_html_report_fname, overwrite=True, open_browser=True)
+        report.save(full_html_report_fname, overwrite=True, open_browser=True)
 
 
 def main(subject, session):
