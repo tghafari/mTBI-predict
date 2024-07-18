@@ -8,7 +8,7 @@ import os.path as op
 import sys
 
 # Add the project root directory to the sys.path
-#project_root = '/Volumes/jenseno-avtemporal-attention/Projects/mTBI-predict/programming/github/mTBI-predict/MEG-analysis/Preprocessing/preprocessing_config'
+# project_root = '/Volumes/jenseno-avtemporal-attention/Projects/mTBI-predict/programming/github/mTBI-predict/MEG-analysis/Preprocessing/preprocessing_config'
 project_root =  op.dirname(op.abspath(__file__))
 scripts_root = op.join(project_root, 'scripts')
 config_root = op.join(project_root, 'config')
@@ -19,14 +19,15 @@ sys.path.append(config_root)
 from config import Config
 
 # Subject and session dictionary
-sub_dict = {'subjects': [2016], 'sessions': ['05B']}
+sub_dict = {'subjects': ['2015'], 'sessions': ['03B']}
+# {'subjects': ['2015', '2015', '2015'], 'sessions': ['03B', '05B', '06B']}
 
 # List of scripts to execute in order
 scripts = [
-    # 'P02_apply_maxfilter_config.py',
-    # 'P03_artifact_annotation_config.py',
+    'P02_apply_maxfilter_config.py',
+    'P03_artifact_annotation_config.py',
     'P04_run_apply_ICA_config.py',
-    # 'P05_epoching_config.py'
+    'P05_epoching_config.py'
 ]
 
 def run_preprocessing(script_path, script, subject, session):
@@ -37,15 +38,6 @@ def run_preprocessing(script_path, script, subject, session):
     print("Reading environment")
     env = os.environ.copy()
     env['PYTHONPATH'] = project_root + os.pathsep + env.get('PYTHONPATH', '')
-
-    # # Call the main function directly
-    # print("1-Maxwell Filter")
-    # apply_maxfilter(subject, session)
-    # print(f"Successfully ran P02_apply_maxfilter_config.py for subject {subject}, session {session}")
-
-    # Run the script using subprocess
-    # cmd = ['python', script_path, '--subject', str(subject), '--session', str(session)]
-    # result = subprocess.run([sys.executable, cmd], capture_output=True, text=True, env=env, check=True)
 
     cmd = [sys.executable, script_path, '--subject', str(subject), '--session', str(session)]
     result = subprocess.run(cmd, env=env)

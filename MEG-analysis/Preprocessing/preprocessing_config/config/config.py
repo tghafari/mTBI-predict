@@ -130,13 +130,13 @@ class Config:
 
     class EpochConfig:
         """Configures epoching parameters."""
-        def __init__(self, epo_tmin=None, epo_tmax=None):
-            self.epo_tmin = epo_tmin
-            self.epo_tmax = epo_tmax
+        def __init__(self, epo_tmin=-0.7, epo_tmax=1.7):
+            self.epo_tmin = float(epo_tmin)
+            self.epo_tmax = float(epo_tmax)
 
     def __init__(self, site=None, subject=None, session=None, run='01', task=None, datatype='meg', meg_suffix='meg', extension='.fif', platform='mac', 
                  input_suffix=None, deriv_suffix=None, maxwell_method='sss', threshold_muscle=7.0, min_length_good=0.2, filter_freq=[110,140], n_components=0.99, random_state=97, 
-                 ica_method='fastica', max_iter=800, epo_tmin=None, epo_tmax=None):
+                 ica_method='fastica', max_iter=800, epo_tmin=-0.7, epo_tmax=1.7):
         
         """
         Initialize the Config class with provided parameters.
@@ -161,8 +161,8 @@ class Config:
         random_state (int): Seed for random number generator, default is 97.
         ica_method (str): The ICA method to use in the fit method, default is 'fastica'.
         max_iter (int): Maximum number of iterations during fit, default is 800.
-        epo_tmin (float): tmin for epoching, e.g., for spatial attention epo_tmin = -0.7
-        epo_tmax (float): tmax for epoching, e.g., for spatial attention epo_tmax = 1.7
+        epo_tmin (float): tmin for epoching, default is for spatial attention epo_tmin = -0.7
+        epo_tmax (float): tmax for epoching, default is for spatial attention epo_tmax = 1.7
         """
                 
         # Config sub-classes

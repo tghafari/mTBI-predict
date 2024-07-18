@@ -33,7 +33,7 @@ from mne_bids import BIDSPath, read_raw_bids
 
 # fill these out
 site = 'Birmingham'
-subject = '2010'  # subject code in mTBI project
+subject = '2016'  # subject code in mTBI project
 session = '05B'  # data collection session within each run
 run = '01'  # data collection run for each participant
 task = 'SpAtt'
