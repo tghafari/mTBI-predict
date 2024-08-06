@@ -81,7 +81,7 @@ def read_and_concatenate_raw_data(config, bids_path):
     It only does so if it is resting state and has 2 runs.
     """
     
-    if config.session_info.task == 'rest' and config.session_info.run == '02':
+    if config.session_info.task == 'rest' and config.session_info.run == '03':
         bids_path2 = bids_path.copy().update(run='02')
         if op.exists(bids_path2):
             raw1 = read_raw_bids(bids_path=bids_path, extra_params={'preload': True}, verbose=True)

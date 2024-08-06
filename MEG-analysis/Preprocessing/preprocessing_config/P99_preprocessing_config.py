@@ -55,7 +55,7 @@ sys.path.append(config_root)
 from config import Config
 
 # Subject and session dictionary
-sub_dict =  {'subjects': ['2015', '2015', '2015'], 'sessions': ['03B', '05B', '06B']}
+sub_dict =  {'subjects': ['2016'], 'sessions': ['05B']}
 
 # List of scripts to execute in order
 scripts = [
