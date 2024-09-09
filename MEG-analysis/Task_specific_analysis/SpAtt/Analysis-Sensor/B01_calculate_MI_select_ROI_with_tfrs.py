@@ -429,8 +429,8 @@ if summary_rprt:
     report_folder = op.join(report_root , 'sub-' + subject, 'ses-' + session, 'task-' + task)
 
     report_fname = op.join(report_folder, 
-                        f'mneReport_sub-{subject}_{session}_{task}_1.hdf5')    # it is in .hdf5 for later adding images
-    html_report_fname = op.join(report_folder, f'report_preproc_{session}_{task}_1.html')
+                        f'report_{subject}_{session}_{task}_full.hdf5')    # it is in .hdf5 for later adding images
+    html_report_fname = op.join(report_folder, f'report_{subject}_{session}_{task}_full.html') 
 
     report = mne.open_report(report_fname)
     report.add_figure(fig=fig_plot_topo_right, title='TFR of power < 30Hz - cue right',
