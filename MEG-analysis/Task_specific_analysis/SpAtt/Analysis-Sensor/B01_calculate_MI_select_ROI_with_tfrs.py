@@ -146,7 +146,7 @@ fig_plot_topo_left = tfr_slow_cue_left.plot_topo(tmin=-.5,
 fig_tfr, axis = plt.subplots(2, 2, figsize = (7, 7))
 sensors = ['MEG1943','MEG2533']
 
-'MEG1733','MEG2133',
+# 'MEG1733','MEG2133',
 
 for idx, sensor in enumerate(sensors):
     if idx < len(sensors)/2:
