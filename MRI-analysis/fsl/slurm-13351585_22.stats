@@ -1,0 +1,17 @@
++--------------------------------------------------------------------------+
+| Job on the BlueBEAR cluster:
+| Starting at Mon Sep 16 18:07:38 2024 for ghafarit(667799)
+| Identity jobid 13351608 jobname 02_fslstats_array.sh
+| Array Identity 13351585_22
+| Running against project quinna-camcan and in partition sapphire-shared
+| Requested cpu=5,mem=20G,node=1,billing=5 - 01:30:00 walltime
+| Assigned to nodes bear-pg0210u08b
+| Command /rds/projects/j/jenseno-avtemporal-attention/Projects/mTBI-predict/programming/github/mTBI-predict/MRI-analysis/fsl/02_fslstats_array.sh
+| WorkDir /rds/projects/j/jenseno-avtemporal-attention/Projects/mTBI-predict/programming/github/mTBI-predict/MRI-analysis/fsl
++--------------------------------------------------------------------------+
++--------------------------------------------------------------------------+
+| Finished at Mon Sep 16 18:07:57 2024 for ghafarit(667799) on the BlueBEAR Cluster
+| Required (00:12.510 cputime, 932K memory used) - 00:00:19 walltime
+| JobState COMPLETING - Reason None
+| Exitcode 0:0
++--------------------------------------------------------------------------+
